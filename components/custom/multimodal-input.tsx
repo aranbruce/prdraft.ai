@@ -21,16 +21,16 @@ import { Textarea } from "../ui/textarea";
 
 const suggestedActions = [
   {
-    title: "Weather in SF?",
-    action: "What is the weather in San Francisco?",
+    title: "Create a new PRD",
+    action: "Help me create a new PRD",
   },
   {
-    title: "Why the sky is blue",
-    action: "Answer like I'm 5, why is the sky blue?",
+    title: "Edit a PRD",
+    action: "Help me edit a PRD",
   },
   {
-    title: "Tell me a joke",
-    action: "Tell me a joke about LLMs",
+    title: "Critique a PRD",
+    action: "Help me critique a PRD",
   },
 ];
 
@@ -54,13 +54,13 @@ export function MultimodalInput({
   messages: Array<Message>;
   append: (
     message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions
+    chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
   handleSubmit: (
     event?: {
       preventDefault?: () => void;
     },
-    chatRequestOptions?: ChatRequestOptions
+    chatRequestOptions?: ChatRequestOptions,
   ) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -137,7 +137,7 @@ export function MultimodalInput({
         const uploadPromises = files.map((file) => uploadFile(file));
         const uploadedAttachments = await Promise.all(uploadPromises);
         const successfullyUploadedAttachments = uploadedAttachments.filter(
-          (attachment) => attachment !== undefined
+          (attachment) => attachment !== undefined,
         );
 
         setAttachments((currentAttachments) => [
@@ -150,15 +150,15 @@ export function MultimodalInput({
         setUploadQueue([]);
       }
     },
-    [setAttachments]
+    [setAttachments],
   );
 
   return (
-    <div className="flex flex-col w-full gap-2">
-      <div className="relative w-full flex flex-col gap-4">
+    <div className="flex w-full flex-col gap-2">
+      <div className="relative flex w-full flex-col gap-4">
         <input
           type="file"
-          className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
+          className="pointer-events-none fixed -left-4 -top-4 size-0.5 opacity-0"
           ref={fileInputRef}
           multiple
           onChange={handleFileChange}
@@ -190,7 +190,7 @@ export function MultimodalInput({
           placeholder="Send a message..."
           value={input}
           onChange={handleInput}
-          className="min-h-[24px] overflow-hidden resize-none rounded-xl text-base bg-muted pb-14"
+          className="min-h-[24px] resize-none overflow-hidden rounded-xl bg-muted pb-14 text-base"
           rows={1}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
@@ -198,7 +198,7 @@ export function MultimodalInput({
 
               if (isLoading) {
                 toast.error(
-                  "Please wait for the model to finish its response!"
+                  "Please wait for the model to finish its response!",
                 );
               } else {
                 submitForm();
@@ -206,9 +206,9 @@ export function MultimodalInput({
             }
           }}
         />
-        <div className="bottom-2 absolute flex flex-row justify-between inset-x-2 ">
+        <div className="absolute inset-x-2 bottom-2 flex flex-row justify-between">
           <Button
-            className="rounded-lg p-2 h-fit dark:border-zinc-700"
+            className="h-fit rounded-lg p-2 dark:border-zinc-700"
             onClick={(event) => {
               event.preventDefault();
               fileInputRef.current?.click();
@@ -221,7 +221,7 @@ export function MultimodalInput({
 
           {isLoading ? (
             <Button
-              className="rounded-lg p-2 h-fit"
+              className="h-fit rounded-lg p-2"
               onClick={(event) => {
                 event.preventDefault();
                 stop();
@@ -231,7 +231,7 @@ export function MultimodalInput({
             </Button>
           ) : (
             <Button
-              className="rounded-lg p-2 h-fit"
+              className="h-fit rounded-lg p-2"
               onClick={(event) => {
                 event.preventDefault();
                 submitForm();
@@ -246,13 +246,13 @@ export function MultimodalInput({
       {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
-          <div className="flex flex-row gap-2 w-full md:px-0 mx-auto justify-center">
+          <div className="mx-auto flex w-full flex-row justify-center gap-2 md:px-0">
             {suggestedActions.map((suggestedAction, index) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                transition={{ delay: 0.05 * index }}
+                transition={{ delay: 0.5 + 0.05 * index }}
                 key={index}
                 className={index > 1 ? "hidden sm:block" : "block"}
               >
@@ -263,7 +263,7 @@ export function MultimodalInput({
                       content: suggestedAction.action,
                     });
                   }}
-                  className="w-full text-xs py-1 px-2 rounded-full text-left border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300  hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex flex-col"
+                  className="flex w-full flex-col rounded-full border border-zinc-200 px-2 py-1 text-left text-xs text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
                   <span className="font-medium">{suggestedAction.title}</span>
                 </button>

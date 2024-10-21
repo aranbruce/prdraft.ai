@@ -1,22 +1,19 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@radix-ui/react-alert-dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { cx } from "class-variance-authority";
-import { MoreHorizontalIcon, PanelLeft, TrashIcon, X } from "lucide-react";
+import {
+  InfoIcon,
+  MoreHorizontalIcon,
+  PanelLeft,
+  TrashIcon,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -41,7 +38,17 @@ import {
 import { Chat } from "@/db/schema";
 import { fetcher, getTitleFromChat } from "@/lib/utils";
 
-import { AlertDialogFooter, AlertDialogHeader } from "../ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
 import { Button } from "../ui/button";
 
 export function AppSidebar({ user }: { user: User | undefined }) {
@@ -94,12 +101,14 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     <>
       <Sidebar collapsible="offcanvas">
         <SidebarHeader className="flex flex-row items-center justify-between">
-          <Image
-            src="/images/logo.svg"
-            alt={"PRDraft Logo"}
-            width={40}
-            height={40}
-          />
+          <Link href="/">
+            <Image
+              src="/images/logo.svg"
+              alt={"PRDraft Logo"}
+              width={40}
+              height={40}
+            />
+          </Link>
           <SidebarTrigger className="flex md:hidden">
             <X size={16} />
           </SidebarTrigger>
@@ -128,6 +137,24 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             <SidebarGroupLabel>Recent chats</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
+                {!isLoading && history?.length === 0 && user ? (
+                  <div className="flex h-dvh w-full flex-row items-center justify-center gap-2 text-sm text-zinc-500">
+                    <InfoIcon />
+                    <div>No chats found</div>
+                  </div>
+                ) : null}
+
+                {isLoading && user ? (
+                  <div className="flex flex-col">
+                    {[44, 32, 28, 52].map((item) => (
+                      <div key={item} className="my-[2px] p-2">
+                        <div
+                          className={`w-${item} h-[20px] animate-pulse rounded-md bg-zinc-200 dark:bg-zinc-600`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
                 {history &&
                   history.map((chat) => (
                     <SidebarMenuItem
@@ -163,7 +190,43 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent side="left" className="z-50">
                           <DropdownMenuItem asChild>
-                            <Button
+                            <AlertDialog>
+                              <AlertDialogTrigger className="mr-2">
+                                <Button
+                                  className="relative mr-2 flex h-fit w-full flex-row items-center justify-start gap-2 rounded-sm bg-white p-1.5 font-normal text-red-600 shadow-md"
+                                  variant="ghost"
+                                >
+                                  <TrashIcon />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Are you absolutely sure?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete your account and remove
+                                    your data from our servers.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-red-600 hover:bg-red-700 active:bg-red-800"
+                                    onClick={() => {
+                                      console.log("delete", chat.id);
+                                      handleDelete(chat.id);
+                                    }}
+                                  >
+                                    <TrashIcon />
+                                    Confirm deletion
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                            {/* <Button
                               className="mr-2 flex h-fit w-full flex-row items-center justify-start gap-2 rounded-sm bg-white p-1.5 font-normal shadow-md"
                               variant="ghost"
                               onClick={() => {
@@ -173,7 +236,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                             >
                               <TrashIcon />
                               Delete
-                            </Button>
+                            </Button> */}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

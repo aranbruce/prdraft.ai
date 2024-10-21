@@ -4,10 +4,9 @@ import { Attachment, ToolInvocation } from "ai";
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
-import { BotIcon, UserIcon } from "./icons";
+import { BotIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { PreviewAttachment } from "./preview-attachment";
-import { Weather } from "./weather";
 
 export const Message = ({
   role,
@@ -22,22 +21,26 @@ export const Message = ({
 }) => {
   return (
     <motion.div
-      className={`flex flex-row gap-4 px-4 w-full md:w-[500px] md:px-0 first-of-type:pt-20`}
+      className="flex w-full flex-row gap-4 px-4 font-medium text-zinc-950 first-of-type:mt-20"
       initial={{ y: 5, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
     >
-      <div className="size-[24px] flex flex-col justify-center items-center shrink-0 text-zinc-400">
-        {role === "assistant" ? <BotIcon /> : <UserIcon />}
-      </div>
+      {role === "assistant" && (
+        <div className="flex size-[24px] shrink-0 flex-col items-center justify-center text-zinc-400">
+          <BotIcon />
+        </div>
+      )}
 
-      <div className="flex flex-col gap-2 w-full">
+      <div className="flex w-full flex-col gap-2">
         {content && (
-          <div className="text-zinc-800 dark:text-zinc-300 flex flex-col gap-4">
+          <div
+            className={`flex flex-col gap-4 text-zinc-800 dark:text-zinc-300 ${role === "user" && "w-fit self-end rounded-lg bg-slate-200/70 p-2"}`}
+          >
             <Markdown>{content as string}</Markdown>
           </div>
         )}
 
-        {toolInvocations && (
+        {/* {toolInvocations && (
           <div className="flex flex-col gap-4">
             {toolInvocations.map((toolInvocation) => {
               const { toolName, toolCallId, state } = toolInvocation;
@@ -61,7 +64,7 @@ export const Message = ({
               }
             })}
           </div>
-        )}
+        )} */}
 
         {attachments && (
           <div className="flex flex-row gap-2">

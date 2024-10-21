@@ -2,13 +2,13 @@ import { Metadata } from "next";
 import { Toaster } from "sonner";
 
 import { Navbar } from "@/components/custom/navbar";
-import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://chat.vercel.ai"),
-  title: "Next.js Chatbot Template",
-  description: "Next.js chatbot template using the AI SDK.",
+  metadataBase: new URL("https://prdraft.ai"),
+  title: "PRDraft AI",
+  description: "Create your next PRD with ease",
 };
 
 export default async function RootLayout({

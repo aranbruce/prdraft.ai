@@ -17,6 +17,7 @@ import {
 } from "@radix-ui/react-dropdown-menu";
 import { cx } from "class-variance-authority";
 import { MoreHorizontalIcon, PanelLeft, TrashIcon, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { User } from "next-auth";
@@ -93,7 +94,12 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     <>
       <Sidebar collapsible="offcanvas">
         <SidebarHeader className="flex flex-row items-center justify-between">
-          <div className="size-8 rounded-lg bg-slate-800"></div>
+          <Image
+            src="/images/logo.svg"
+            alt={"PRDraft Logo"}
+            width={40}
+            height={40}
+          />
           <SidebarTrigger className="flex md:hidden">
             <X size={16} />
           </SidebarTrigger>
@@ -155,10 +161,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                             <MoreHorizontalIcon />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="z-50">
+                        <DropdownMenuContent side="left" className="z-50">
                           <DropdownMenuItem asChild>
                             <Button
-                              className="flex h-fit w-full flex-row items-center justify-start gap-2 rounded-sm p-1.5 font-normal"
+                              className="mr-2 flex h-fit w-full flex-row items-center justify-start gap-2 rounded-sm bg-white p-1.5 font-normal shadow-md"
                               variant="ghost"
                               onClick={() => {
                                 console.log("delete", chat.id);

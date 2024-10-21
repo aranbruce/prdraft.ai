@@ -1,4 +1,5 @@
 import { PanelLeft } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { auth, signOut } from "@/app/(auth)/auth";
@@ -55,10 +56,15 @@ export const Navbar = async () => {
       {session?.user ? (
         <>
           <AppSidebar user={session?.user} />
-          <nav className="fixed top-0 flex w-full flex-row items-center justify-between px-4 py-2">
+          <nav className="fixed top-0 flex w-full flex-row items-center justify-between px-3 py-2">
             <div className="flex flex-row items-center gap-2">
               <Link href="/" className="hidden md:flex">
-                <div className="size-8 rounded-lg bg-slate-800"></div>
+                <Image
+                  src="/images/logo.svg"
+                  alt={"PRDraft Logo"}
+                  width={40}
+                  height={40}
+                />
               </Link>
               <SidebarTrigger className="hidden md:flex">
                 <PanelLeft />
@@ -76,7 +82,12 @@ export const Navbar = async () => {
         <nav className="absolute left-0 top-0 z-30 flex w-dvw flex-row items-center justify-between bg-background px-3 py-2">
           <div className="flex flex-row items-center gap-3">
             <Link href="/">
-              <div className="size-8 rounded-lg bg-slate-800"></div>
+              <Image
+                src="/images/logo.svg"
+                alt={"PRDraft Logo"}
+                width={40}
+                height={40}
+              />
             </Link>
           </div>
           <div className="flex flex-row gap-2">

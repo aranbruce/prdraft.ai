@@ -32,7 +32,7 @@ export function Chat({
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   return (
-    <main className="flex h-svh w-full flex-row justify-center overflow-hidden bg-background">
+    <main className="flex h-dvh w-full flex-row justify-center overflow-hidden bg-background">
       <div className="flex w-full flex-col items-center justify-center gap-4">
         {messages.length > 0 && (
           <div

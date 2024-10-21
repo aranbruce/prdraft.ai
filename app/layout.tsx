@@ -18,7 +18,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="h-svh antialiased">
+      <body className="h-dvh overflow-hidden antialiased">
         <SidebarProvider>
           <Toaster position="top-center" />
           <Navbar />

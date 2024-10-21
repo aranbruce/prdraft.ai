@@ -32,7 +32,7 @@ export function Chat({
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   return (
-    <main className="flex h-dvh w-full flex-row justify-center bg-background pb-2 md:pb-4">
+    <main className="flex h-svh w-full flex-row justify-center overflow-hidden bg-background">
       <div className="flex w-full flex-col items-center justify-center gap-4">
         {messages.length > 0 && (
           <div
@@ -60,7 +60,7 @@ export function Chat({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ delay: 0 }}
-          className="w-full max-w-2xl px-6"
+          className="w-full max-w-2xl px-6 pb-4"
         >
           <form className="relative flex w-full flex-col gap-6">
             {messages.length === 0 && (

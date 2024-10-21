@@ -11,6 +11,7 @@ import {
   InfoIcon,
   MoreHorizontalIcon,
   PanelLeft,
+  Shuffle,
   TrashIcon,
   X,
 } from "lucide-react";
@@ -89,14 +90,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     });
   };
 
-  useEffect(() => {
-    console.log("history", history);
-  }, [history]);
-
-  useEffect(() => {
-    console.log("user", user);
-  }, [user]);
-
   return (
     <>
       <Sidebar collapsible="offcanvas">
@@ -173,6 +166,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                       >
                         <Link
                           href={`/chat/${chat.id}`}
+                          onClick={() => setOpenMobile(false)}
                           className="overflow-hidden text-ellipsis rounded-lg py-2 pl-2 text-left capitalize"
                         >
                           {chat.title || "Untitled"}
@@ -182,18 +176,22 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                       <DropdownMenu modal={true}>
                         <DropdownMenuTrigger asChild>
                           <Button
-                            className="h-fit p-0 font-normal text-zinc-500 shadow-sm transition-none hover:bg-zinc-200"
+                            className="h-fit p-0 font-normal text-zinc-500 transition-none hover:bg-zinc-200"
                             variant="ghost"
                           >
                             <MoreHorizontalIcon />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent side="left" className="z-50">
+                        <DropdownMenuContent
+                          side="right"
+                          align="start"
+                          className="z-50 -mt-3 ml-2 flex flex-col gap-2 rounded-md bg-white p-1 font-normal shadow-md"
+                        >
                           <DropdownMenuItem asChild>
                             <AlertDialog>
-                              <AlertDialogTrigger className="mr-2">
+                              <AlertDialogTrigger>
                                 <Button
-                                  className="relative mr-2 flex h-fit w-full flex-row items-center justify-start gap-2 rounded-sm bg-white p-1.5 font-normal text-red-600 shadow-md"
+                                  className="relative flex h-fit w-full flex-row items-center justify-start gap-2 p-1.5 text-red-600"
                                   variant="ghost"
                                 >
                                   <TrashIcon />
@@ -226,18 +224,16 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
-                            {/* <Button
-                              className="mr-2 flex h-fit w-full flex-row items-center justify-start gap-2 rounded-sm bg-white p-1.5 font-normal shadow-md"
-                              variant="ghost"
-                              onClick={() => {
-                                console.log("delete", chat.id);
-                                handleDelete(chat.id);
-                              }}
-                            >
-                              <TrashIcon />
-                              Delete
-                            </Button> */}
                           </DropdownMenuItem>
+                          {/* <DropdownMenuItem asChild>
+                            <Button
+                              className="relative flex h-fit w-full flex-row items-center justify-start gap-2 p-1.5"
+                              variant="ghost"
+                            >
+                              <Shuffle />
+                              Rename
+                            </Button>
+                          </DropdownMenuItem> */}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </SidebarMenuItem>

@@ -60,7 +60,7 @@ export function Chat({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ delay: 0 }}
-          className="w-full max-w-2xl"
+          className="w-full max-w-2xl px-6"
         >
           <form className="relative flex w-full flex-col gap-6">
             {messages.length === 0 && (

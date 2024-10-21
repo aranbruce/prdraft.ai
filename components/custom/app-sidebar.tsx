@@ -138,7 +138,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             <SidebarGroupContent>
               <SidebarMenu>
                 {!isLoading && history?.length === 0 && user ? (
-                  <div className="flex h-dvh w-full flex-row items-center justify-center gap-2 text-sm text-zinc-500">
+                  <div className="mt-4 flex w-full flex-row items-center justify-center gap-2 rounded-xl bg-zinc-200/80 py-8 text-sm text-zinc-500">
                     <InfoIcon />
                     <div>No chats found</div>
                   </div>
@@ -173,9 +173,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                       >
                         <Link
                           href={`/chat/${chat.id}`}
-                          className="overflow-hidden text-ellipsis rounded-lg py-2 pl-2 text-left"
+                          className="overflow-hidden text-ellipsis rounded-lg py-2 pl-2 text-left capitalize"
                         >
-                          {getTitleFromChat(chat)}
+                          {chat.title || "Untitled"}
                         </Link>
                       </SidebarMenuButton>
 

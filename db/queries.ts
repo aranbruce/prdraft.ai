@@ -5,6 +5,8 @@ import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
+import { getTitleFromChat } from "@/lib/utils";
+
 import { user, chat, User } from "./schema";
 
 // Optionally, if not using email/pass login, you can
@@ -36,10 +38,12 @@ export async function createUser(email: string, password: string) {
 
 export async function saveChat({
   id,
+  title,
   messages,
   userId,
 }: {
   id: string;
+  title: string;
   messages: any;
   userId: string;
 }) {
@@ -51,12 +55,14 @@ export async function saveChat({
         .update(chat)
         .set({
           messages: JSON.stringify(messages),
+          title: title || getTitleFromChat(messages),
         })
         .where(eq(chat.id, id));
     }
 
     return await db.insert(chat).values({
       id,
+      title: title || getTitleFromChat(messages),
       createdAt: new Date(),
       messages: JSON.stringify(messages),
       userId,

@@ -65,6 +65,7 @@ export async function POST(request: Request) {
         try {
           await saveChat({
             id,
+            title: messages[0].content,
             messages: [...coreMessages, ...responseMessages],
             userId: session.user.id,
           });

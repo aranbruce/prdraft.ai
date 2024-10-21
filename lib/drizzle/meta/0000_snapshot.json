@@ -15,6 +15,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "title": {
+          "name": "title",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",

@@ -32,12 +32,12 @@ export function Chat({
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   return (
-    <main className="flex h-dvh w-full flex-row justify-center bg-background px-6 pb-2 md:px-12 md:pb-4">
-      <div className="flex w-full max-w-2xl flex-col items-center justify-center gap-4">
+    <main className="flex h-dvh w-full flex-row justify-center bg-background pb-2 md:pb-4">
+      <div className="flex w-full flex-col items-center justify-center gap-4">
         {messages.length > 0 && (
           <div
             ref={messagesContainerRef}
-            className="flex size-full flex-col items-center gap-4 overflow-y-scroll"
+            className="flex size-full flex-col items-center gap-4 overflow-y-scroll px-6 md:px-12"
           >
             {messages.map((message) => (
               <PreviewMessage
@@ -60,7 +60,7 @@ export function Chat({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ delay: 0 }}
-          className="w-full"
+          className="w-full max-w-2xl"
         >
           <form className="relative flex w-full flex-col gap-6">
             {messages.length === 0 && (

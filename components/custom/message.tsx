@@ -21,7 +21,7 @@ export const Message = ({
 }) => {
   return (
     <motion.div
-      className="flex w-full flex-row gap-4 px-4 font-medium text-zinc-950 first-of-type:mt-20"
+      className="flex w-full max-w-2xl flex-row gap-4 px-4 font-medium text-zinc-950 first-of-type:mt-20"
       initial={{ y: 5, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
     >

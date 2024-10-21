@@ -8,7 +8,6 @@ import { Message as PreviewMessage } from "@/components/custom/message";
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
 
 import { MultimodalInput } from "./multimodal-input";
-import { Overview } from "./overview";
 
 export function Chat({
   id,
@@ -32,31 +31,37 @@ export function Chat({
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   return (
-    <div className="flex flex-row justify-center pb-4 md:pb-8 h-dvh bg-background">
-      <div className="flex flex-col justify-between items-center gap-4">
-        <div
-          ref={messagesContainerRef}
-          className="flex flex-col gap-4 h-full w-dvw items-center overflow-y-scroll"
-        >
-          {messages.length === 0 && <Overview />}
-
-          {messages.map((message) => (
-            <PreviewMessage
-              key={message.id}
-              role={message.role}
-              content={message.content}
-              attachments={message.experimental_attachments}
-              toolInvocations={message.toolInvocations}
-            />
-          ))}
-
+    <main className="flex h-dvh w-full flex-row justify-center bg-background px-6 pb-2 md:px-12 md:pb-4">
+      <div className="flex w-full max-w-2xl flex-col items-center justify-center gap-4">
+        {messages.length > 0 && (
           <div
-            ref={messagesEndRef}
-            className="shrink-0 min-w-[24px] min-h-[24px]"
-          />
-        </div>
+            ref={messagesContainerRef}
+            className="flex h-full w-dvw flex-col items-center gap-4 overflow-y-scroll"
+          >
+            {messages.map((message) => (
+              <PreviewMessage
+                key={message.id}
+                role={message.role}
+                content={message.content}
+                attachments={message.experimental_attachments}
+                toolInvocations={message.toolInvocations}
+              />
+            ))}
 
-        <form className="flex flex-row gap-2 relative items-end w-full md:max-w-[500px] max-w-[calc(100dvw-32px) px-4 md:px-0">
+            <div
+              ref={messagesEndRef}
+              className="min-h-[24px] min-w-[24px] shrink-0"
+            />
+          </div>
+        )}
+
+        <form className="relative flex w-full flex-col gap-4">
+          {messages.length === 0 && (
+            <h1 className="w-full text-center text-3xl font-semibold text-black dark:text-zinc-400">
+              How can I help you with today?
+            </h1>
+          )}
+
           <MultimodalInput
             input={input}
             setInput={setInput}
@@ -70,6 +75,6 @@ export function Chat({
           />
         </form>
       </div>
-    </div>
+    </main>
   );
 }

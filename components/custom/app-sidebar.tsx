@@ -99,6 +99,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             alt={"PRDraft Logo"}
             width={40}
             height={40}
+            priority
           />
         </Link>
         <SidebarTrigger className="flex md:hidden">
@@ -188,14 +189,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                       >
                         <DropdownMenuItem asChild>
                           <AlertDialog>
-                            <AlertDialogTrigger>
-                              <Button
-                                className="relative flex h-fit w-full flex-row items-center justify-start gap-2 p-1.5 text-red-600"
-                                variant="ghost"
-                              >
-                                <TrashIcon />
-                                Delete
-                              </Button>
+                            <AlertDialogTrigger className="relative flex h-fit w-full flex-row items-center justify-start gap-2 p-1.5 text-red-600 outline-none">
+                              <TrashIcon size={16} />
+                              Delete
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>

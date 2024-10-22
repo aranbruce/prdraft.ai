@@ -18,7 +18,8 @@ export default async function Page(props: { params: Promise<any> }) {
   }
 
   if (!chatFromDb) {
-    return notFound();
+    redirect("/");
+    // return notFound();
   }
 
   // type casting
@@ -28,7 +29,8 @@ export default async function Page(props: { params: Promise<any> }) {
   };
 
   if (session.user.id !== chat.userId) {
-    return notFound();
+    redirect("/");
+    // return notFound();
   }
 
   return <PreviewChat id={chat.id} initialMessages={chat.messages} />;

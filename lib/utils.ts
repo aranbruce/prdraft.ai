@@ -2,6 +2,7 @@ import {
   CoreMessage,
   CoreToolMessage,
   generateId,
+  generateText,
   Message,
   ToolInvocation,
 } from "ai";
@@ -9,6 +10,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 import { Chat } from "@/db/schema";
+import { customModel } from "@/ai";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -126,13 +128,14 @@ export function convertToUIMessages(
   }, []);
 }
 
-export function getTitleFromChat(chat: Chat) {
-  const messages = convertToUIMessages(chat.messages as Array<CoreMessage>);
-  const firstMessage = messages[0];
+export async function getTitleFromChat(messages: CoreMessage[]) {
+  const title = await generateText({
+    model: customModel,
+    system: `You are designed to generate a title for a chat based on the conversation so far. The title should be a summary of the conversation and should be concise and informative.
+          It should be 2-4 words long and should capture the essence of the conversation.
+          You can just include the topic of the PRD and don't need to include the words "PRD" or "Product Requirements Document" in the title.`,
+    messages: messages,
+  });
 
-  if (!firstMessage) {
-    return "Untitled";
-  }
-
-  return firstMessage.content;
+  return title.text;
 }

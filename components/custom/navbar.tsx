@@ -63,6 +63,7 @@ export const Navbar = async () => {
               alt={"PRDraft Logo"}
               width={40}
               height={40}
+              priority
             />
           </Link>
           {session?.user && (

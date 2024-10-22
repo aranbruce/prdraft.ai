@@ -1,9 +1,10 @@
-import { convertToCoreMessages, Message, streamText } from "ai";
+import { convertToCoreMessages, generateText, Message, streamText } from "ai";
 import { z } from "zod";
 
 import { customModel } from "@/ai";
 import { auth } from "@/app/(auth)/auth";
 import { deleteChatById, getChatById, saveChat } from "@/db/queries";
+import { getTitleFromChat } from "@/lib/utils";
 
 export async function POST(request: Request) {
   const { id, messages }: { id: string; messages: Array<Message> } =
@@ -16,6 +17,30 @@ export async function POST(request: Request) {
   // }
 
   const coreMessages = convertToCoreMessages(messages);
+
+  // const developerThoughts = await generateText({
+  //   model: customModel,
+  //   system: `You are a full stack developer reviewing a product requirement document (PRD) for a new feature.
+  //   It is your job to help the product manager create the PRD by providing feedback on the content and structure.
+  //   `,
+  //   prompt: `Here is the conversation so far:
+  //   ${JSON.stringify(messages)}
+  //   `,
+  // });
+
+  // console.log("Developer Thoughts", developerThoughts);
+
+  // const productDesignerThoughts = await generateText({
+  //   model: customModel,
+  //   system: `You are a product designer reviewing a product requirement document (PRD) for a new feature.
+  //   It is your job to help the product manager create the PRD by providing feedback on the content and structure.
+  //   `,
+  //   prompt: `Here is the conversation so far:
+  //   ${JSON.stringify(messages)}
+  //   `,
+  // });
+
+  // console.log("Product Design Thoughts", productDesignerThoughts);
 
   const result = await streamText({
     model: customModel,
@@ -53,7 +78,8 @@ export async function POST(request: Request) {
       Define the success metrics that will be used to measure the success of the project.
       
       Make sure to ask the user for any missing information and provide guidance on how to structure the PRD.
-      `,
+
+    `,
     messages: coreMessages,
     maxSteps: 5,
 
@@ -62,15 +88,17 @@ export async function POST(request: Request) {
         return;
       }
       if (session.user && session.user.id) {
+        const coreMessagesForTitle = convertToCoreMessages(messages);
+        const title = await getTitleFromChat(coreMessagesForTitle);
         try {
           await saveChat({
             id,
-            title: messages[0].content,
+            title: title,
             messages: [...coreMessages, ...responseMessages],
             userId: session.user.id,
           });
         } catch (error) {
-          console.error("Failed to save chat");
+          console.error("Failed to save chat", error);
         }
       }
     },

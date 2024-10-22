@@ -37,7 +37,7 @@ export function Chat({
         {messages.length > 0 && (
           <div
             ref={messagesContainerRef}
-            className="flex size-full flex-col items-center gap-4 overflow-y-scroll px-6 md:px-12"
+            className="flex size-full flex-col items-center gap-4 overflow-y-scroll px-6 pb-32 md:px-12"
           >
             {messages.map((message) => (
               <PreviewMessage

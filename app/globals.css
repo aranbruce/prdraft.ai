@@ -99,8 +99,13 @@
     @apply border-border;
   }
 
+  html,
   body {
-    @apply bg-background text-foreground;
+    @apply m-0 h-full overflow-hidden;
+  }
+
+  body {
+    @apply bg-white text-zinc-950 antialiased;
   }
 
   @font-face {

@@ -49,47 +49,36 @@ const UserDropdown = ({ email }: { email: string }) => (
 
 export const Navbar = async () => {
   let session = await auth();
-  console.log("session: ", session);
 
   return (
     <>
-      {session?.user ? (
-        <>
-          <AppSidebar user={session?.user} />
-          <nav className="fixed top-0 flex w-full flex-row items-center justify-between px-3 py-2">
-            <div className="flex flex-row items-center gap-2">
-              <Link href="/" className="hidden md:flex">
-                <Image
-                  src="/images/logo.svg"
-                  alt={"PRDraft Logo"}
-                  width={40}
-                  height={40}
-                />
-              </Link>
+      <nav className="fixed top-0 z-10 flex w-full flex-row items-center justify-between bg-gradient-to-b from-white to-transparent px-3 py-2 backdrop-blur-[1px]">
+        <div className="flex flex-row items-center gap-2">
+          <Link
+            href="/"
+            className={`${session?.user?.email && "hidden"} md:flex`}
+          >
+            <Image
+              src="/images/logo.svg"
+              alt={"PRDraft Logo"}
+              width={40}
+              height={40}
+            />
+          </Link>
+          {session?.user && (
+            <>
               <SidebarTrigger className="hidden md:flex">
                 <PanelLeft />
               </SidebarTrigger>
               <SidebarTrigger className="flex md:hidden [&_svg]:size-5">
                 <MenuIcon size={20} />
               </SidebarTrigger>
-            </div>
-            {session.user.email ? (
-              <UserDropdown email={session.user.email} />
-            ) : null}
-          </nav>
-        </>
-      ) : (
-        <nav className="absolute left-0 top-0 z-30 flex w-dvw flex-row items-center justify-between bg-background px-3 py-2">
-          <div className="flex flex-row items-center gap-3">
-            <Link href="/">
-              <Image
-                src="/images/logo.svg"
-                alt={"PRDraft Logo"}
-                width={40}
-                height={40}
-              />
-            </Link>
-          </div>
+            </>
+          )}
+        </div>
+        {session?.user?.email ? (
+          <UserDropdown email={session.user.email} />
+        ) : (
           <div className="flex flex-row gap-2">
             <Button className="" asChild variant="outline">
               <Link href="/sign-up">Sign up</Link>
@@ -98,8 +87,9 @@ export const Navbar = async () => {
               <Link href="/login">Login</Link>
             </Button>
           </div>
-        </nav>
-      )}
+        )}
+      </nav>
+      {session?.user && <AppSidebar user={session?.user} />}
     </>
   );
 };

@@ -91,141 +91,140 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   };
 
   return (
-    <>
-      <Sidebar collapsible="offcanvas">
-        <SidebarHeader className="flex flex-row items-center justify-between">
-          <Link href="/">
-            <Image
-              src="/images/logo.svg"
-              alt={"PRDraft Logo"}
-              width={40}
-              height={40}
-            />
-          </Link>
-          <SidebarTrigger className="flex md:hidden">
-            <X size={16} />
+    <Sidebar collapsible="offcanvas">
+      <SidebarHeader className="flex flex-row items-center justify-between">
+        <Link href="/">
+          <Image
+            src="/images/logo.svg"
+            alt={"PRDraft Logo"}
+            width={40}
+            height={40}
+          />
+        </Link>
+        <SidebarTrigger className="flex md:hidden">
+          <X size={16} />
+        </SidebarTrigger>
+
+        {state === "expanded" && (
+          <SidebarTrigger className="hidden md:flex">
+            <PanelLeft />
           </SidebarTrigger>
+        )}
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <Link href="/">
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => setOpenMobile(false)}
+              >
+                New chat
+              </Button>
+            </Link>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Recent chats</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {!isLoading && history?.length === 0 && user ? (
+                <div className="mt-4 flex w-full flex-row items-center justify-center gap-2 rounded-xl bg-zinc-200/80 py-8 text-sm text-zinc-500">
+                  <InfoIcon />
+                  <div>No chats found</div>
+                </div>
+              ) : null}
 
-          {state === "expanded" && (
-            <SidebarTrigger className="hidden md:flex">
-              <PanelLeft />
-            </SidebarTrigger>
-          )}
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <Link href="/">
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => setOpenMobile(false)}
-                >
-                  New chat
-                </Button>
-              </Link>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          <SidebarGroup>
-            <SidebarGroupLabel>Recent chats</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {!isLoading && history?.length === 0 && user ? (
-                  <div className="mt-4 flex w-full flex-row items-center justify-center gap-2 rounded-xl bg-zinc-200/80 py-8 text-sm text-zinc-500">
-                    <InfoIcon />
-                    <div>No chats found</div>
-                  </div>
-                ) : null}
-
-                {isLoading && user ? (
-                  <div className="flex flex-col">
-                    {[44, 32, 28, 52].map((item) => (
-                      <div key={item} className="my-[2px] p-2">
-                        <div
-                          className={`w-${item} h-[20px] animate-pulse rounded-md bg-zinc-200 dark:bg-zinc-600`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-                {history &&
-                  history.map((chat) => (
-                    <SidebarMenuItem
-                      key={chat.id}
+              {isLoading && user ? (
+                <div className="flex flex-col">
+                  {[44, 32, 28, 52].map((item) => (
+                    <div key={item} className="my-[2px] p-2">
+                      <div
+                        className={`w-${item} h-[20px] animate-pulse rounded-md bg-zinc-200 dark:bg-zinc-600`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              {history &&
+                history.map((chat) => (
+                  <SidebarMenuItem
+                    key={chat.id}
+                    className={cx(
+                      "flex flex-row items-center gap-6 rounded-md pr-2 hover:bg-zinc-200",
+                      { "bg-zinc-200/80": chat.id === id },
+                    )}
+                  >
+                    <SidebarMenuButton
+                      asChild
+                      // variant="ghost"
                       className={cx(
-                        "flex flex-row items-center gap-6 rounded-md pr-2 hover:bg-zinc-200",
-                        { "bg-zinc-200/80": chat.id === id },
+                        "line-clamp-1 items-center justify-between gap-2 overflow-hidden text-ellipsis p-0 text-sm font-normal transition-none hover:bg-zinc-200",
                       )}
                     >
-                      <SidebarMenuButton
-                        asChild
-                        // variant="ghost"
-                        className={cx(
-                          "line-clamp-1 items-center justify-between gap-2 overflow-hidden text-ellipsis p-0 text-sm font-normal transition-none hover:bg-zinc-200",
-                        )}
+                      <Link
+                        href={`/chat/${chat.id}`}
+                        onClick={() => setOpenMobile(false)}
+                        className="overflow-hidden text-ellipsis rounded-lg py-2 pl-2 text-left capitalize"
                       >
-                        <Link
-                          href={`/chat/${chat.id}`}
-                          onClick={() => setOpenMobile(false)}
-                          className="overflow-hidden text-ellipsis rounded-lg py-2 pl-2 text-left capitalize"
-                        >
-                          {chat.title || "Untitled"}
-                        </Link>
-                      </SidebarMenuButton>
+                        {chat.title || "Untitled"}
+                      </Link>
+                    </SidebarMenuButton>
 
-                      <DropdownMenu modal={true}>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            className="h-fit p-0 font-normal text-zinc-500 transition-none hover:bg-zinc-200"
-                            variant="ghost"
-                          >
-                            <MoreHorizontalIcon />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          side="right"
-                          align="start"
-                          className="z-50 -mt-3 ml-2 flex flex-col gap-2 rounded-md bg-white p-1 font-normal shadow-md"
+                    <DropdownMenu modal={true}>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          className="h-fit p-0 font-normal text-zinc-500 transition-none hover:bg-zinc-200"
+                          variant="ghost"
                         >
-                          <DropdownMenuItem asChild>
-                            <AlertDialog>
-                              <AlertDialogTrigger>
-                                <Button
-                                  className="relative flex h-fit w-full flex-row items-center justify-start gap-2 p-1.5 text-red-600"
-                                  variant="ghost"
+                          <MoreHorizontalIcon />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        side="right"
+                        align="start"
+                        className="z-50 -mt-3 ml-2 flex flex-col gap-2 rounded-md bg-white p-1 font-normal shadow-md"
+                      >
+                        <DropdownMenuItem asChild>
+                          <AlertDialog>
+                            <AlertDialogTrigger>
+                              <Button
+                                className="relative flex h-fit w-full flex-row items-center justify-start gap-2 p-1.5 text-red-600"
+                                variant="ghost"
+                              >
+                                <TrashIcon />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you absolutely sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will
+                                  permanently delete your account and remove
+                                  your data from our servers.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-red-600 hover:bg-red-700 active:bg-red-800"
+                                  onClick={() => {
+                                    console.log("delete", chat.id);
+                                    handleDelete(chat.id);
+                                  }}
                                 >
                                   <TrashIcon />
-                                  Delete
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    Are you absolutely sure?
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action cannot be undone. This will
-                                    permanently delete your account and remove
-                                    your data from our servers.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    className="bg-red-600 hover:bg-red-700 active:bg-red-800"
-                                    onClick={() => {
-                                      console.log("delete", chat.id);
-                                      handleDelete(chat.id);
-                                    }}
-                                  >
-                                    <TrashIcon />
-                                    Confirm deletion
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </DropdownMenuItem>
-                          {/* <DropdownMenuItem asChild>
+                                  Confirm deletion
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </DropdownMenuItem>
+                        {/* <DropdownMenuItem asChild>
                             <Button
                               className="relative flex h-fit w-full flex-row items-center justify-start gap-2 p-1.5"
                               variant="ghost"
@@ -234,15 +233,14 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                               Rename
                             </Button>
                           </DropdownMenuItem> */}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </SidebarMenuItem>
-                  ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-    </>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
 }

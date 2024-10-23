@@ -20,7 +20,7 @@ export default async function RootLayout({
     <html lang="en">
       <body>
         <SidebarProvider>
-          <Toaster position="top-center" />
+          <Toaster position="top-right" />
           <Navbar />
           {children}
         </SidebarProvider>

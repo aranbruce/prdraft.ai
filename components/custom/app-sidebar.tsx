@@ -14,11 +14,10 @@ import {
   TrashIcon,
   X,
 } from "lucide-react";
-
-import { User } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { User } from "next-auth";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";

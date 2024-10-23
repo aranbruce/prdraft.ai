@@ -4,6 +4,8 @@ import Link from "next/link";
 
 import { auth, signOut } from "@/app/(auth)/auth";
 
+import { AppSidebar } from "./app-sidebar";
+import { MenuIcon } from "./icons";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -12,8 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { SidebarTrigger } from "../ui/sidebar";
-import { AppSidebar } from "./app-sidebar";
-import { MenuIcon } from "./icons";
 
 const SignOutForm = () => (
   <form

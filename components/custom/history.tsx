@@ -2,23 +2,16 @@
 
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import cx from "classnames";
+import { User } from "next-auth";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { User } from "next-auth";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
 import { Chat } from "@/db/schema";
-import { fetcher, getTitleFromChat } from "@/lib/utils";
+import { fetcher } from "@/lib/utils";
 
-import {
-  InfoIcon,
-  MenuIcon,
-  MoreHorizontalIcon,
-  PencilEditIcon,
-  TrashIcon,
-} from "./icons";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +36,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "../ui/sheet";
+import {
+  InfoIcon,
+  MenuIcon,
+  MoreHorizontalIcon,
+  PencilEditIcon,
+  TrashIcon,
+} from "./icons";
 
 export const History = ({ user }: { user: User | undefined }) => {
   const { id } = useParams();
@@ -89,7 +89,7 @@ export const History = ({ user }: { user: User | undefined }) => {
     <>
       <Button
         variant="outline"
-        className="p-1.5 h-fit"
+        className="h-fit p-1.5"
         onClick={() => {
           setIsHistoryVisible(true);
         }}
@@ -103,7 +103,7 @@ export const History = ({ user }: { user: User | undefined }) => {
           setIsHistoryVisible(state);
         }}
       >
-        <SheetContent side="left" className="p-3 w-80 bg-muted">
+        <SheetContent side="left" className="w-80 bg-muted p-3">
           <SheetHeader>
             <VisuallyHidden.Root>
               <SheetTitle className="text-left">History</SheetTitle>
@@ -113,11 +113,11 @@ export const History = ({ user }: { user: User | undefined }) => {
             </VisuallyHidden.Root>
           </SheetHeader>
 
-          <div className="text-sm flex flex-row items-center justify-between">
+          <div className="flex flex-row items-center justify-between text-sm">
             <div className="flex flex-row gap-2">
               <div className="dark:text-zinc-300">History</div>
 
-              <div className="dark:text-zinc-400 text-zinc-500">
+              <div className="text-zinc-500 dark:text-zinc-400">
                 {history === undefined ? "loading" : history.length} chats
               </div>
             </div>
@@ -126,7 +126,7 @@ export const History = ({ user }: { user: User | undefined }) => {
           <div className="mt-10 flex flex-col">
             {user && (
               <Button
-                className="font-normal text-sm flex flex-row justify-between"
+                className="flex flex-row justify-between text-sm font-normal"
                 asChild
               >
                 <Link href="/">
@@ -136,16 +136,16 @@ export const History = ({ user }: { user: User | undefined }) => {
               </Button>
             )}
 
-            <div className="flex flex-col overflow-y-scroll p-1 h-[calc(100dvh-124px)]">
+            <div className="flex h-[calc(100dvh-124px)] flex-col overflow-y-scroll p-1">
               {!user ? (
-                <div className="text-zinc-500 h-dvh w-full flex flex-row justify-center items-center text-sm gap-2">
+                <div className="flex h-dvh w-full flex-row items-center justify-center gap-2 text-sm text-zinc-500">
                   <InfoIcon />
                   <div>Login to save and revisit previous chats!</div>
                 </div>
               ) : null}
 
               {!isLoading && history?.length === 0 && user ? (
-                <div className="text-zinc-500 h-dvh w-full flex flex-row justify-center items-center text-sm gap-2">
+                <div className="flex h-dvh w-full flex-row items-center justify-center gap-2 text-sm text-zinc-500">
                   <InfoIcon />
                   <div>No chats found</div>
                 </div>
@@ -154,9 +154,9 @@ export const History = ({ user }: { user: User | undefined }) => {
               {isLoading && user ? (
                 <div className="flex flex-col">
                   {[44, 32, 28, 52].map((item) => (
-                    <div key={item} className="p-2 my-[2px]">
+                    <div key={item} className="my-[2px] p-2">
                       <div
-                        className={`w-${item} h-[20px] rounded-md bg-zinc-200 dark:bg-zinc-600 animate-pulse`}
+                        className={`w-${item} h-[20px] animate-pulse rounded-md bg-zinc-200 dark:bg-zinc-600`}
                       />
                     </div>
                   ))}
@@ -168,29 +168,29 @@ export const History = ({ user }: { user: User | undefined }) => {
                   <div
                     key={chat.id}
                     className={cx(
-                      "flex flex-row items-center gap-6 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md pr-2",
+                      "flex flex-row items-center gap-6 rounded-md pr-2 hover:bg-zinc-200 dark:hover:bg-zinc-700",
                       { "bg-zinc-200 dark:bg-zinc-700": chat.id === id },
                     )}
                   >
                     <Button
                       variant="ghost"
                       className={cx(
-                        "hover:bg-zinc-200 dark:hover:bg-zinc-700 justify-between p-0 text-sm font-normal flex flex-row items-center gap-2 pr-2 w-full transition-none",
+                        "flex w-full flex-row items-center justify-between gap-2 p-0 pr-2 text-sm font-normal transition-none hover:bg-zinc-200 dark:hover:bg-zinc-700",
                       )}
                       asChild
                     >
                       <Link
                         href={`/chat/${chat.id}`}
-                        className="text-ellipsis overflow-hidden text-left py-2 pl-2 rounded-lg outline-zinc-900"
+                        className="overflow-hidden text-ellipsis rounded-lg py-2 pl-2 text-left outline-zinc-900"
                       >
-                        {getTitleFromChat(chat)}
+                        {chat.title || "Untitled"}
                       </Link>
                     </Button>
 
                     <DropdownMenu modal={true}>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          className="p-0 h-fit font-normal text-zinc-500 transition-none hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                          className="h-fit p-0 font-normal text-zinc-500 transition-none hover:bg-zinc-200 dark:hover:bg-zinc-700"
                           variant="ghost"
                         >
                           <MoreHorizontalIcon />
@@ -199,7 +199,7 @@ export const History = ({ user }: { user: User | undefined }) => {
                       <DropdownMenuContent side="left" className="z-[60]">
                         <DropdownMenuItem asChild>
                           <Button
-                            className="flex flex-row gap-2 items-center justify-start w-full h-fit font-normal p-1.5 rounded-sm"
+                            className="flex h-fit w-full flex-row items-center justify-start gap-2 rounded-sm p-1.5 font-normal"
                             variant="ghost"
                             onClick={() => {
                               setDeleteId(chat.id);

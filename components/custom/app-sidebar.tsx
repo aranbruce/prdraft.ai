@@ -11,14 +11,14 @@ import {
   InfoIcon,
   MoreHorizontalIcon,
   PanelLeft,
-  Shuffle,
   TrashIcon,
   X,
 } from "lucide-react";
+
+import { User } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { User } from "next-auth";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -37,7 +37,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Chat } from "@/db/schema";
-import { fetcher, getTitleFromChat } from "@/lib/utils";
+import { fetcher } from "@/lib/utils";
 
 import {
   AlertDialog,

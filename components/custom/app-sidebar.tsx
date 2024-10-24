@@ -14,9 +14,9 @@ import {
   TrashIcon,
   X,
 } from "lucide-react";
-import Link from "next/link";
-import { useParams, useRouter, usePathname } from "next/navigation";
 import { User } from "next-auth";
+import Link from "next/link";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";

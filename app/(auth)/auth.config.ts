@@ -11,10 +11,10 @@ export const authConfig = {
   ],
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      let isLoggedIn = !!auth?.user;
-      let isOnChat = nextUrl.pathname.startsWith("/chat");
-      let isOnSignUp = nextUrl.pathname.startsWith("/sign-up");
-      let isOnLogin = nextUrl.pathname.startsWith("/login");
+      const isLoggedIn = !!auth?.user;
+      const isOnChat = nextUrl.pathname.startsWith("/chat");
+      const isOnSignUp = nextUrl.pathname.startsWith("/sign-up");
+      const isOnLogin = nextUrl.pathname.startsWith("/login");
 
       if (isLoggedIn && (isOnLogin || isOnSignUp)) {
         return Response.redirect(new URL("/", nextUrl));

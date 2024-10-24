@@ -4,14 +4,15 @@ import { Attachment, ToolInvocation } from "ai";
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
-import { BotIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { PreviewAttachment } from "./preview-attachment";
+import { cn } from "@/lib/utils";
+import { Logo } from "./logo";
 
 export const Message = ({
   role,
   content,
-  toolInvocations,
+  // toolInvocations,
   attachments,
 }: {
   role: string;
@@ -27,14 +28,16 @@ export const Message = ({
     >
       {role === "assistant" && (
         <div className="flex size-[24px] shrink-0 flex-col items-center justify-center text-zinc-400">
-          <BotIcon />
+          <Logo size={24} />
         </div>
       )}
 
       <div className="flex w-full flex-col gap-2">
         {content && (
           <div
-            className={`flex flex-col gap-4 text-zinc-800 dark:text-zinc-300 ${role === "user" && "w-fit self-end rounded-lg bg-zinc-200/60 p-2"}`}
+            className={cn(
+              `flex flex-col gap-4 text-zinc-800 dark:text-zinc-300 ${role === "user" && "w-fit self-end rounded-lg bg-zinc-200/60 p-2 dark:bg-zinc-900"}`,
+            )}
           >
             <Markdown>{content as string}</Markdown>
           </div>

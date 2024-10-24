@@ -123,6 +123,7 @@ export function MultimodalInput({
         toast.error(error);
       }
     } catch (error) {
+      console.error("Error uploading file!", error);
       toast.error("Failed to upload file, please try again!");
     }
   };
@@ -190,7 +191,7 @@ export function MultimodalInput({
           placeholder="Send a message..."
           value={input}
           onChange={handleInput}
-          className="min-h-[24px] resize-none overflow-hidden rounded-xl bg-muted pb-14 text-base"
+          className="min-h-[24px] resize-none overflow-hidden rounded-xl pb-14 text-base"
           rows={1}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
@@ -263,7 +264,7 @@ export function MultimodalInput({
                       content: suggestedAction.action,
                     });
                   }}
-                  className="flex w-full flex-col rounded-full border border-zinc-200 px-2 py-1 text-left text-xs text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  className="flex w-full flex-col rounded-full border border-zinc-200 px-2 py-1 text-left text-xs text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
                   <span className="font-medium">{suggestedAction.title}</span>
                 </button>

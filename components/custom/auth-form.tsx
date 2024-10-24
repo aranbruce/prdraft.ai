@@ -8,7 +8,7 @@ export function AuthForm({
   children,
   defaultEmail = "",
 }: {
-  action: any;
+  action: (formData: FormData) => void;
   children: React.ReactNode;
   defaultEmail?: string;
 }) {
@@ -48,7 +48,6 @@ export function AuthForm({
           required
         />
       </div>
-
       {children}
     </Form>
   );

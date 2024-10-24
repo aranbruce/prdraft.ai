@@ -32,7 +32,7 @@ export function Chat({
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   return (
-    <main className="flex h-dvh w-full flex-row justify-center overflow-hidden bg-background">
+    <main className="bg-background flex h-dvh w-full flex-row justify-center overflow-hidden">
       <div className="relative flex w-full flex-col items-center justify-center gap-4">
         {messages.length > 0 && (
           <div
@@ -60,11 +60,11 @@ export function Chat({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ delay: 0 }}
-          className={`${messages.length > 0 && "absolute bottom-0"} w-full bg-white px-6 pb-4 md:px-12`}
+          className={`${messages.length > 0 && "absolute bottom-0"} w-full bg-white px-6 pb-4 md:px-12 dark:bg-zinc-950`}
         >
           <form className="relative mx-auto flex w-full max-w-2xl flex-col gap-6">
             {messages.length === 0 && (
-              <h1 className="w-full text-pretty text-center text-2xl font-semibold text-zinc-950 md:text-4xl">
+              <h1 className="w-full text-pretty text-center text-2xl font-semibold md:text-4xl">
                 How can I help you with your next PRD?
               </h1>
             )}

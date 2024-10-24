@@ -14,10 +14,9 @@ import {
   TrashIcon,
   X,
 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useParams, useRouter, usePathname } from "next/navigation";
 import { User } from "next-auth";
+import Link from "next/link";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -50,6 +49,7 @@ import {
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
 import { Button } from "../ui/button";
+import { Logo } from "./logo";
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const { id } = useParams();
@@ -93,20 +93,19 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     });
   };
 
+  function handleNewChat() {
+    setOpenMobile(false);
+    router.push("/");
+  }
+
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader className="flex flex-row items-center justify-between">
         <Link href="/">
-          <Image
-            src="/images/logo.svg"
-            alt={"PRDraft Logo"}
-            width={40}
-            height={40}
-            priority
-          />
+          <Logo />
         </Link>
         <SidebarTrigger className="flex md:hidden">
-          <X size={16} />
+          <X size={24} />
         </SidebarTrigger>
 
         {state === "expanded" && (
@@ -118,15 +117,13 @@ export function AppSidebar({ user }: { user: User | undefined }) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <Link href="/">
-              <Button
-                className="w-full"
-                variant="outline"
-                onClick={() => setOpenMobile(false)}
-              >
-                New chat
-              </Button>
-            </Link>
+            <Button
+              className="w-full"
+              variant="outline"
+              onClick={() => handleNewChat()}
+            >
+              New chat
+            </Button>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
@@ -152,77 +149,75 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 </div>
               ) : null}
               {chats &&
-                chats.map((chat) => (
+                chats.map((chat, index) => (
                   <SidebarMenuItem
                     key={chat.id}
+                    tabIndex={index}
                     className={cx(
-                      "flex flex-row items-center gap-6 rounded-md pr-2 hover:bg-zinc-200",
-                      { "bg-zinc-200/80": chat.id === id },
+                      "flex flex-row items-center gap-2 rounded-md",
+                      { "bg-zinc-200/80 dark:bg-zinc-800": chat.id === id },
                     )}
                   >
                     <SidebarMenuButton
                       asChild
-                      // variant="ghost"
                       className={cx(
-                        "line-clamp-1 items-center justify-between gap-2 overflow-hidden text-ellipsis p-0 text-sm font-normal transition-none hover:bg-zinc-200",
+                        "line-clamp-1 items-center justify-between gap-2 overflow-hidden text-ellipsis p-0 text-sm font-normal transition",
                       )}
                     >
                       <Link
                         href={`/chat/${chat.id}`}
                         onClick={() => setOpenMobile(false)}
-                        className="overflow-hidden text-ellipsis rounded-lg py-2 pl-2 text-left capitalize"
+                        className="flex flex-row gap-2 overflow-hidden text-ellipsis rounded-lg py-2 pl-2 text-left capitalize"
                       >
                         {chat.title || "Untitled"}
-                      </Link>
-                    </SidebarMenuButton>
-
-                    <DropdownMenu modal={true}>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          className="h-fit p-0 font-normal text-zinc-500 transition-none hover:bg-zinc-200"
-                          variant="ghost"
-                        >
-                          <MoreHorizontalIcon />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        side="right"
-                        align="start"
-                        className="z-50 -mt-3 ml-2 flex flex-col gap-2 rounded-md bg-white p-1 font-normal shadow-md"
-                      >
-                        <DropdownMenuItem asChild>
-                          <AlertDialog>
-                            <AlertDialogTrigger className="relative flex h-fit w-full flex-row items-center justify-start gap-2 p-1.5 text-red-600 outline-none">
-                              <TrashIcon size={16} />
-                              Delete
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Are you absolutely sure?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will
-                                  permanently delete your account and remove
-                                  your data from our servers.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  className="bg-red-600 hover:bg-red-700 active:bg-red-800"
-                                  onClick={() => {
-                                    handleDelete(chat.id);
-                                  }}
-                                >
-                                  <TrashIcon />
-                                  Confirm deletion
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </DropdownMenuItem>
-                        {/* <DropdownMenuItem asChild>
+                        <DropdownMenu modal={true}>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              className="mr-2 h-fit p-1 font-normal text-zinc-500 transition-none hover:bg-zinc-200"
+                              variant="ghost"
+                            >
+                              <MoreHorizontalIcon />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            side="right"
+                            align="start"
+                            className="z-50 -mt-3 ml-3 flex flex-col gap-2 rounded-md border border-zinc-200 bg-white p-1 font-normal shadow-md dark:border-zinc-700 dark:bg-zinc-800"
+                          >
+                            <DropdownMenuItem asChild>
+                              <AlertDialog>
+                                <AlertDialogTrigger className="relative flex h-fit w-full flex-row items-center justify-start gap-2 p-1.5 text-red-600 outline-none">
+                                  <TrashIcon size={16} />
+                                  Delete
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Are you absolutely sure?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This action cannot be undone. This will
+                                      permanently delete your account and remove
+                                      your data from our servers.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => {
+                                        handleDelete(chat.id);
+                                      }}
+                                    >
+                                      <TrashIcon />
+                                      Confirm deletion
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </DropdownMenuItem>
+                            {/* <DropdownMenuItem asChild>
                             <Button
                               className="relative flex h-fit w-full flex-row items-center justify-start gap-2 p-1.5"
                               variant="ghost"
@@ -231,8 +226,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                               Rename
                             </Button>
                           </DropdownMenuItem> */}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </Link>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
             </SidebarMenu>

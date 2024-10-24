@@ -1,5 +1,4 @@
 import { PanelLeft } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 import { auth, signOut } from "@/app/(auth)/auth";
@@ -14,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { SidebarTrigger } from "../ui/sidebar";
+import { Logo } from "./logo";
+import { cn } from "@/lib/utils";
 
 const SignOutForm = () => (
   <form
@@ -52,19 +53,13 @@ export const Navbar = async () => {
 
   return (
     <>
-      <nav className="fixed top-0 z-10 flex w-full flex-row items-center justify-between bg-gradient-to-b from-white to-transparent px-3 py-2 backdrop-blur-[1px]">
+      <nav className="fixed top-0 z-10 flex w-full flex-row items-center justify-between bg-gradient-to-b from-white to-transparent px-3 py-2 backdrop-blur-[1px] dark:from-zinc-950">
         <div className="flex flex-row items-center gap-2">
           <Link
             href="/"
-            className={`${session?.user?.email && "hidden"} md:flex`}
+            className={cn(`${session?.user?.email && "hidden"} md:flex`)}
           >
-            <Image
-              src="/images/logo.svg"
-              alt={"PRDraft Logo"}
-              width={40}
-              height={40}
-              priority
-            />
+            <Logo />
           </Link>
           {session?.user && (
             <>

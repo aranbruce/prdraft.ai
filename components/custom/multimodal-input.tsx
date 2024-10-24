@@ -123,6 +123,7 @@ export function MultimodalInput({
         toast.error(error);
       }
     } catch (error) {
+      console.error("Error uploading file!", error);
       toast.error("Failed to upload file, please try again!");
     }
   };

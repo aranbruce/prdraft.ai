@@ -4,7 +4,6 @@ import { Attachment, ToolInvocation } from "ai";
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
-import { BotIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { PreviewAttachment } from "./preview-attachment";
 import { cn } from "@/lib/utils";
@@ -13,7 +12,7 @@ import { Logo } from "./logo";
 export const Message = ({
   role,
   content,
-  toolInvocations,
+  // toolInvocations,
   attachments,
 }: {
   role: string;

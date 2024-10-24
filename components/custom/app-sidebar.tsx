@@ -154,7 +154,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                     key={chat.id}
                     tabIndex={index}
                     className={cx(
-                      "flex flex-row items-center gap-2 rounded-md pr-2",
+                      "flex flex-row items-center gap-2 rounded-md",
                       { "bg-zinc-200/80 dark:bg-zinc-800": chat.id === id },
                     )}
                   >
@@ -173,7 +173,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                         <DropdownMenu modal={true}>
                           <DropdownMenuTrigger asChild>
                             <Button
-                              className="h-fit p-0 p-1 font-normal text-zinc-500 transition-none hover:bg-zinc-200"
+                              className="mr-2 h-fit p-1 font-normal text-zinc-500 transition-none hover:bg-zinc-200"
                               variant="ghost"
                             >
                               <MoreHorizontalIcon />

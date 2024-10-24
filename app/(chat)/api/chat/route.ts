@@ -1,5 +1,4 @@
-import { convertToCoreMessages, generateText, Message, streamText } from "ai";
-import { z } from "zod";
+import { convertToCoreMessages, Message, streamText } from "ai";
 
 import { customModel } from "@/ai";
 import { auth } from "@/app/(auth)/auth";
@@ -136,6 +135,7 @@ export async function DELETE(request: Request) {
 
     return new Response("Chat deleted", { status: 200 });
   } catch (error) {
+    console.error("An error occurred while processing your request", error);
     return new Response("An error occurred while processing your request", {
       status: 500,
     });

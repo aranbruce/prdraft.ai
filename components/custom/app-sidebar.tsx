@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import { User } from "next-auth";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -54,14 +54,15 @@ import { Button } from "../ui/button";
 export function AppSidebar({ user }: { user: User | undefined }) {
   const { id } = useParams();
   const pathname = usePathname();
+  const router = useRouter();
 
   const { state, setOpenMobile } = useSidebar();
 
   const {
-    data: history,
+    data: chats,
     isLoading,
     mutate,
-  } = useSWR<Array<Chat>>(user ? "/api/history" : null, fetcher, {
+  } = useSWR<Array<Chat>>(user ? "/api/chats" : null, fetcher, {
     fallbackData: [],
   });
 
@@ -73,16 +74,19 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     const deletePromise = fetch(`/api/chat?id=${deleteId}`, {
       method: "DELETE",
     });
-    console.log("deleteId", deleteId);
 
     toast.promise(deletePromise, {
       loading: "Deleting chat...",
       success: () => {
-        mutate((history) => {
-          if (history) {
-            return history.filter((h) => h.id !== deleteId);
+        mutate((chats) => {
+          if (chats) {
+            return chats.filter((chat) => chat.id !== id);
           }
         });
+        console.log(pathname);
+        if (pathname === `/chat/${deleteId}`) {
+          router.push("/");
+        }
         return "Chat deleted successfully";
       },
       error: "Failed to delete chat",
@@ -147,8 +151,8 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   ))}
                 </div>
               ) : null}
-              {history &&
-                history.map((chat) => (
+              {chats &&
+                chats.map((chat) => (
                   <SidebarMenuItem
                     key={chat.id}
                     className={cx(
@@ -208,7 +212,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                                 <AlertDialogAction
                                   className="bg-red-600 hover:bg-red-700 active:bg-red-800"
                                   onClick={() => {
-                                    console.log("delete", chat.id);
                                     handleDelete(chat.id);
                                   }}
                                 >

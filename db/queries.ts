@@ -5,7 +5,7 @@ import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-import { chat, user, User } from "./schema";
+import { chat, User, users } from "./schema";
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -15,7 +15,7 @@ let db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
   try {
-    return await db.select().from(user).where(eq(user.email, email));
+    return await db.select().from(users).where(eq(users.email, email));
   } catch (error) {
     console.error("Failed to get user from database");
     throw error;
@@ -27,7 +27,7 @@ export async function createUser(email: string, password: string) {
   let hash = hashSync(password, salt);
 
   try {
-    return await db.insert(user).values({ email, password: hash });
+    return await db.insert(users).values({ email, password: hash });
   } catch (error) {
     console.error("Failed to create user in database");
     throw error;

@@ -40,21 +40,21 @@ export default function Page() {
   };
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-background">
+    <div className="bg-background flex h-screen w-screen items-center justify-center">
       <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
         <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
           <h3 className="text-xl font-semibold">Sign Up</h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-zinc-500">
             Create an account with your email and password
           </p>
         </div>
         <AuthForm action={handleSubmit} defaultEmail={email}>
           <SubmitButton>Sign Up</SubmitButton>
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
             {"Already have an account? "}
             <Link
               href="/login"
-              className="font-semibold text-zinc-800 hover:underline"
+              className="font-semibold text-zinc-800 hover:underline dark:text-zinc-200"
             >
               Log in
             </Link>

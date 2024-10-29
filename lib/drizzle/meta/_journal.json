@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1728598022383,
-      "tag": "0000_keen_devos",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1730145848215,
-      "tag": "0001_greedy_switch",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1730145919298,
-      "tag": "0002_moaning_captain_cross",
+      "when": 1730232153841,
+      "tag": "0000_worried_liz_osborn",
       "breakpoints": true
     }
   ]

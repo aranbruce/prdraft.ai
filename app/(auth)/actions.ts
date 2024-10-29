@@ -15,6 +15,21 @@ export interface LoginActionState {
   status: "idle" | "in_progress" | "success" | "failed" | "invalid_data";
 }
 
+export const loginWithProvider = async (
+  provider: string,
+): Promise<LoginActionState> => {
+  console.log("provider: ", provider);
+  try {
+    await signIn(provider);
+    console.log("success: ", provider);
+
+    return { status: "success" };
+  } catch {
+    console.log("failed: ", provider);
+    return { status: "failed" };
+  }
+};
+
 export const login = async (
   _: LoginActionState,
   formData: FormData,

@@ -1,13 +1,6 @@
 import { Message } from "ai";
 import { InferSelectModel } from "drizzle-orm";
-import {
-  json,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { json, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 export const users = pgTable("User", {
   id: text("id")
@@ -22,7 +15,9 @@ export const users = pgTable("User", {
 export type User = InferSelectModel<typeof users>;
 
 export const chat = pgTable("Chat", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   title: varchar("title", { length: 64 }).notNull(),
   createdAt: timestamp("createdAt").notNull(),
   messages: json("messages").notNull(),

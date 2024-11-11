@@ -75,9 +75,10 @@ export function Chat({
 
   return (
     <>
-      <ChatHeader selectedModelId={selectedModelId} />
-      <div className="flex flex-col min-w-0 h-dvh bg-background justify-center">
-        {messages.length !== 0 && (
+      <div className="flex flex-col min-w-0 h-dvh bg-background ">
+        <ChatHeader selectedModelId={selectedModelId}/>
+
+        {messages.length > 0 && (
           <div
             ref={messagesContainerRef}
             className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
@@ -111,7 +112,16 @@ export function Chat({
             />
           </div>
         )}
-        <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+        
+        <div className="md:max-w-3xl m-auto px-4 w-full">
+         {messages.length === 0 && (
+          <h1
+            className="w-full text-pretty text-center text-2xl font-semibold md:text-4xl pb-8"
+          >
+            How can I help you with your next PRD?
+          </h1>
+        )}
+        <form className="flex mx-auto bg-background pb-4 md:pb-6 gap-2 w-full">
           <MultimodalInput
             chatId={id}
             input={input}
@@ -126,6 +136,7 @@ export function Chat({
             append={append}
           />
         </form>
+        </div>
       </div>
 
       <AnimatePresence>

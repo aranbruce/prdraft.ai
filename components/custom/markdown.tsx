@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Link from "next/link";
 import React, { memo } from "react";
 import ReactMarkdown from "react-markdown";
@@ -9,17 +7,16 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
   const components = {
     code: ({ node, inline, className, children, ...props }: any) => {
       const match = /language-(\w+)/.exec(className || "");
-
       return !inline && match ? (
         <pre
           {...props}
-          className={`${className} mt-2 w-[80dvw] overflow-x-scroll rounded-lg bg-zinc-100 p-3 text-sm md:max-w-[500px] dark:bg-zinc-800`}
+          className={`${className} text-sm w-[80dvw] md:max-w-[500px] overflow-x-scroll bg-zinc-100 p-3 rounded-lg mt-2 dark:bg-zinc-800`}
         >
           <code className={match[1]}>{children}</code>
         </pre>
       ) : (
         <code
-          className={`${className} rounded-md bg-zinc-100 px-1 py-0.5 text-sm dark:bg-zinc-800`}
+          className={`${className} text-sm bg-zinc-100 dark:bg-zinc-800 py-0.5 px-1 rounded-md`}
           {...props}
         >
           {children}
@@ -28,7 +25,7 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
     },
     ol: ({ node, children, ...props }: any) => {
       return (
-        <ol className="ml-4 list-outside list-decimal" {...props}>
+        <ol className="list-decimal list-outside ml-4" {...props}>
           {children}
         </ol>
       );
@@ -42,7 +39,7 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
     },
     ul: ({ node, children, ...props }: any) => {
       return (
-        <ul className="ml-4 list-outside list-decimal" {...props}>
+        <ul className="list-decimal list-outside ml-4" {...props}>
           {children}
         </ul>
       );
@@ -64,6 +61,48 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
         >
           {children}
         </Link>
+      );
+    },
+    h1: ({ node, children, ...props }: any) => {
+      return (
+        <h1 className="text-3xl font-semibold mt-6 mb-2" {...props}>
+          {children}
+        </h1>
+      );
+    },
+    h2: ({ node, children, ...props }: any) => {
+      return (
+        <h2 className="text-2xl font-semibold mt-6 mb-2" {...props}>
+          {children}
+        </h2>
+      );
+    },
+    h3: ({ node, children, ...props }: any) => {
+      return (
+        <h3 className="text-xl font-semibold mt-6 mb-2" {...props}>
+          {children}
+        </h3>
+      );
+    },
+    h4: ({ node, children, ...props }: any) => {
+      return (
+        <h4 className="text-lg font-semibold mt-6 mb-2" {...props}>
+          {children}
+        </h4>
+      );
+    },
+    h5: ({ node, children, ...props }: any) => {
+      return (
+        <h5 className="text-base font-semibold mt-6 mb-2" {...props}>
+          {children}
+        </h5>
+      );
+    },
+    h6: ({ node, children, ...props }: any) => {
+      return (
+        <h6 className="text-sm font-semibold mt-6 mb-2" {...props}>
+          {children}
+        </h6>
       );
     },
   };

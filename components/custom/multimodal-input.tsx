@@ -1,40 +1,40 @@
-"use client";
+'use client';
 
-import { Attachment, ChatRequestOptions, CreateMessage, Message } from "ai";
-import { motion } from "framer-motion";
+import { Attachment, ChatRequestOptions, CreateMessage, Message } from 'ai';
+import cx from 'classnames';
 import React, {
-  useRef,
-  useEffect,
-  useState,
-  useCallback,
+  ChangeEvent,
   Dispatch,
   SetStateAction,
-  ChangeEvent,
-} from "react";
-import { toast } from "sonner";
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { toast } from 'sonner';
+import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
-import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
-import { PreviewAttachment } from "./preview-attachment";
-import useWindowSize from "./use-window-size";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
+import { sanitizeUIMessages } from '@/lib/utils';
+
+import { motion } from "framer-motion";
+import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
+import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
+import { PreviewAttachment } from './preview-attachment';
 
 const suggestedActions = [
   {
-    title: "Create a new PRD",
-    action: "Help me create a new PRD",
+    title: 'What is the weather',
+    action: 'What is the weather in San Francisco?',
   },
   {
-    title: "Edit a PRD",
-    action: "Help me edit a PRD",
-  },
-  {
-    title: "Critique a PRD",
-    action: "Help me critique a PRD",
+    title: 'Help me draft an essay',
+    action: 'Help me draft a short essay about Silicon Valley',
   },
 ];
 
 export function MultimodalInput({
+  chatId,
   input,
   setInput,
   isLoading,
@@ -42,9 +42,12 @@ export function MultimodalInput({
   attachments,
   setAttachments,
   messages,
+  setMessages,
   append,
   handleSubmit,
+  className,
 }: {
+  chatId: string;
   input: string;
   setInput: (value: string) => void;
   isLoading: boolean;
@@ -52,16 +55,18 @@ export function MultimodalInput({
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   messages: Array<Message>;
+  setMessages: Dispatch<SetStateAction<Array<Message>>>;
   append: (
     message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
   handleSubmit: (
     event?: {
       preventDefault?: () => void;
     },
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => void;
+  className?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -74,10 +79,31 @@ export function MultimodalInput({
 
   const adjustHeight = () => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
     }
   };
+
+  const [localStorageInput, setLocalStorageInput] = useLocalStorage(
+    'input',
+    ''
+  );
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      const domValue = textareaRef.current.value;
+      // Prefer DOM value over localStorage to handle hydration
+      const finalValue = domValue || localStorageInput || '';
+      setInput(finalValue);
+      adjustHeight();
+    }
+    // Only run once after hydration
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    setLocalStorageInput(input);
+  }, [input, setLocalStorageInput]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
@@ -88,24 +114,34 @@ export function MultimodalInput({
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
   const submitForm = useCallback(() => {
+    window.history.replaceState({}, '', `/chat/${chatId}`);
+
     handleSubmit(undefined, {
       experimental_attachments: attachments,
     });
 
     setAttachments([]);
+    setLocalStorageInput('');
 
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  }, [attachments, handleSubmit, setAttachments, width]);
+  }, [
+    attachments,
+    handleSubmit,
+    setAttachments,
+    setLocalStorageInput,
+    width,
+    chatId,
+  ]);
 
   const uploadFile = async (file: File) => {
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append('file', file);
 
     try {
       const response = await fetch(`/api/files/upload`, {
-        method: "POST",
+        method: 'POST',
         body: formData,
       });
 
@@ -123,8 +159,7 @@ export function MultimodalInput({
         toast.error(error);
       }
     } catch (error) {
-      console.error("Error uploading file!", error);
-      toast.error("Failed to upload file, please try again!");
+      toast.error('Failed to upload file, please try again!');
     }
   };
 
@@ -138,7 +173,7 @@ export function MultimodalInput({
         const uploadPromises = files.map((file) => uploadFile(file));
         const uploadedAttachments = await Promise.all(uploadPromises);
         const successfullyUploadedAttachments = uploadedAttachments.filter(
-          (attachment) => attachment !== undefined,
+          (attachment) => attachment !== undefined
         );
 
         setAttachments((currentAttachments) => [
@@ -146,132 +181,139 @@ export function MultimodalInput({
           ...successfullyUploadedAttachments,
         ]);
       } catch (error) {
-        console.error("Error uploading files!", error);
+        console.error('Error uploading files!', error);
       } finally {
         setUploadQueue([]);
       }
     },
-    [setAttachments],
+    [setAttachments]
   );
 
   return (
-    <div className="flex w-full flex-col gap-2">
-      <div className="relative flex w-full flex-col gap-4">
-        <input
-          type="file"
-          className="pointer-events-none fixed -left-4 -top-4 size-0.5 opacity-0"
-          ref={fileInputRef}
-          multiple
-          onChange={handleFileChange}
-          tabIndex={-1}
-        />
+    <div className="relative w-full flex flex-col gap-4">
+      <input
+        type="file"
+        className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
+        ref={fileInputRef}
+        multiple
+        onChange={handleFileChange}
+        tabIndex={-1}
+      />
 
-        {(attachments.length > 0 || uploadQueue.length > 0) && (
-          <div className="flex flex-row gap-2 overflow-x-scroll">
-            {attachments.map((attachment) => (
-              <PreviewAttachment key={attachment.url} attachment={attachment} />
-            ))}
+      {(attachments.length > 0 || uploadQueue.length > 0) && (
+        <div className="flex flex-row gap-2 overflow-x-scroll items-end">
+          {attachments.map((attachment) => (
+            <PreviewAttachment key={attachment.url} attachment={attachment} />
+          ))}
 
-            {uploadQueue.map((filename) => (
-              <PreviewAttachment
-                key={filename}
-                attachment={{
-                  url: "",
-                  name: filename,
-                  contentType: "",
-                }}
-                isUploading={true}
-              />
-            ))}
-          </div>
+          {uploadQueue.map((filename) => (
+            <PreviewAttachment
+              key={filename}
+              attachment={{
+                url: '',
+                name: filename,
+                contentType: '',
+              }}
+              isUploading={true}
+            />
+          ))}
+        </div>
+      )}
+      <div className="relative flex flex-col">
+      <Textarea
+        ref={textareaRef}
+        placeholder="Send a message..."
+        value={input}
+        onChange={handleInput}
+        className={cx(
+          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-xl text-base bg-muted',
+          className
         )}
+        rows={3}
+        autoFocus
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
 
-        <Textarea
-          ref={textareaRef}
-          placeholder="Send a message..."
-          value={input}
-          onChange={handleInput}
-          className="min-h-[24px] resize-none overflow-hidden rounded-xl pb-14 text-base"
-          rows={1}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-              event.preventDefault();
-
-              if (isLoading) {
-                toast.error(
-                  "Please wait for the model to finish its response!",
-                );
-              } else {
-                submitForm();
-              }
+            if (isLoading) {
+              toast.error('Please wait for the model to finish its response!');
+            } else {
+              submitForm();
             }
+          }
+        }}
+      />
+      <div className="flex flex-row gap-2 items-center justify-between absolute bottom-2 left-2 right-2">
+        <Button
+          className="rounded-lg p-2 h-8"
+          onClick={(event) => {
+            event.preventDefault();
+            fileInputRef.current?.click();
           }}
-        />
-        <div className="absolute inset-x-2 bottom-2 flex flex-row justify-between">
+          variant="outline"
+          disabled={isLoading}
+        >
+          <PaperclipIcon size={14} />
+        </Button>
+        {isLoading ? (
           <Button
-            className="h-fit rounded-lg p-2 dark:border-zinc-700"
+            className="rounded-lg p-2 h-8"
             onClick={(event) => {
               event.preventDefault();
-              fileInputRef.current?.click();
+              stop();
+              setMessages((messages) => sanitizeUIMessages(messages));
             }}
-            variant="outline"
-            disabled={isLoading}
           >
-            <PaperclipIcon size={14} />
+            <StopIcon size={14} />
           </Button>
+        ) : (
+          <Button
+            className="rounded-lg p-2 h-8"
+            onClick={(event) => {
+              event.preventDefault();
+              submitForm();
+            }}
+            disabled={input.length === 0 || uploadQueue.length > 0}
+          >
+            <ArrowUpIcon size={14} />
+          </Button>
+        )}
 
-          {isLoading ? (
-            <Button
-              className="h-fit rounded-lg p-2"
-              onClick={(event) => {
-                event.preventDefault();
-                stop();
-              }}
-            >
-              <StopIcon size={14} />
-            </Button>
-          ) : (
-            <Button
-              className="h-fit rounded-lg p-2"
-              onClick={(event) => {
-                event.preventDefault();
-                submitForm();
-              }}
-              disabled={input.length === 0 || uploadQueue.length > 0}
-            >
-              <ArrowUpIcon size={14} />
-            </Button>
-          )}
         </div>
       </div>
-      {messages.length === 0 &&
+      
+    {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
-          <div className="mx-auto flex w-full flex-row justify-center gap-2 md:px-0">
+          <div className="flex flex-row justify-center gap-2 w-full">
             {suggestedActions.map((suggestedAction, index) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                transition={{ delay: 0.5 + 0.05 * index }}
+                transition={{ delay: 0.05 * index }}
                 key={index}
-                className={index > 1 ? "hidden sm:block" : "block"}
+                className={index > 1 ? 'hidden sm:block' : 'block'}
               >
-                <button
+                <Button
+                  variant="ghost"
                   onClick={async () => {
+                    window.history.replaceState({}, '', `/chat/${chatId}`);
+
                     append({
-                      role: "user",
+                      role: 'user',
                       content: suggestedAction.action,
                     });
                   }}
-                  className="flex w-full flex-col rounded-full border border-zinc-200 px-2 py-1 text-left text-xs text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  className="text-left border rounded-full px-3 py-2 text-sm flex-1 gap-1 sm:flex-col w-fit h-auto justify-start items-start"
                 >
                   <span className="font-medium">{suggestedAction.title}</span>
-                </button>
+                </Button>
               </motion.div>
             ))}
           </div>
         )}
     </div>
+     
   );
 }

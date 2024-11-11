@@ -1,7 +1,5 @@
 import { compare } from "bcrypt-ts";
-import type { Session, User } from "next-auth";
-import NextAuth from "next-auth";
-import { JWT } from "next-auth/jwt";
+import NextAuth, { User, Session } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
 import { getUser } from "@/db/queries";
@@ -22,15 +20,11 @@ export const {
   providers: [
     Credentials({
       credentials: {},
-      async authorize(
-        credentials: Record<string, string>,
-      ): Promise<User | null> {
-        const { email, password } = credentials;
-        const users = await getUser(email);
+      async authorize({ email, password }: any) {
+        let users = await getUser(email);
         if (users.length === 0) return null;
-        const passwordsMatch = await compare(password, users[0].password!);
-        if (passwordsMatch) return users[0] as User;
-        return null;
+        let passwordsMatch = await compare(password, users[0].password!);
+        if (passwordsMatch) return users[0] as any;
       },
     }),
   ],
@@ -47,10 +41,10 @@ export const {
       token,
     }: {
       session: ExtendedSession;
-      token: JWT;
+      token: any;
     }) {
       if (session.user) {
-        session.user.id = token?.id as string;
+        session.user.id = token.id as string;
       }
 
       return session;

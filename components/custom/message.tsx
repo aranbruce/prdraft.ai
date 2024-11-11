@@ -1,81 +1,171 @@
-"use client";
+'use client';
 
-import { Attachment, ToolInvocation } from "ai";
-import { motion } from "framer-motion";
-import { ReactNode } from "react";
+import { Message } from 'ai';
+import cx from 'classnames';
+import { motion } from 'framer-motion';
+import { Dispatch, SetStateAction } from 'react';
 
-import { Markdown } from "./markdown";
-import { PreviewAttachment } from "./preview-attachment";
-import { cn } from "@/lib/utils";
+import { Vote } from '@/db/schema';
+
+import { UIBlock } from './block';
+import { DocumentToolCall, DocumentToolResult } from './document';
 import { Logo } from "./logo";
+import { Markdown } from './markdown';
+import { MessageActions } from './message-actions';
+import { PreviewAttachment } from './preview-attachment';
+import { Weather } from './weather';
 
-export const Message = ({
-  role,
-  content,
-  // toolInvocations,
-  attachments,
+export const PreviewMessage = ({
+  chatId,
+  message,
+  block,
+  setBlock,
+  vote,
+  isLoading,
 }: {
-  role: string;
-  content: string | ReactNode;
-  toolInvocations: Array<ToolInvocation> | undefined;
-  attachments?: Array<Attachment>;
+  chatId: string;
+  message: Message;
+  block: UIBlock;
+  setBlock: Dispatch<SetStateAction<UIBlock>>;
+  vote: Vote | undefined;
+  isLoading: boolean;
 }) => {
   return (
     <motion.div
-      className="flex w-full max-w-2xl flex-row gap-4 font-medium text-zinc-950 first-of-type:mt-20"
+      className="w-full mx-auto max-w-3xl px-4 group/message"
       initial={{ y: 5, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
+      data-role={message.role}
     >
-      {role === "assistant" && (
-        <div className="flex size-[24px] shrink-0 flex-col items-center justify-center text-zinc-400">
-          <Logo size={24} />
+      <div
+        className={cx(
+          'group-data-[role=user]/message:bg-secondary group-data-[role=user]/message:text-secondary-foreground flex gap-4 group-data-[role=user]/message:px-3 w-full group-data-[role=user]/message:w-fit group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:py-2 rounded-xl'
+        )}
+      >
+        {message.role === 'assistant' && (
+            <Logo size={32} />
+        )}
+
+        <div className="flex flex-col gap-2 w-full pt-1">
+          {message.content && (
+            <div className="flex flex-col gap-4">
+              <Markdown>{message.content as string}</Markdown>
+            </div>
+          )}
+
+          {message.toolInvocations && message.toolInvocations.length > 0 && (
+            <div className="flex flex-col gap-4">
+              {message.toolInvocations.map((toolInvocation) => {
+                const { toolName, toolCallId, state, args } = toolInvocation;
+
+                if (state === 'result') {
+                  const { result } = toolInvocation;
+
+                  return (
+                    <div key={toolCallId}>
+                      {toolName === 'getWeather' ? (
+                        <Weather weatherAtLocation={result} />
+                      ) : toolName === 'createDocument' ? (
+                        <DocumentToolResult
+                          type="create"
+                          result={result}
+                          block={block}
+                          setBlock={setBlock}
+                        />
+                      ) : toolName === 'updateDocument' ? (
+                        <DocumentToolResult
+                          type="update"
+                          result={result}
+                          block={block}
+                          setBlock={setBlock}
+                        />
+                      ) : toolName === 'requestSuggestions' ? (
+                        <DocumentToolResult
+                          type="request-suggestions"
+                          result={result}
+                          block={block}
+                          setBlock={setBlock}
+                        />
+                      ) : (
+                        <pre>{JSON.stringify(result, null, 2)}</pre>
+                      )}
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div
+                      key={toolCallId}
+                      className={cx({
+                        skeleton: ['getWeather'].includes(toolName),
+                      })}
+                    >
+                      {toolName === 'getWeather' ? (
+                        <Weather />
+                      ) : toolName === 'createDocument' ? (
+                        <DocumentToolCall type="create" args={args} />
+                      ) : toolName === 'updateDocument' ? (
+                        <DocumentToolCall type="update" args={args} />
+                      ) : toolName === 'requestSuggestions' ? (
+                        <DocumentToolCall
+                          type="request-suggestions"
+                          args={args}
+                        />
+                      ) : null}
+                    </div>
+                  );
+                }
+              })}
+            </div>
+          )}
+
+          {message.experimental_attachments && (
+            <div className="flex flex-row gap-2">
+              {message.experimental_attachments.map((attachment) => (
+                <PreviewAttachment
+                  key={attachment.url}
+                  attachment={attachment}
+                />
+              ))}
+            </div>
+          )}
+
+          <MessageActions
+            key={`action-${message.id}`}
+            chatId={chatId}
+            message={message}
+            vote={vote}
+            isLoading={isLoading}
+          />
         </div>
-      )}
+      </div>
+    </motion.div>
+  );
+};
 
-      <div className="flex w-full flex-col gap-2">
-        {content && (
-          <div
-            className={cn(
-              `flex flex-col gap-4 text-zinc-800 dark:text-zinc-300 ${role === "user" && "w-fit self-end rounded-lg bg-zinc-200/60 p-2 dark:bg-zinc-900"}`,
-            )}
-          >
-            <Markdown>{content as string}</Markdown>
-          </div>
+export const ThinkingMessage = () => {
+  const role = 'assistant';
+
+  return (
+    <motion.div
+      className="w-full mx-auto max-w-3xl px-4 group/message "
+      initial={{ y: 5, opacity: 0 }}
+      animate={{ y: 0, opacity: 1, transition: { delay: 1 } }}
+      data-role={role}
+    >
+      <div
+        className={cx(
+          'flex gap-4 group-data-[role=user]/message:px-3 w-full group-data-[role=user]/message:w-fit group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:py-2 rounded-xl',
+          {
+            'group-data-[role=user]/message:bg-muted': true,
+          }
         )}
-
-        {/* {toolInvocations && (
-          <div className="flex flex-col gap-4">
-            {toolInvocations.map((toolInvocation) => {
-              const { toolName, toolCallId, state } = toolInvocation;
-
-              if (state === "result") {
-                const { result } = toolInvocation;
-
-                return (
-                  <div key={toolCallId}>
-                    {toolName === "getWeather" ? (
-                      <Weather weatherAtLocation={result} />
-                    ) : null}
-                  </div>
-                );
-              } else {
-                return (
-                  <div key={toolCallId} className="skeleton">
-                    {toolName === "getWeather" ? <Weather /> : null}
-                  </div>
-                );
-              }
-            })}
+      >
+          <Logo size={32} />
+        <div className="flex flex-col gap-2 w-full pt-1">
+          <div className="flex flex-col gap-4 text-muted-foreground">
+            Thinking...
           </div>
-        )} */}
-
-        {attachments && (
-          <div className="flex flex-row gap-2">
-            {attachments.map((attachment) => (
-              <PreviewAttachment key={attachment.url} attachment={attachment} />
-            ))}
-          </div>
-        )}
+        </div>
       </div>
     </motion.div>
   );

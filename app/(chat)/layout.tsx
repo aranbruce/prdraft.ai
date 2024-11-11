@@ -1,16 +1,24 @@
-import { auth } from "@/app/(auth)/auth";
-import { AppSidebar } from "@/components/custom/app-sidebar";
+import { cookies } from 'next/headers';
 
-export default async function ChatLayout({
+import { AppSidebar } from '@/components/custom/app-sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+
+import { auth } from '../(auth)/auth';
+
+export const experimental_ppr = true;
+
+export default async function Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const [session, cookieStore] = await Promise.all([auth(), cookies()]);
+  const isCollapsed = cookieStore.get('sidebar:state')?.value !== 'true';
+
   return (
-    <>
-      {session?.user && <AppSidebar user={session?.user} />}
-      {children}
-    </>
+    <SidebarProvider defaultOpen={!isCollapsed}>
+      <AppSidebar user={session?.user} />
+      <SidebarInset>{children}</SidebarInset>
+    </SidebarProvider>
   );
 }

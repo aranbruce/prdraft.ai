@@ -13,7 +13,6 @@ import { Logo } from "./logo";
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
-import { Weather } from './weather';
 
 export const PreviewMessage = ({
   chatId,
@@ -63,9 +62,7 @@ export const PreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      {toolName === 'getWeather' ? (
-                        <Weather weatherAtLocation={result} />
-                      ) : toolName === 'createDocument' ? (
+                      {toolName === 'createDocument' ? (
                         <DocumentToolResult
                           type="create"
                           result={result}
@@ -96,12 +93,10 @@ export const PreviewMessage = ({
                     <div
                       key={toolCallId}
                       className={cx({
-                        skeleton: ['getWeather'].includes(toolName),
+                        
                       })}
                     >
-                      {toolName === 'getWeather' ? (
-                        <Weather />
-                      ) : toolName === 'createDocument' ? (
+                      {toolName === 'createDocument' ? (
                         <DocumentToolCall type="create" args={args} />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolCall type="update" args={args} />

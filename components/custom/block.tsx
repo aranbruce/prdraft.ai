@@ -20,6 +20,8 @@ import {
 import { Document, Suggestion, Vote } from '@/db/schema';
 import { fetcher } from '@/lib/utils';
 
+import { Button } from '../ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { DiffView } from './diffview';
 import { DocumentSkeleton } from './document-skeleton';
 import { Editor } from './editor';
@@ -29,8 +31,6 @@ import { MultimodalInput } from './multimodal-input';
 import { Toolbar } from './toolbar';
 import { useScrollToBottom } from './use-scroll-to-bottom';
 import { VersionFooter } from './version-footer';
-import { Button } from '../ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 export interface UIBlock {
   title: string;
   documentId: string;
@@ -254,7 +254,7 @@ export function Block({
     >
       {!isMobile && (
         <motion.div
-          className="relative w-[400px] bg-muted dark:bg-background h-dvh shrink-0"
+          className="relative w-[480px] bg-muted dark:bg-background h-dvh shrink-0"
           initial={{ opacity: 0, x: 10, scale: 1 }}
           animate={{
             opacity: 1,
@@ -277,7 +277,7 @@ export function Block({
           <AnimatePresence>
             {!isCurrentVersion && (
               <motion.div
-                className="left-0 absolute h-dvh w-[400px] top-0 bg-zinc-900/50 z-50"
+                className="left-0 absolute h-dvh w-[480px] top-0 bg-zinc-900/50 z-50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -371,10 +371,10 @@ export function Block({
               }
             : {
                 opacity: 1,
-                x: 400,
+                x: 480,
                 y: 0,
                 height: windowHeight,
-                width: windowWidth ? windowWidth - 400 : 'calc(100dvw-400px)',
+                width: windowWidth ? windowWidth - 480 : 'calc(100dvw-480px)',
                 borderRadius: 0,
                 transition: {
                   delay: 0,

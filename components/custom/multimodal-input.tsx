@@ -24,12 +24,16 @@ import { PreviewAttachment } from './preview-attachment';
 
 const suggestedActions = [
   {
-    title: 'What is the weather',
-    action: 'What is the weather in San Francisco?',
+    title: 'PRD for a login page',
+    action: 'Write a PRD for a login page',
   },
   {
-    title: 'Help me draft an essay',
-    action: 'Help me draft a short essay about Silicon Valley',
+    title: 'PRD for an AI chatbot',
+    action: 'Write a PRD for an AI chatbot',
+  },
+  {
+    title: 'Critique a PRD',
+    action: 'Help me critique my product requirements document',
   },
 ];
 

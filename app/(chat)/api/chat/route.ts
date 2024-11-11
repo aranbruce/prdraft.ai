@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 import { customModel } from '@/ai';
 import { models } from '@/ai/models';
-import { blocksPrompt, regularPrompt, systemPrompt } from '@/ai/prompts';
+import { systemPrompt } from '@/ai/prompts';
 import { auth } from '@/app/(auth)/auth';
 import {
   deleteChatById,
@@ -35,7 +35,6 @@ type AllowedTools =
   | 'createDocument'
   | 'updateDocument'
   | 'requestSuggestions'
-  | 'getWeather';
 
 const blocksTools: AllowedTools[] = [
   'createDocument',
@@ -43,9 +42,7 @@ const blocksTools: AllowedTools[] = [
   'requestSuggestions',
 ];
 
-const weatherTools: AllowedTools[] = ['getWeather'];
-
-const allTools: AllowedTools[] = [...blocksTools, ...weatherTools];
+const allTools: AllowedTools[] = [...blocksTools];
 
 export async function POST(request: Request) {
   const {
@@ -96,23 +93,8 @@ export async function POST(request: Request) {
     maxSteps: 5,
     experimental_activeTools: allTools,
     tools: {
-      getWeather: {
-        description: 'Get the current weather at a location',
-        parameters: z.object({
-          latitude: z.number(),
-          longitude: z.number(),
-        }),
-        execute: async ({ latitude, longitude }) => {
-          const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
-          );
-
-          const weatherData = await response.json();
-          return weatherData;
-        },
-      },
       createDocument: {
-        description: 'Create a document for a writing activity',
+        description: 'Create a product requirements document (PRD)',
         parameters: z.object({
           title: z.string(),
         }),
@@ -138,7 +120,33 @@ export async function POST(request: Request) {
           const { fullStream } = await streamText({
             model: customModel(model.apiIdentifier),
             system:
-              'Write about the given topic. Markdown is supported. Use headings wherever appropriate.',
+              `Write a product requirement document (PRD) for the given topic. Markdown is supported. Use headings wherever appropriate. Follow the following structure of a PRD:
+                # 1. Project overview
+                Designs: {Link to the designs if relevant}
+                Stakeholders: {List of stakeholders}
+                Objective: {Objective of the project}
+                Key Results: {Key results of the project}
+              # 2. Problem statement
+                Problem: {Problem statement}
+                Impact: {Impact of the problem}
+                Solution: {Proposed solution}
+              # 3. Context
+              - Describe the current process and experience
+              - Talk about the challenges faced by users, stakeholders and the business
+              - Include any data or research that supports the need for this project
+              - Talk through the designs for the new proposed solution and explain how it solves the problem
+              # 4. User stories
+              Create relevant user stories for the project in the following format:
+              As a {type of user}, I want {objective of the user} so that {reason for the objective}
+              If relevant include acceptance criteria for each user story in the following format:
+              Given {context}, when {action}, then {outcome}. If there are multiple scenarios, list them out and give each one a descriptive title.
+              # 5. Non-functional requirements
+              Include any non-functional requirements that are relevant to the project. These can include performance, security, accessibility, event tracking etc.
+              # 6. Dependencies
+              List out any dependencies that the project has on other teams or projects.
+              # 7. Success metrics
+              Define the success metrics that will be used to measure the success of the project.
+              `,
             prompt: title,
           });
 
@@ -175,7 +183,7 @@ export async function POST(request: Request) {
         },
       },
       updateDocument: {
-        description: 'Update a document with the given description',
+        description: 'Update a product requirements document (PRD) with the given description',
         parameters: z.object({
           id: z.string().describe('The ID of the document to update'),
           description: z
@@ -202,7 +210,7 @@ export async function POST(request: Request) {
           const { fullStream } = await streamText({
             model: customModel(model.apiIdentifier),
             system:
-              'You are a helpful writing assistant. Based on the description, please update the piece of writing.',
+              'You are a helpful writing assistant. Based on the description, please update the product requirement document (PRD).',
             experimental_providerMetadata: {
               openai: {
                 prediction: {

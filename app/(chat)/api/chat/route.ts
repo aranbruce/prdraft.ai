@@ -19,6 +19,7 @@ import {
   saveDocument,
   saveMessages,
   saveSuggestions,
+  updateChat,
 } from '@/db/queries';
 import { Suggestion } from '@/db/schema';
 import {
@@ -404,6 +405,43 @@ export async function DELETE(request: Request) {
 
     return new Response('Chat deleted', { status: 200 });
   } catch (error) {
+    return new Response('An error occurred while processing your request', {
+      status: 500,
+    });
+  }
+}
+
+export async function PATCH(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+  const {title} : {title: string} = await request.json();
+
+  const session = await auth();
+
+  if (!session || !session.user || !session.user.id) {
+    console.log('Unauthorized');
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  if (!id) {
+    return new Response('id is required', { status: 400 });
+  }
+  if (!title) {
+    return new Response('title is required', { status: 400 });
+  }
+
+  // check if chat exists for that user
+  const chat = await getChatById({ id });
+  if (!chat || chat.userId !== session.user.id) {
+    return new Response('Chat not found', { status: 404 });
+  }
+  try {
+
+    await updateChat({ id, userId: session.user.id, title });
+    return new Response('Chat updated successfully', { status: 200 });
+  } catch (error) {
+    console.error('Failed to update chat');
+    console.error(error);
     return new Response('An error occurred while processing your request', {
       status: 500,
     });

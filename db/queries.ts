@@ -6,14 +6,14 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
 import {
-  user,
   chat,
-  User,
   document,
-  Suggestion,
-  suggestion,
   Message,
   message,
+  Suggestion,
+  suggestion,
+  user,
+  User,
   vote,
 } from './schema';
 
@@ -62,6 +62,26 @@ export async function saveChat({
     });
   } catch (error) {
     console.error('Failed to save chat in database');
+    throw error;
+  }
+}
+
+export async function updateChat({
+  id,
+  userId,
+  title,
+}: {
+  id: string;
+  userId: string;
+  title: string;
+}) {
+  try {
+    return await db.update(chat).set({
+      userId,
+      title,
+    }).where(and(eq(chat.id, id), eq(chat.userId, userId)));
+  } catch (error) {
+    console.error('Failed to update chat in database');
     throw error;
   }
 }

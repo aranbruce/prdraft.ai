@@ -17,7 +17,7 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
   return (
     <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
       {(!open || windowWidth < 768) && (
-        <div className="flex-row gap-3 flex items-center">
+        <div className="flex-row gap-2 flex items-center">
           <Logo size={32}/>
           <SidebarToggle />
         </div>

@@ -133,6 +133,7 @@ export function Chat({
             setAttachments={setAttachments}
             messages={messages}
             setMessages={setMessages}
+            className="bg-muted"
             append={append}
           />
         </form>

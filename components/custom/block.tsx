@@ -254,7 +254,7 @@ export function Block({
     >
       {!isMobile && (
         <motion.div
-          className="relative w-[480px] bg-muted dark:bg-background h-dvh shrink-0"
+          className="relative w-1/2 bg-muted dark:bg-background h-dvh shrink-0"
           initial={{ opacity: 0, x: 10, scale: 1 }}
           animate={{
             opacity: 1,
@@ -277,7 +277,7 @@ export function Block({
           <AnimatePresence>
             {!isCurrentVersion && (
               <motion.div
-                className="left-0 absolute h-dvh w-[480px] top-0 bg-zinc-900/50 z-50"
+                className="left-0 absolute h-dvh w-1/2 top-0 bg-zinc-900/50 z-50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -312,7 +312,7 @@ export function Block({
               />
             </div>
 
-            <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
+            <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4 max-w-3xl">
               <MultimodalInput
                 chatId={chatId}
                 input={input}
@@ -333,7 +333,7 @@ export function Block({
       )}
 
       <motion.div
-        className="fixed dark:bg-muted bg-background h-dvh flex flex-col shadow-xl overflow-y-scroll"
+        className="fixed dark:bg-muted bg-background h-dvh flex flex-col border-l border-border overflow-y-scroll"
         initial={
           isMobile
             ? {
@@ -346,8 +346,10 @@ export function Block({
               }
             : {
                 opacity: 0,
-                x: block.boundingBox.left,
-                y: block.boundingBox.top,
+                // x: block.boundingBox.left,
+                x: "100%",
+                // y: block.boundingBox.top,
+                y: 0,
                 height: block.boundingBox.height,
                 width: block.boundingBox.width,
                 borderRadius: 50,
@@ -371,10 +373,10 @@ export function Block({
               }
             : {
                 opacity: 1,
-                x: 480,
+                x: "100%",
                 y: 0,
                 height: windowHeight,
-                width: windowWidth ? windowWidth - 480 : 'calc(100dvw-480px)',
+                width: windowWidth ? windowWidth - (windowWidth * 0.5) : '50%',
                 borderRadius: 0,
                 transition: {
                   delay: 0,

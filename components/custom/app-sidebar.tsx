@@ -34,8 +34,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             <div
               onClick={() => {
                 setOpenMobile(false);
-                router.push('/');
-                router.refresh();
               }}
               className="flex flex-row gap-3 items-center"
             >

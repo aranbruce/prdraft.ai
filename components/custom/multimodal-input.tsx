@@ -79,7 +79,7 @@ export function MultimodalInput({
     if (textareaRef.current) {
       adjustHeight();
     }
-  }, []);
+  }, [input]);
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -223,17 +223,15 @@ export function MultimodalInput({
           ))}
         </div>
       )}
-      <div className="relative flex flex-col">
+      <div className={cx("has-[button:focus]:ring-0 border-input border rounded-xl overflow-hidden focus:outline-none focus-within:outline-none focus-within:ring-2 focus-within:ring-ring outline:none ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2", className)}>
       <Textarea
         ref={textareaRef}
         placeholder="Send a message..."
         value={input}
         onChange={handleInput}
-        className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-xl text-base bg-muted',
-          className
-        )}
-        rows={3}
+        className=
+          "max-h-[calc(50dvh)] overflow-hidden bg-transparent resize-none text-base border-none border-0 outline-none ring-0 focus-visible:outline-none focus-visible:ring-0 focus:outline-none rounded-none focus-visible:ring-offset-0"
+        rows={2}
         autoFocus
         onKeyDown={(event) => {
           if (event.key === 'Enter' && !event.shiftKey) {
@@ -247,7 +245,7 @@ export function MultimodalInput({
           }
         }}
       />
-      <div className="flex flex-row gap-2 items-center justify-between absolute bottom-2 left-2 right-2">
+      <div className="flex flex-row gap-2 items-center justify-between  p-2">
         <Button
           className="rounded-lg p-2 h-8"
           onClick={(event) => {

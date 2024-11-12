@@ -45,7 +45,7 @@ export const PreviewMessage = ({
             <Logo size={32} />
         )}
 
-        <div className="flex flex-col gap-2 w-full pt-1">
+        <div className="flex flex-col gap-2 w-full">
           {message.content && (
             <div className="flex flex-col gap-4">
               <Markdown>{message.content as string}</Markdown>

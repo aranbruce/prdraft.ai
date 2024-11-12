@@ -74,9 +74,23 @@ export const PreviewMessage = ({
                           block={block}
                           setBlock={setBlock}
                         />
-                      ) : toolName === "requestSuggestions" ? (
+                      ) : toolName === "requestPMSuggestions" ? (
                         <DocumentToolResult
-                          type="request-suggestions"
+                          type="request-pm-suggestions"
+                          result={result}
+                          block={block}
+                          setBlock={setBlock}
+                        />
+                      ) : toolName === "requestEngineerSuggestions" ? (
+                        <DocumentToolResult
+                          type="request-engineer-suggestions"
+                          result={result}
+                          block={block}
+                          setBlock={setBlock}
+                        />
+                      ) : toolName === "requestDesignerSuggestions" ? (
+                        <DocumentToolResult
+                          type="request-designer-suggestions"
                           result={result}
                           block={block}
                           setBlock={setBlock}
@@ -93,9 +107,9 @@ export const PreviewMessage = ({
                         <DocumentToolCall type="create" args={args} />
                       ) : toolName === "updateDocument" ? (
                         <DocumentToolCall type="update" args={args} />
-                      ) : toolName === "requestSuggestions" ? (
+                      ) : toolName === "requestPMSuggestions" ? (
                         <DocumentToolCall
-                          type="request-suggestions"
+                          type="request-pm-suggestions"
                           args={args}
                         />
                       ) : null}

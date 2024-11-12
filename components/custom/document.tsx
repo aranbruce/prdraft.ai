@@ -1,23 +1,46 @@
 import { SetStateAction } from "react";
 
 import { UIBlock } from "./block";
-import { FileIcon, LoaderIcon, MessageIcon, PencilEditIcon } from "./icons";
+import {
+  FileIcon,
+  LoaderIcon,
+  MessageIcon,
+  PencilEditIcon,
+  CodeIcon,
+  PaletteIcon,
+} from "./icons";
 
-const getActionText = (type: "create" | "update" | "request-suggestions") => {
+const getActionText = (
+  type:
+    | "create"
+    | "update"
+    | "request-pm-suggestions"
+    | "request-engineer-suggestions"
+    | "request-designer-suggestions",
+) => {
   switch (type) {
     case "create":
       return "Creating";
     case "update":
       return "Updating";
-    case "request-suggestions":
-      return "Adding suggestions";
+    case "request-pm-suggestions":
+      return "Adding PM suggestions";
+    case "request-engineer-suggestions":
+      return "Adding engineer suggestions";
+    case "request-designer-suggestions":
+      return "Adding designer suggestions";
     default:
       return null;
   }
 };
 
 interface DocumentToolResultProps {
-  type: "create" | "update" | "request-suggestions";
+  type:
+    | "create"
+    | "update"
+    | "request-pm-suggestions"
+    | "request-engineer-suggestions"
+    | "request-designer-suggestions";
   result: any;
   block: UIBlock;
   setBlock: (value: SetStateAction<UIBlock>) => void;
@@ -57,8 +80,12 @@ export function DocumentToolResult({
           <FileIcon />
         ) : type === "update" ? (
           <PencilEditIcon />
-        ) : type === "request-suggestions" ? (
+        ) : type === "request-pm-suggestions" ? (
           <MessageIcon />
+        ) : type === "request-engineer-suggestions" ? (
+          <CodeIcon />
+        ) : type === "request-designer-suggestions" ? (
+          <PaletteIcon />
         ) : null}
       </div>
       <div className="">
@@ -69,7 +96,12 @@ export function DocumentToolResult({
 }
 
 interface DocumentToolCallProps {
-  type: "create" | "update" | "request-suggestions";
+  type:
+    | "create"
+    | "update"
+    | "request-pm-suggestions"
+    | "request-engineer-suggestions"
+    | "request-designer-suggestions";
   args: any;
 }
 
@@ -82,8 +114,12 @@ export function DocumentToolCall({ type, args }: DocumentToolCallProps) {
             <FileIcon />
           ) : type === "update" ? (
             <PencilEditIcon />
-          ) : type === "request-suggestions" ? (
+          ) : type === "request-pm-suggestions" ? (
             <MessageIcon />
+          ) : type === "request-engineer-suggestions" ? (
+            <CodeIcon />
+          ) : type === "request-designer-suggestions" ? (
+            <PaletteIcon />
           ) : null}
         </div>
 

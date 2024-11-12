@@ -25,10 +25,17 @@ import {
   PenIcon,
   StopIcon,
   SummarizeIcon,
+  CodeIcon,
+  PaletteIcon,
 } from "./icons";
 
 type ToolProps = {
-  type: "final-polish" | "request-suggestions" | "adjust-reading-level";
+  type:
+    | "final-polish"
+    | "request-pm-suggestions"
+    | "request-engineer-suggestions"
+    | "request-designer-suggestions"
+    | "adjust-reading-level";
   description: string;
   icon: JSX.Element;
   selectedTool: string | null;
@@ -84,11 +91,27 @@ const Tool = ({
         });
 
         setSelectedTool(null);
-      } else if (type === "request-suggestions") {
+      }
+      if (type === "request-pm-suggestions") {
         append({
           role: "user",
           content:
-            "Please add suggestions you have that could improve the writing.",
+            "Please add product manager related suggestions you have that could improve the writing.",
+        });
+
+        setSelectedTool(null);
+      }
+      if (type === "request-engineer-suggestions") {
+        append({
+          role: "user",
+          content:
+            "Please add engineering related suggestions you have that could improve the writing.",
+        });
+      } else if (type === "request-designer-suggestions") {
+        append({
+          role: "user",
+          content:
+            "Please add design related suggestions you have that could improve the writing.",
         });
 
         setSelectedTool(null);
@@ -289,9 +312,27 @@ export const Tools = ({
             />
 
             <Tool
-              type="request-suggestions"
-              description="Request suggestions"
+              type="request-pm-suggestions"
+              description="Request PM suggestions"
               icon={<MessageIcon />}
+              selectedTool={selectedTool}
+              setSelectedTool={setSelectedTool}
+              append={append}
+              isAnimating={isAnimating}
+            />
+            <Tool
+              type="request-engineer-suggestions"
+              description="Request engineer suggestions"
+              icon={<CodeIcon />}
+              selectedTool={selectedTool}
+              setSelectedTool={setSelectedTool}
+              append={append}
+              isAnimating={isAnimating}
+            />
+            <Tool
+              type="request-designer-suggestions"
+              description="Request designer suggestions"
+              icon={<PaletteIcon />}
               selectedTool={selectedTool}
               setSelectedTool={setSelectedTool}
               append={append}
@@ -387,14 +428,14 @@ export const Toolbar = ({
               ? {
                   opacity: 1,
                   y: 0,
-                  height: 6 * 43,
+                  height: 6 * 41,
                   transition: { delay: 0 },
                   scale: 0.95,
                 }
               : {
                   opacity: 1,
                   y: 0,
-                  height: 3 * 42,
+                  height: 5 * 40,
                   transition: { delay: 0 },
                   scale: 1,
                 }

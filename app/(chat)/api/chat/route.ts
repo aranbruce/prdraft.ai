@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import { customModel } from "@/ai";
 import { models } from "@/ai/models";
-import { systemPrompt } from "@/ai/prompts";
+import { prdStructurePrompt, systemPrompt } from "@/ai/prompts";
 import { auth } from "@/app/(auth)/auth";
 import {
   deleteChatById,
@@ -32,12 +32,19 @@ import { generateTitleFromUserMessage } from "../../actions";
 
 export const maxDuration = 60;
 
-type AllowedTools = "createDocument" | "updateDocument" | "requestSuggestions";
+type AllowedTools =
+  | "createDocument"
+  | "updateDocument"
+  | "requestPMSuggestions"
+  | "requestEngineerSuggestions"
+  | "requestDesignerSuggestions";
 
 const blocksTools: AllowedTools[] = [
   "createDocument",
   "updateDocument",
-  "requestSuggestions",
+  "requestPMSuggestions",
+  "requestEngineerSuggestions",
+  "requestDesignerSuggestions",
 ];
 
 const allTools: AllowedTools[] = [...blocksTools];
@@ -118,31 +125,7 @@ export async function POST(request: Request) {
           const { fullStream } = await streamText({
             model: customModel(model.apiIdentifier),
             system: `Write a product requirement document (PRD) for the given topic. Markdown is supported. Use headings wherever appropriate. Follow the following structure of a PRD:
-                # 1. Project overview
-                Designs: {Link to the designs if relevant}
-                Stakeholders: {List of stakeholders}
-                Objective: {Objective of the project}
-                Key Results: {Key results of the project}
-              # 2. Problem statement
-                Problem: {Problem statement}
-                Impact: {Impact of the problem}
-                Solution: {Proposed solution}
-              # 3. Context
-              - Describe the current process and experience
-              - Talk about the challenges faced by users, stakeholders and the business
-              - Include any data or research that supports the need for this project
-              - Talk through the designs for the new proposed solution and explain how it solves the problem
-              # 4. User stories
-              Create relevant user stories for the project in the following format:
-              As a {type of user}, I want {objective of the user} so that {reason for the objective}
-              If relevant include acceptance criteria for each user story in the following format:
-              Given {context}, when {action}, then {outcome}. If there are multiple scenarios, list them out and give each one a descriptive title.
-              # 5. Non-functional requirements
-              Include any non-functional requirements that are relevant to the project. These can include performance, security, accessibility, event tracking etc.
-              # 6. Dependencies
-              List out any dependencies that the project has on other teams or projects.
-              # 7. Success metrics
-              Define the success metrics that will be used to measure the success of the project.
+              ${prdStructurePrompt}
               `,
             prompt: title,
           });
@@ -207,8 +190,9 @@ export async function POST(request: Request) {
 
           const { fullStream } = await streamText({
             model: customModel(model.apiIdentifier),
-            system:
-              "You are a helpful writing assistant. Based on the description, please update the product requirement document (PRD).",
+            system: `You are a helpful writing assistant. Based on the description, please update the product requirement document (PRD) using the following format:
+              ${prdStructurePrompt}
+              `,
             experimental_providerMetadata: {
               openai: {
                 prediction: {
@@ -258,8 +242,9 @@ export async function POST(request: Request) {
           };
         },
       },
-      requestSuggestions: {
-        description: "Request suggestions for a document",
+      requestPMSuggestions: {
+        description:
+          "Request suggestions for a document from a product manager",
         parameters: z.object({
           documentId: z
             .string()
@@ -280,8 +265,10 @@ export async function POST(request: Request) {
 
           const { elementStream } = await streamObject({
             model: customModel(model.apiIdentifier),
-            system:
-              "You are a help writing assistant. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.",
+            system: `You are an experienced product manager. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.
+              For your suggestions, focus on the product aspects of the document and how it can be improved from a product perspective.
+              This could include suggestions around user experience, value to the end-user, pain points the solution will solve, user interface, accessibility, value to the business, cost reduction to the business and more.
+              `,
             prompt: document.content,
             output: "array",
             schema: z.object({
@@ -327,7 +314,162 @@ export async function POST(request: Request) {
           return {
             id: documentId,
             title: document.title,
-            message: "Suggestions have been added to the document",
+            message:
+              "Suggestions have been added to the document by the product manager",
+          };
+        },
+      },
+      requestEngineerSuggestions: {
+        description:
+          "Request suggestions from a lead engineer to improve a document",
+        parameters: z.object({
+          documentId: z
+            .string()
+            .describe("The ID of the document to request edits"),
+        }),
+        execute: async ({ documentId }) => {
+          const document = await getDocumentById({ id: documentId });
+
+          if (!document || !document.content) {
+            return {
+              error: "Document not found",
+            };
+          }
+
+          let suggestions: Array<
+            Omit<Suggestion, "userId" | "createdAt" | "documentCreatedAt">
+          > = [];
+
+          const { elementStream } = await streamObject({
+            model: customModel(model.apiIdentifier),
+            system: `You are a lead engineer working for a software company. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.
+              For your suggestions, focus on the technical aspects of the document and how it can be improved from a technical perspective.
+              This could include suggestions around technical considerations, delivery risks, technical debt, technical feasibility, security, non-functional requirements, and more.
+              `,
+            prompt: document.content,
+            output: "array",
+            schema: z.object({
+              originalSentence: z.string().describe("The original sentence"),
+              suggestedSentence: z.string().describe("The suggested sentence"),
+              description: z
+                .string()
+                .describe("The description of the suggestion"),
+            }),
+          });
+
+          for await (const element of elementStream) {
+            const suggestion = {
+              originalText: element.originalSentence,
+              suggestedText: element.suggestedSentence,
+              description: element.description,
+              id: generateUUID(),
+              documentId: documentId,
+              isResolved: false,
+            };
+
+            streamingData.append({
+              type: "suggestion",
+              content: suggestion,
+            });
+
+            suggestions.push(suggestion);
+          }
+
+          if (session.user && session.user.id) {
+            const userId = session.user.id;
+
+            await saveSuggestions({
+              suggestions: suggestions.map((suggestion) => ({
+                ...suggestion,
+                userId,
+                createdAt: new Date(),
+                documentCreatedAt: document.createdAt,
+              })),
+            });
+          }
+
+          return {
+            id: documentId,
+            title: document.title,
+            message:
+              "Suggestions have been added to the document by the lead engineer",
+          };
+        },
+      },
+      requestDesignerSuggestions: {
+        description:
+          "Request suggestions from a product designer to improve a document",
+        parameters: z.object({
+          documentId: z
+            .string()
+            .describe("The ID of the document to request edits"),
+        }),
+        execute: async ({ documentId }) => {
+          const document = await getDocumentById({ id: documentId });
+
+          if (!document || !document.content) {
+            return {
+              error: "Document not found",
+            };
+          }
+
+          let suggestions: Array<
+            Omit<Suggestion, "userId" | "createdAt" | "documentCreatedAt">
+          > = [];
+
+          const { elementStream } = await streamObject({
+            model: customModel(model.apiIdentifier),
+            system: `You are a product designer working for a software company. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.
+              For your suggestions, focus on the design aspects of the document and how it can be improved from a design perspective.
+              This could include suggestions around user experience, value to the end-user, pain points the solution will solve, user interface, accessibility, and more.
+              `,
+            prompt: document.content,
+            output: "array",
+            schema: z.object({
+              originalSentence: z.string().describe("The original sentence"),
+              suggestedSentence: z.string().describe("The suggested sentence"),
+              description: z
+                .string()
+                .describe("The description of the suggestion"),
+            }),
+          });
+
+          for await (const element of elementStream) {
+            const suggestion = {
+              originalText: element.originalSentence,
+              suggestedText: element.suggestedSentence,
+              description: element.description,
+              id: generateUUID(),
+              documentId: documentId,
+              isResolved: false,
+            };
+
+            streamingData.append({
+              type: "suggestion",
+              content: suggestion,
+            });
+
+            suggestions.push(suggestion);
+          }
+
+          if (session.user && session.user.id) {
+            const userId = session.user.id;
+
+            await saveSuggestions({
+              suggestions: suggestions.map((suggestion) => ({
+                ...suggestion,
+                userId,
+                createdAt: new Date(),
+                documentCreatedAt: document.createdAt,
+              })),
+            });
+          }
+
+          return {
+            id: documentId,
+            title: document.title,
+            message:
+              "Suggestions have been added to the document by the product designer",
           };
         },
       },

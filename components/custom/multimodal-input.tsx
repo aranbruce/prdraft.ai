@@ -79,7 +79,7 @@ export function MultimodalInput({
     if (textareaRef.current) {
       adjustHeight();
     }
-  }, []);
+  }, [input]);
 
   const adjustHeight = () => {
     if (textareaRef.current) {

@@ -1,6 +1,6 @@
-import { Attachment } from 'ai';
+import { Attachment } from "ai";
 
-import { LoaderIcon } from './icons';
+import { LoaderIcon } from "./icons";
 
 export const PreviewAttachment = ({
   attachment,
@@ -13,16 +13,16 @@ export const PreviewAttachment = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="w-20 aspect-video bg-muted rounded-md relative flex flex-col items-center justify-center">
+      <div className="relative flex aspect-video w-20 flex-col items-center justify-center rounded-md bg-muted">
         {contentType ? (
-          contentType.startsWith('image') ? (
+          contentType.startsWith("image") ? (
             // NOTE: it is recommended to use next/image for images
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={url}
               src={url}
-              alt={name ?? 'An image attachment'}
-              className="rounded-md size-full object-cover"
+              alt={name ?? "An image attachment"}
+              className="size-full rounded-md object-cover"
             />
           ) : (
             <div className=""></div>
@@ -32,12 +32,12 @@ export const PreviewAttachment = ({
         )}
 
         {isUploading && (
-          <div className="animate-spin absolute text-zinc-500">
+          <div className="absolute animate-spin text-zinc-500">
             <LoaderIcon />
           </div>
         )}
       </div>
-      <div className="text-xs text-zinc-500 max-w-16 truncate">{name}</div>
+      <div className="max-w-16 truncate text-xs text-zinc-500">{name}</div>
     </div>
   );
 };

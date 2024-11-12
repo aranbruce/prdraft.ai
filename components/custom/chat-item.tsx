@@ -1,19 +1,19 @@
-import Link from 'next/link';
-import React, { useEffect, useRef, useState } from 'react';
+import Link from "next/link";
+import React, { useEffect, useRef, useState } from "react";
 
-import { MoreHorizontalIcon, TrashIcon } from '@/components/custom/icons';
+import { MoreHorizontalIcon, TrashIcon } from "@/components/custom/icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenuAction,
   SidebarMenuButton,
-  SidebarMenuItem
-} from '@/components/ui/sidebar';
-import { Chat } from '@/db/schema';
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import { Chat } from "@/db/schema";
 
 interface ChatItemProps {
   chat: Chat;
@@ -23,33 +23,38 @@ interface ChatItemProps {
   setOpenMobile: (open: boolean) => void;
 }
 
-const ChatItem: React.FC<ChatItemProps> = ({ chat, isActive, onDelete, onRename, setOpenMobile }) => {
+const ChatItem: React.FC<ChatItemProps> = ({
+  chat,
+  isActive,
+  onDelete,
+  onRename,
+  setOpenMobile,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(chat.title);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // autofocus on input when editing
- useEffect(() => {
+  useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
       console.log("isEditing: ", isEditing);
-      console.log('inputRef.current?.focus():', inputRef.current);
+      console.log("inputRef.current?.focus():", inputRef.current);
     }
-  }, [isEditing, inputRef.current]);
-
+  }, [isEditing]);
 
   function handleRename() {
     if (newTitle !== chat.title) {
       onRename(chat.id, newTitle);
     }
     setIsEditing(false);
-  };
+  }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleRename();
     }
-  };
+  }
 
   return (
     <SidebarMenuItem>
@@ -64,7 +69,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, isActive, onDelete, onRename,
               onBlur={handleRename}
               onKeyDown={handleKeyDown}
               contentEditable={isEditing}
-              className="w-full py-1.5 pl-2 pr-8 rounded-md bg-secondary left-0 absolute focus-visible:outline-none focus:ring-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 focus-visible:ring-offset-background focus-visible:ring-opacity-50"
+              className="focus-visible:ring-opacity/50 absolute left-0 w-full rounded-md bg-secondary py-1.5 pl-2 pr-8 focus:ring-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 focus-visible:ring-offset-background"
             />
           ) : (
             <span onDoubleClick={() => setIsEditing(true)}>{chat.title}</span>
@@ -74,7 +79,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, isActive, onDelete, onRename,
       <DropdownMenu modal={true}>
         <DropdownMenuTrigger asChild>
           <SidebarMenuAction
-            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground mr-0.5"
+            className="mr-0.5 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             showOnHover={!isActive}
           >
             <MoreHorizontalIcon />

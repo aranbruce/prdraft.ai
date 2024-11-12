@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { Attachment, ChatRequestOptions, CreateMessage, Message } from 'ai';
-import cx from 'classnames';
+import { Attachment, ChatRequestOptions, CreateMessage, Message } from "ai";
+import cx from "classnames";
+import { motion } from "framer-motion";
 import React, {
   ChangeEvent,
   Dispatch,
@@ -10,30 +11,29 @@ import React, {
   useEffect,
   useRef,
   useState,
-} from 'react';
-import { toast } from 'sonner';
-import { useLocalStorage, useWindowSize } from 'usehooks-ts';
+} from "react";
+import { toast } from "sonner";
+import { useLocalStorage, useWindowSize } from "usehooks-ts";
 
-import { sanitizeUIMessages } from '@/lib/utils';
+import { sanitizeUIMessages } from "@/lib/utils";
 
-import { motion } from "framer-motion";
-import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
-import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
-import { PreviewAttachment } from './preview-attachment';
+import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
+import { PreviewAttachment } from "./preview-attachment";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
 
 const suggestedActions = [
   {
-    title: 'PRD for a login page',
-    action: 'Write a PRD for a login page',
+    title: "PRD for a login page",
+    action: "Write a PRD for a login page",
   },
   {
-    title: 'PRD for an AI chatbot',
-    action: 'Write a PRD for an AI chatbot',
+    title: "PRD for an AI chatbot",
+    action: "Write a PRD for an AI chatbot",
   },
   {
-    title: 'Critique a PRD',
-    action: 'Help me critique my product requirements document',
+    title: "Critique a PRD",
+    action: "Help me critique my product requirements document",
   },
 ];
 
@@ -62,13 +62,13 @@ export function MultimodalInput({
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
   append: (
     message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions
+    chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
   handleSubmit: (
     event?: {
       preventDefault?: () => void;
     },
-    chatRequestOptions?: ChatRequestOptions
+    chatRequestOptions?: ChatRequestOptions,
   ) => void;
   className?: string;
 }) {
@@ -83,21 +83,21 @@ export function MultimodalInput({
 
   const adjustHeight = () => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
     }
   };
 
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
-    'input',
-    ''
+    "input",
+    "",
   );
 
   useEffect(() => {
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
       // Prefer DOM value over localStorage to handle hydration
-      const finalValue = domValue || localStorageInput || '';
+      const finalValue = domValue || localStorageInput || "";
       setInput(finalValue);
       adjustHeight();
     }
@@ -118,14 +118,14 @@ export function MultimodalInput({
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
   const submitForm = useCallback(() => {
-    window.history.replaceState({}, '', `/chat/${chatId}`);
+    window.history.replaceState({}, "", `/chat/${chatId}`);
 
     handleSubmit(undefined, {
       experimental_attachments: attachments,
     });
 
     setAttachments([]);
-    setLocalStorageInput('');
+    setLocalStorageInput("");
 
     if (width && width > 768) {
       textareaRef.current?.focus();
@@ -141,11 +141,11 @@ export function MultimodalInput({
 
   const uploadFile = async (file: File) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     try {
       const response = await fetch(`/api/files/upload`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
 
@@ -163,7 +163,7 @@ export function MultimodalInput({
         toast.error(error);
       }
     } catch (error) {
-      toast.error('Failed to upload file, please try again!');
+      toast.error("Failed to upload file, please try again!");
     }
   };
 
@@ -177,7 +177,7 @@ export function MultimodalInput({
         const uploadPromises = files.map((file) => uploadFile(file));
         const uploadedAttachments = await Promise.all(uploadPromises);
         const successfullyUploadedAttachments = uploadedAttachments.filter(
-          (attachment) => attachment !== undefined
+          (attachment) => attachment !== undefined,
         );
 
         setAttachments((currentAttachments) => [
@@ -185,19 +185,19 @@ export function MultimodalInput({
           ...successfullyUploadedAttachments,
         ]);
       } catch (error) {
-        console.error('Error uploading files!', error);
+        console.error("Error uploading files!", error);
       } finally {
         setUploadQueue([]);
       }
     },
-    [setAttachments]
+    [setAttachments],
   );
 
   return (
-    <div className="relative w-full flex flex-col gap-4">
+    <div className="relative flex w-full flex-col gap-4">
       <input
         type="file"
-        className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
+        className="pointer-events-none fixed -left-4 -top-4 size-0.5 opacity-0"
         ref={fileInputRef}
         multiple
         onChange={handleFileChange}
@@ -205,7 +205,7 @@ export function MultimodalInput({
       />
 
       {(attachments.length > 0 || uploadQueue.length > 0) && (
-        <div className="flex flex-row gap-2 overflow-x-scroll items-end">
+        <div className="flex flex-row items-end gap-2 overflow-x-scroll">
           {attachments.map((attachment) => (
             <PreviewAttachment key={attachment.url} attachment={attachment} />
           ))}
@@ -214,80 +214,85 @@ export function MultimodalInput({
             <PreviewAttachment
               key={filename}
               attachment={{
-                url: '',
+                url: "",
                 name: filename,
-                contentType: '',
+                contentType: "",
               }}
               isUploading={true}
             />
           ))}
         </div>
       )}
-      <div className={cx("has-[button:focus]:ring-0 border-input border rounded-xl overflow-hidden focus:outline-none focus-within:outline-none focus-within:ring-2 focus-within:ring-ring outline:none ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2", className)}>
-      <Textarea
-        ref={textareaRef}
-        placeholder="Send a message..."
-        value={input}
-        onChange={handleInput}
-        className=
-          "max-h-[calc(50dvh)] overflow-hidden bg-transparent resize-none text-base border-none border-0 outline-none ring-0 focus-visible:outline-none focus-visible:ring-0 focus:outline-none rounded-none focus-visible:ring-offset-0"
-        rows={2}
-        autoFocus
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-
-            if (isLoading) {
-              toast.error('Please wait for the model to finish its response!');
-            } else {
-              submitForm();
-            }
-          }
-        }}
-      />
-      <div className="flex flex-row gap-2 items-center justify-between  p-2">
-        <Button
-          className="rounded-lg p-2 h-8"
-          onClick={(event) => {
-            event.preventDefault();
-            fileInputRef.current?.click();
-          }}
-          variant="outline"
-          disabled={isLoading}
-        >
-          <PaperclipIcon size={14} />
-        </Button>
-        {isLoading ? (
-          <Button
-            className="rounded-lg p-2 h-8"
-            onClick={(event) => {
-              event.preventDefault();
-              stop();
-              setMessages((messages) => sanitizeUIMessages(messages));
-            }}
-          >
-            <StopIcon size={14} />
-          </Button>
-        ) : (
-          <Button
-            className="rounded-lg p-2 h-8"
-            onClick={(event) => {
-              event.preventDefault();
-              submitForm();
-            }}
-            disabled={input.length === 0 || uploadQueue.length > 0}
-          >
-            <ArrowUpIcon size={14} />
-          </Button>
+      <div
+        className={cx(
+          "outline:none overflow-hidden rounded-xl border border-input ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 has-[button:focus]:ring-0",
+          className,
         )}
+      >
+        <Textarea
+          ref={textareaRef}
+          placeholder="Send a message..."
+          value={input}
+          onChange={handleInput}
+          className="max-h-[calc(50dvh)] resize-none overflow-hidden rounded-none border-0 border-none bg-transparent text-base outline-none ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          rows={2}
+          autoFocus
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
 
+              if (isLoading) {
+                toast.error(
+                  "Please wait for the model to finish its response!",
+                );
+              } else {
+                submitForm();
+              }
+            }
+          }}
+        />
+        <div className="flex flex-row items-center justify-between gap-2 p-2">
+          <Button
+            className="h-8 rounded-lg p-2"
+            onClick={(event) => {
+              event.preventDefault();
+              fileInputRef.current?.click();
+            }}
+            variant="outline"
+            disabled={isLoading}
+          >
+            <PaperclipIcon size={14} />
+          </Button>
+          {isLoading ? (
+            <Button
+              className="h-8 rounded-lg p-2"
+              onClick={(event) => {
+                event.preventDefault();
+                stop();
+                setMessages((messages) => sanitizeUIMessages(messages));
+              }}
+            >
+              <StopIcon size={14} />
+            </Button>
+          ) : (
+            <Button
+              className="h-8 rounded-lg p-2"
+              onClick={(event) => {
+                event.preventDefault();
+                submitForm();
+              }}
+              disabled={input.length === 0 || uploadQueue.length > 0}
+            >
+              <ArrowUpIcon size={14} />
+            </Button>
+          )}
         </div>
       </div>
-      
-    {messages.length === 0 &&
+
+      {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
-          <div className="flex flex-row justify-center gap-2 w-full">
+          <div className="flex w-full flex-row justify-center gap-2">
             {suggestedActions.map((suggestedAction, index) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -295,19 +300,19 @@ export function MultimodalInput({
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ delay: 0.05 * index }}
                 key={index}
-                className={index > 1 ? 'hidden sm:block' : 'block'}
+                className={index > 1 ? "hidden sm:block" : "block"}
               >
                 <Button
                   variant="ghost"
                   onClick={async () => {
-                    window.history.replaceState({}, '', `/chat/${chatId}`);
+                    window.history.replaceState({}, "", `/chat/${chatId}`);
 
                     append({
-                      role: 'user',
+                      role: "user",
                       content: suggestedAction.action,
                     });
                   }}
-                  className="text-left border rounded-full px-3 py-2 text-sm flex-1 gap-1 sm:flex-col w-fit h-auto justify-start items-start"
+                  className="h-auto w-fit flex-1 items-start justify-start gap-1 rounded-full border px-3 py-2 text-left text-sm sm:flex-col"
                 >
                   <span className="font-medium">{suggestedAction.title}</span>
                 </Button>
@@ -316,6 +321,5 @@ export function MultimodalInput({
           </div>
         )}
     </div>
-     
   );
 }

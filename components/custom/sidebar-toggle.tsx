@@ -1,10 +1,10 @@
-import { ComponentProps } from 'react';
+import { ComponentProps } from "react";
 
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { BetterTooltip } from '@/components/ui/tooltip';
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { BetterTooltip } from "@/components/ui/tooltip";
 
-import { Button } from '../ui/button';
-import { SidebarLeftIcon } from './icons';
+import { SidebarLeftIcon } from "./icons";
+import { Button } from "../ui/button";
 
 export function SidebarToggle({
   className,
@@ -16,7 +16,7 @@ export function SidebarToggle({
       <Button
         onClick={toggleSidebar}
         variant="ghost"
-        className="md:px-2 md:h-fit"
+        className="md:h-fit md:px-2"
       >
         <SidebarLeftIcon size={16} />
       </Button>

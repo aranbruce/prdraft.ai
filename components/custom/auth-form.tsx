@@ -1,12 +1,12 @@
-import Form from 'next/form';
+import Form from "next/form";
 
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 export function AuthForm({
   action,
   children,
-  defaultEmail = '',
+  defaultEmail = "",
 }: {
   action: any;
   children: React.ReactNode;
@@ -17,7 +17,7 @@ export function AuthForm({
       <div className="flex flex-col gap-2">
         <Label
           htmlFor="email"
-          className="text-zinc-600 font-normal dark:text-zinc-400"
+          className="font-normal text-zinc-600 dark:text-zinc-400"
         >
           Email Address
         </Label>
@@ -25,7 +25,7 @@ export function AuthForm({
         <Input
           id="email"
           name="email"
-          className="bg-muted text-md md:text-sm"
+          className="text-md bg-muted md:text-sm"
           type="email"
           placeholder="user@acme.com"
           autoComplete="email"
@@ -38,7 +38,7 @@ export function AuthForm({
       <div className="flex flex-col gap-2">
         <Label
           htmlFor="password"
-          className="text-zinc-600 font-normal dark:text-zinc-400"
+          className="font-normal text-zinc-600 dark:text-zinc-400"
         >
           Password
         </Label>
@@ -46,7 +46,7 @@ export function AuthForm({
         <Input
           id="password"
           name="password"
-          className="bg-muted text-md md:text-sm"
+          className="text-md bg-muted md:text-sm"
           type="password"
           placeholder="********"
           required

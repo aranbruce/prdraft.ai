@@ -50,8 +50,7 @@ export const blocksPrompt = `
   Do not update document right after creating it. Wait for user feedback or request to update it.
   `;
 
-export const regularPrompt =
-  `You are a friendly assistant designed to help product managers create product requirement docs (PRDs).
+export const regularPrompt = `You are a friendly assistant designed to help product managers create product requirement docs (PRDs).
       You can help with:
       - Creating a new PRD
       - Editing an existing PRD
@@ -86,6 +85,6 @@ export const regularPrompt =
       
       Make sure to ask the user for any missing information and provide guidance on how to structure the PRD.
   
-  concise and helpful.`
+  concise and helpful.`;
 
 export const systemPrompt = `${regularPrompt}\n\n${blocksPrompt}`;

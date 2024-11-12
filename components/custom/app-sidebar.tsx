@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { type User } from 'next-auth';
-import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { type User } from "next-auth";
 
-import { PlusIcon } from '@/components/custom/icons';
-import { SidebarHistory } from '@/components/custom/sidebar-history';
-import { SidebarUserNav } from '@/components/custom/sidebar-user-nav';
-import { Button } from '@/components/ui/button';
+import { PlusIcon } from "@/components/custom/icons";
+import { SidebarHistory } from "@/components/custom/sidebar-history";
+import { SidebarUserNav } from "@/components/custom/sidebar-user-nav";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -16,9 +17,9 @@ import {
   SidebarHeader,
   SidebarMenu,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { BetterTooltip } from '@/components/ui/tooltip';
-import Link from "next/link";
+} from "@/components/ui/sidebar";
+import { BetterTooltip } from "@/components/ui/tooltip";
+
 import { Logo } from "./logo";
 import { SidebarToggle } from "./sidebar-toggle";
 
@@ -30,29 +31,27 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     <Sidebar className="group-data-[side=left]:border-r-0">
       <SidebarHeader>
         <SidebarMenu>
-          <div className="flex flex-col gap-4 items-stretch">
+          <div className="flex flex-col items-stretch gap-4">
             <div
               onClick={() => {
                 setOpenMobile(false);
               }}
-              className="flex flex-row gap-3 items-center"
+              className="flex flex-row items-center gap-3"
             >
-              <div className="flex flex-row items-center justify-between w-full">
-            <Link
-              href="/"
-              >
-              <Logo size={32}/>
-            </Link>
-            <SidebarToggle />
-            </div>
+              <div className="flex w-full flex-row items-center justify-between">
+                <Link href="/">
+                  <Logo size={32} />
+                </Link>
+                <SidebarToggle />
+              </div>
             </div>
             <BetterTooltip content="New Chat" align="start">
               <Button
                 variant="outline"
-                className="p-2 h-fit"
+                className="h-fit p-2"
                 onClick={() => {
                   setOpenMobile(false);
-                  router.push('/');
+                  router.push("/");
                   router.refresh();
                 }}
               >

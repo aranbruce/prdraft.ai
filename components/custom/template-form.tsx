@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { SubmitButton } from "./submit-button";
 import { Textarea } from "../ui/textarea";
@@ -17,6 +18,8 @@ export default function TemplateForm({
   function handleSubmit(event: any) {
     event.preventDefault();
     saveTemplate({ content: content });
+    toast.success("Template saved");
+    toast.error("Failed to save template");
   }
 
   return (

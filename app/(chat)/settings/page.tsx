@@ -23,7 +23,6 @@ export default async function Page(props: { params: Promise<any> }) {
       content,
       userId: session.user.id,
     });
-    // toast.success("Template saved");
   }
 
   async function getTemplate() {

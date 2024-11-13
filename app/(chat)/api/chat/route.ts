@@ -9,12 +9,13 @@ import { z } from "zod";
 
 import { customModel } from "@/ai";
 import { models } from "@/ai/models";
-import { prdStructurePrompt, systemPrompt } from "@/ai/prompts";
+import { templatePrompt, systemPrompt } from "@/ai/prompts";
 import { auth } from "@/app/(auth)/auth";
 import {
   deleteChatById,
   getChatById,
   getDocumentById,
+  getTemplateByUserId,
   saveChat,
   saveDocument,
   saveMessages,
@@ -91,6 +92,10 @@ export async function POST(request: Request) {
 
   const streamingData = new StreamData();
 
+  const fetchedTemplatePrompt = await getTemplateByUserId({
+    userId: session.user.id,
+  });
+
   const result = await streamText({
     model: customModel(model.apiIdentifier),
     system: systemPrompt,
@@ -125,7 +130,7 @@ export async function POST(request: Request) {
           const { fullStream } = await streamText({
             model: customModel(model.apiIdentifier),
             system: `Write a product requirement document (PRD) for the given topic. Markdown is supported. Use headings wherever appropriate. Follow the following structure of a PRD:
-              ${prdStructurePrompt}
+              ${JSON.stringify(fetchedTemplatePrompt.content) || templatePrompt}
               `,
             prompt: title,
           });
@@ -191,7 +196,7 @@ export async function POST(request: Request) {
           const { fullStream } = await streamText({
             model: customModel(model.apiIdentifier),
             system: `You are a helpful writing assistant. Based on the description, please update the product requirement document (PRD) using the following format:
-              ${prdStructurePrompt}
+              ${JSON.stringify(fetchedTemplatePrompt.content) || templatePrompt}
               `,
             experimental_providerMetadata: {
               openai: {
@@ -502,7 +507,8 @@ export async function POST(request: Request) {
             ),
           });
         } catch (error) {
-          console.error("Failed to save chat");
+          console.error("Failed to save messages");
+          console.error(error);
         }
       }
 

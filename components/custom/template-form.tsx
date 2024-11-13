@@ -17,9 +17,12 @@ export default function TemplateForm({
 
   function handleSubmit(event: any) {
     event.preventDefault();
-    saveTemplate({ content: content });
-    toast.success("Template saved");
-    toast.error("Failed to save template");
+    try {
+      saveTemplate({ content: content });
+      toast.success("Template saved");
+    } catch (error) {
+      toast.error("Failed to save template");
+    }
   }
 
   return (

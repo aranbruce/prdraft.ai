@@ -1,7 +1,11 @@
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 
-import { MoreHorizontalIcon, TrashIcon } from "@/components/custom/icons";
+import {
+  MoreHorizontalIcon,
+  TrashIcon,
+  PencilEditIcon,
+} from "@/components/custom/icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,7 +95,8 @@ const ChatItem: React.FC<ChatItemProps> = ({
             className="cursor-pointer text-secondary-foreground focus:bg-primary-foreground focus:text-primary dark:text-secondary-foreground"
             onSelect={() => setIsEditing(true)}
           >
-            Rename
+            <PencilEditIcon />
+            <span>Rename</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"

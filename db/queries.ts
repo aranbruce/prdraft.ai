@@ -12,6 +12,7 @@ import {
   message,
   Suggestion,
   suggestion,
+  template,
   user,
   User,
   vote,
@@ -40,6 +41,60 @@ export async function createUser(email: string, password: string) {
     return await db.insert(user).values({ email, password: hash });
   } catch (error) {
     console.error("Failed to create user in database");
+    throw error;
+  }
+}
+
+export async function getTemplateByUserId({ userId }: { userId: string }) {
+  try {
+    const [selectedTemplate] = await db
+      .select()
+      .from(template)
+      .where(eq(template.userId, userId));
+    return selectedTemplate;
+  } catch (error) {
+    console.error("Failed to get template by userId from database");
+    throw error;
+  }
+}
+
+export async function saveTemplate({
+  id,
+  content,
+  userId,
+}: {
+  id: string;
+  content: string;
+  userId: string;
+}) {
+  try {
+    return await db.insert(template).values({
+      id,
+      content,
+      userId,
+    });
+  } catch (error) {
+    console.error("Failed to save template in database");
+    throw error;
+  }
+}
+
+export async function updateTemplate({
+  content,
+  userId,
+}: {
+  content: string;
+  userId: string;
+}) {
+  try {
+    return await db
+      .update(template)
+      .set({
+        content,
+      })
+      .where(eq(template.userId, userId));
+  } catch (error) {
+    console.error("Failed to update template in database");
     throw error;
   }
 }

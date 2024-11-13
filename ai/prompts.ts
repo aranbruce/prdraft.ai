@@ -1,4 +1,4 @@
-export const prdStructurePrompt = `
+export const templatePrompt = `
   # 1. Project overview
       Designs: {Link to the designs if relevant}
       Stakeholders: {List of stakeholders}

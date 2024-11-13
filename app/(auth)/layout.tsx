@@ -14,10 +14,10 @@ export default function AuthLayout({
       <header className="flex flex-row justify-between gap-2 p-2">
         <Logo size={32} />
         <div className="grid grid-cols-2 gap-2">
-          <Button asChild>
+          <Button asChild size="sm">
             <Link href="/login">Login</Link>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild size="sm">
             <Link href="/register">Register</Link>
           </Button>
         </div>

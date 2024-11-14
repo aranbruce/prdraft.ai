@@ -43,7 +43,6 @@ export const Suggestion = ({
         >
           <div className="flex flex-row items-center justify-between">
             <div className="flex flex-row items-center gap-2">
-              <div className="size-4 rounded-full bg-muted-foreground/25" />
               <div className="font-medium">Assistant</div>
             </div>
             <div
@@ -55,6 +54,7 @@ export const Suggestion = ({
               <CrossIcon size={12} />
             </div>
           </div>
+          <div>{suggestion.suggestedText}</div>
           <div>{suggestion.description}</div>
           <Button
             variant="outline"

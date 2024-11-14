@@ -32,13 +32,13 @@ export default async function Page(props: { params: Promise<any> }) {
       return;
     }
     const template = await getTemplateByUserId({ userId: session.user.id });
+    if (!template) {
+      return templatePrompt;
+    }
     return template.content;
   }
 
-  let content = await getTemplate();
-  if (!content) {
-    content = templatePrompt;
-  }
+  const content = (await getTemplate()) ?? "";
 
   const selectedModelId = ""; // Define selectedModelId with an appropriate value
 

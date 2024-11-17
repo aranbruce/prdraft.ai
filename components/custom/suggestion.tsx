@@ -46,7 +46,7 @@ export const Suggestion = ({
               <div className="font-semibold">Assistant</div>
             </div>
             <div
-              className="cursor-pointer text-xs text-secondary"
+              className="cursor-pointer text-xs text-secondary-foreground"
               onClick={() => {
                 setIsExpanded(false);
               }}
@@ -54,7 +54,7 @@ export const Suggestion = ({
               <CrossIcon size={12} />
             </div>
           </div>
-          <div className="border-l-2 border-secondary pl-2 italic">{suggestion.suggestedText}</div>
+          <div className="border-l-2 border-secondary pl-2 italic text-secondary-foreground">{suggestion.suggestedText}</div>
           <div>{suggestion.description}</div>
           <Button
             variant="outline"

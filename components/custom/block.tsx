@@ -288,7 +288,7 @@ export function Block({
           <div className="flex h-full flex-col items-center justify-between gap-4">
             <div
               ref={messagesContainerRef}
-              className="flex h-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20"
+              className="flex size-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20"
             >
               {messages.map((message, index) => (
                 <PreviewMessage

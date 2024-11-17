@@ -194,7 +194,8 @@ export async function getMessagesByChatId({ id }: { id: string }) {
       .select()
       .from(message)
       .where(eq(message.chatId, id))
-      .orderBy(asc(message.createdAt));
+      // removed as was causing error for toolInvocations
+      // .orderBy(asc(message.createdAt));
   } catch (error) {
     console.error("Failed to get messages by chat id from database", error);
     throw error;

@@ -112,6 +112,16 @@ export const PreviewMessage = ({
                           type="request-pm-suggestions"
                           args={args}
                         />
+                      ) : toolName === "requestEngineerSuggestions" ? (
+                        <DocumentToolCall
+                          type="request-engineer-suggestions"
+                          args={args}
+                        />
+                      ) : toolName === "requestDesignerSuggestions" ? (
+                        <DocumentToolCall
+                          type="request-designer-suggestions"
+                          args={args}
+                        />
                       ) : null}
                     </div>
                   );

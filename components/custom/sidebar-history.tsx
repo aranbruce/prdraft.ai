@@ -198,7 +198,11 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                 chats.length > 0 && (
                   <div key={key} className="flex flex-col gap-0.5">
                     <div className="mt-6 px-2 py-1 text-xs text-sidebar-foreground/50">
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
+                      {key
+                        .replace(/([a-z])([A-Z])/g, "$1 $2")
+                        .charAt(0)
+                        .toUpperCase() +
+                        key.replace(/([a-z])([A-Z])/g, "$1 $2").slice(1)}
                     </div>
                     {chats.map((chat) => (
                       <ChatItem

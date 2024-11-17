@@ -5,8 +5,6 @@ import cx from "classnames";
 import {
   AnimatePresence,
   motion,
-  useMotionValue,
-  useTransform,
 } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useOnClickOutside } from "usehooks-ts";
@@ -24,18 +22,17 @@ import {
   MessageIcon,
   PenIcon,
   StopIcon,
-  SummarizeIcon,
   CodeIcon,
   PaletteIcon,
+  CrossIcon,
 } from "./icons";
+import { Button } from "../ui/button";
 
 type ToolProps = {
   type:
-    | "final-polish"
     | "request-pm-suggestions"
     | "request-engineer-suggestions"
     | "request-designer-suggestions"
-    | "adjust-reading-level";
   description: string;
   icon: JSX.Element;
   selectedTool: string | null;
@@ -83,15 +80,6 @@ const Tool = ({
     if (selectedTool !== type) {
       setSelectedTool(type);
     } else {
-      if (type === "final-polish") {
-        append({
-          role: "user",
-          content:
-            "Please add final polish and check for grammar, add section titles for better structure, and ensure everything reads smoothly.",
-        });
-
-        setSelectedTool(null);
-      }
       if (type === "request-pm-suggestions") {
         append({
           role: "user",
@@ -164,115 +152,6 @@ const Tool = ({
   );
 };
 
-const ReadingLevelSelector = ({
-  setSelectedTool,
-  append,
-  isAnimating,
-}: {
-  setSelectedTool: Dispatch<SetStateAction<string | null>>;
-  isAnimating: boolean;
-  append: (
-    message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions,
-  ) => Promise<string | null | undefined>;
-}) => {
-  const LEVELS = [
-    "Elementary",
-    "Middle School",
-    "Keep current level",
-    "High School",
-    "College",
-    "Graduate",
-  ];
-
-  const y = useMotionValue(-40 * 2);
-  const dragConstraints = 5 * 40 + 2;
-  const yToLevel = useTransform(y, [0, -dragConstraints], [0, 5]);
-
-  const [currentLevel, setCurrentLevel] = useState(2);
-  const [hasUserSelectedLevel, setHasUserSelectedLevel] =
-    useState<boolean>(false);
-
-  useEffect(() => {
-    const unsubscribe = yToLevel.on("change", (latest) => {
-      const level = Math.min(5, Math.max(0, Math.round(Math.abs(latest))));
-      setCurrentLevel(level);
-    });
-
-    return () => unsubscribe();
-  }, [yToLevel]);
-
-  return (
-    <div className="relative flex flex-col items-center justify-end">
-      {[...Array(6)].map((_, index) => (
-        <motion.div
-          key={`dot-${index}`}
-          className="flex size-[40px] flex-row items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <div className="size-2 rounded-xl bg-muted-foreground/40" />
-        </motion.div>
-      ))}
-
-      <TooltipProvider>
-        <Tooltip open={!isAnimating}>
-          <TooltipTrigger asChild>
-            <motion.div
-              className={cx(
-                "absolute flex flex-row items-center rounded-xl border bg-background p-3",
-                {
-                  "bg-primary text-primary-foreground": currentLevel !== 2,
-                  "bg-background text-foreground": currentLevel === 2,
-                },
-              )}
-              style={{ y }}
-              drag="y"
-              dragElastic={0}
-              dragMomentum={false}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.1 }}
-              dragConstraints={{ top: -dragConstraints, bottom: 0 }}
-              onDragStart={() => {
-                setHasUserSelectedLevel(false);
-              }}
-              onDragEnd={() => {
-                if (currentLevel === 2) {
-                  setSelectedTool(null);
-                } else {
-                  setHasUserSelectedLevel(true);
-                }
-              }}
-              onClick={() => {
-                if (currentLevel !== 2 && hasUserSelectedLevel) {
-                  append({
-                    role: "user",
-                    content: `Please adjust the reading level to ${LEVELS[currentLevel]} level.`,
-                  });
-
-                  setSelectedTool(null);
-                }
-              }}
-            >
-              {currentLevel === 2 ? <SummarizeIcon /> : <ArrowUpIcon />}
-            </motion.div>
-          </TooltipTrigger>
-          <TooltipContent
-            side="left"
-            sideOffset={16}
-            className="rounded-2xl bg-foreground p-3 px-4 text-sm text-background"
-          >
-            {LEVELS[currentLevel]}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  );
-};
-
 export const Tools = ({
   isToolbarVisible,
   selectedTool,
@@ -301,16 +180,6 @@ export const Tools = ({
       <AnimatePresence>
         {isToolbarVisible && (
           <>
-            <Tool
-              type="adjust-reading-level"
-              description="Adjust reading level"
-              icon={<SummarizeIcon />}
-              selectedTool={selectedTool}
-              setSelectedTool={setSelectedTool}
-              append={append}
-              isAnimating={isAnimating}
-            />
-
             <Tool
               type="request-pm-suggestions"
               description="Request PM suggestions"
@@ -341,18 +210,14 @@ export const Tools = ({
           </>
         )}
       </AnimatePresence>
-
-      <Tool
-        type="final-polish"
-        description="Add final polish"
-        icon={<PenIcon />}
-        selectedTool={selectedTool}
-        setSelectedTool={setSelectedTool}
-        isToolbarVisible={isToolbarVisible}
-        setIsToolbarVisible={setIsToolbarVisible}
-        append={append}
-        isAnimating={isAnimating}
-      />
+      <Button
+        variant="ghost"
+        className="hover:bg-transparent"
+        onClick={() => {
+          setIsToolbarVisible(!isToolbarVisible);
+          setSelectedTool(null);
+        }}
+        >{isToolbarVisible ? <CrossIcon/> : <PenIcon/>}</Button>
     </motion.div>
   );
 };
@@ -424,18 +289,10 @@ export const Toolbar = ({
         initial={{ opacity: 0, y: -20, scale: 1 }}
         animate={
           isToolbarVisible
-            ? selectedTool === "adjust-reading-level"
-              ? {
+            ? {
                   opacity: 1,
                   y: 0,
-                  height: 6 * 41,
-                  transition: { delay: 0 },
-                  scale: 0.95,
-                }
-              : {
-                  opacity: 1,
-                  y: 0,
-                  height: 5 * 40,
+                  height: 4 * 40 + 3 * 2,
                   transition: { delay: 0 },
                   scale: 1,
                 }
@@ -476,13 +333,6 @@ export const Toolbar = ({
           >
             <StopIcon />
           </motion.div>
-        ) : selectedTool === "adjust-reading-level" ? (
-          <ReadingLevelSelector
-            key="reading-level-selector"
-            append={append}
-            setSelectedTool={setSelectedTool}
-            isAnimating={isAnimating}
-          />
         ) : (
           <Tools
             key="tools"

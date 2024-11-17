@@ -247,14 +247,14 @@ export function Block({
 
   return (
     <motion.div
-      className="fixed left-0 top-0 z-50 flex h-dvh w-dvw flex-row bg-muted"
+      className="fixed left-0 top-0 z-50 grid h-dvh w-dvw grid-cols-2 bg-muted"
       initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { delay: 0.4 } }}
     >
       {!isMobile && (
         <motion.div
-          className="relative h-dvh w-1/2 shrink-0 bg-muted dark:bg-background"
+          className="relative h-dvh w-full shrink-0 bg-background "
           initial={{ opacity: 0, x: 10, scale: 1 }}
           animate={{
             opacity: 1,
@@ -277,7 +277,7 @@ export function Block({
           <AnimatePresence>
             {!isCurrentVersion && (
               <motion.div
-                className="absolute left-0 top-0 z-50 h-dvh w-1/2 bg-zinc-900/50"
+                className="absolute left-0 top-0 z-50 h-dvh w-full bg-zinc-900/50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -331,9 +331,9 @@ export function Block({
           </div>
         </motion.div>
       )}
-
+      
       <motion.div
-        className="fixed flex h-dvh flex-col overflow-y-scroll border-l border-border bg-background dark:bg-muted"
+        className="fixed flex h-dvh flex-col overflow-y-scroll bg-secondary dark:bg-background md:p-4"
         initial={
           isMobile
             ? {
@@ -397,21 +397,9 @@ export function Block({
           },
         }}
       >
-        <div className="flex flex-row items-start justify-between p-2">
-          <div className="flex flex-row items-start gap-4">
-            <Button
-              variant="outline"
-              className="h-fit p-2 dark:hover:bg-zinc-700"
-              onClick={() => {
-                setBlock((currentBlock) => ({
-                  ...currentBlock,
-                  isVisible: false,
-                }));
-              }}
-            >
-              <CrossIcon size={18} />
-            </Button>
-
+        <div className="flex flex-col justify-between p-1 bg-background dark:bg-muted md:shadow-md rounded-lg md:border border-border h-full overflow-scroll items-center">
+        <div className="flex flex-row items-start justify-between p-2 w-full ">
+          <div className="flex flex-row items-start gap-4 justify-between px-2">
             <div className="flex flex-col">
               <div className="font-medium">
                 {document?.title ?? block.title}
@@ -508,11 +496,24 @@ export function Block({
               </TooltipTrigger>
               <TooltipContent>View changes</TooltipContent>
             </Tooltip>
+             <Button
+              variant="outline"
+              className="h-fit p-2 dark:hover:bg-zinc-700"
+              onClick={() => {
+                setBlock((currentBlock) => ({
+                  ...currentBlock,
+                  isVisible: false,
+                }));
+              }}
+            >
+              <CrossIcon size={18} />
+            </Button>
           </div>
+         
         </div>
-
-        <div className="prose h-full !max-w-full items-center overflow-y-scroll bg-background px-4 py-8 pb-40 dark:prose-invert dark:bg-muted md:p-20">
-          <div className="mx-auto flex max-w-[600px] flex-row">
+        <div className="relative w-full size-full">
+        <div className="prose dark:prose-invert h-full !max-w-full items-center  overflow-y-scroll bg-background pl-4 pr-6 py-8 pb-40 relative dark:bg-muted md:p-8 md:pr-10">
+          <div className="mx-auto flex flex-row w-full justify-start">
             {isDocumentsFetching && !block.content ? (
               <DocumentSkeleton />
             ) : mode === "edit" ? (
@@ -552,6 +553,8 @@ export function Block({
               )}
             </AnimatePresence>
           </div>
+        </div>
+        </div>
         </div>
 
         <AnimatePresence>

@@ -285,7 +285,7 @@ export const Toolbar = ({
   return (
     <TooltipProvider delayDuration={0}>
       <motion.div
-        className="absolute bottom-6 right-6 flex h-fit cursor-pointer flex-col justify-end rounded-xl border border-border bg-background text-secondary-foreground shadow-xl"
+        className="fixed bottom-6 right-6 flex h-fit cursor-pointer flex-col justify-end rounded-xl border border-border bg-background text-secondary-foreground shadow-xl"
         initial={{ opacity: 0, y: -20, scale: 1 }}
         animate={
           isToolbarVisible

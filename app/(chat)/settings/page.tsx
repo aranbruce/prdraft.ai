@@ -4,7 +4,12 @@ import { templatePrompt } from "@/ai/prompts";
 import { auth } from "@/app/(auth)/auth";
 import { ChatHeader } from "@/components/custom/chat-header";
 import TemplateForm from "@/components/custom/template-form";
-import { getTemplateByUserId, updateTemplate } from "@/db/queries";
+import {
+  getCompanyInfoByUserId,
+  getTemplateByUserId,
+  saveTemplate,
+  saveCompanyInfo,
+} from "@/db/queries";
 
 export default async function Page(props: { params: Promise<any> }) {
   const session = await auth();
@@ -13,14 +18,26 @@ export default async function Page(props: { params: Promise<any> }) {
     return notFound();
   }
 
-  async function saveTemplate({ content }: { content: string }) {
+  async function saveTemplateContent(templateContent: string) {
     "use server";
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
       return;
     }
-    await updateTemplate({
-      content,
+    await saveTemplate({
+      templateContent,
+      userId: session.user.id,
+    });
+  }
+
+  async function saveCompanyInfoContent(companyInfo: string) {
+    "use server";
+    const session = await auth();
+    if (!session || !session.user || !session.user.id) {
+      return;
+    }
+    await saveCompanyInfo({
+      companyInfoContent: companyInfo,
       userId: session.user.id,
     });
   }
@@ -38,7 +55,23 @@ export default async function Page(props: { params: Promise<any> }) {
     return template.content;
   }
 
-  const content = (await getTemplate()) ?? "";
+  async function getCompanyInfo() {
+    "use server";
+    const session = await auth();
+    if (!session || !session.user || !session.user.id) {
+      return;
+    }
+    const companyInfo = await getCompanyInfoByUserId({
+      userId: session.user.id,
+    });
+    if (!companyInfo) {
+      return "";
+    }
+    return companyInfo.content;
+  }
+
+  const templateContent = (await getTemplate()) ?? "";
+  const companyInfoContent = (await getCompanyInfo()) ?? "";
 
   const selectedModelId = ""; // Define selectedModelId with an appropriate value
 
@@ -48,8 +81,12 @@ export default async function Page(props: { params: Promise<any> }) {
 
       <section className="mx-auto flex h-dvh w-full min-w-0 max-w-3xl flex-col gap-4 overflow-scroll px-4 py-12">
         <h1 className="mb-2 text-3xl font-bold">Settings</h1>
-        <h2 className="text-xl font-bold">PRD template</h2>
-        <TemplateForm saveTemplate={saveTemplate} initialContent={content} />
+        <TemplateForm
+          saveTemplate={saveTemplateContent}
+          initialTemplateContent={templateContent}
+          saveCompanyInfo={saveCompanyInfoContent}
+          initialCompanyInfo={companyInfoContent}
+        />
       </section>
     </div>
   );

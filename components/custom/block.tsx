@@ -254,7 +254,7 @@ export function Block({
     >
       {!isMobile && (
         <motion.div
-          className="relative h-dvh w-full shrink-0 bg-muted dark:bg-background"
+          className="h-dvh w-full shrink-0 bg-muted dark:bg-background"
           initial={{ opacity: 0, x: 10, scale: 1 }}
           animate={{
             opacity: 1,
@@ -333,7 +333,7 @@ export function Block({
       )}
 
       <motion.div
-        className="fixed flex h-dvh flex-col overflow-y-scroll bg-secondary dark:bg-background md:p-4"
+        className="fixed flex h-dvh flex-col bg-muted dark:bg-background md:p-4"
         initial={
           isMobile
             ? {

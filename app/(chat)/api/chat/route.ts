@@ -14,6 +14,7 @@ import { auth } from "@/app/(auth)/auth";
 import {
   deleteChatById,
   getChatById,
+  getCompanyInfoByUserId,
   getDocumentById,
   getTemplateByUserId,
   saveChat,
@@ -96,9 +97,13 @@ export async function POST(request: Request) {
     userId: session.user.id,
   });
 
+  const fetchedCompanyInfo = await getCompanyInfoByUserId({
+    userId: session.user.id,
+  });
+
   const result = await streamText({
     model: customModel(model.apiIdentifier),
-    system: systemPrompt,
+    system: `${systemPrompt} ${fetchedCompanyInfo?.content ? `. Make sure to utilize the following information about the company the user works for in your responses: ${fetchedCompanyInfo.content}` : ""}`,
     messages: coreMessages,
     maxSteps: 5,
     experimental_activeTools: allTools,

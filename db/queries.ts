@@ -5,8 +5,11 @@ import { and, asc, desc, eq, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
+import { generateUUID } from "@/lib/utils";
+
 import {
   chat,
+  companyInfo,
   document,
   Message,
   message,
@@ -59,42 +62,70 @@ export async function getTemplateByUserId({ userId }: { userId: string }) {
 }
 
 export async function saveTemplate({
-  id,
-  content,
+  templateContent,
   userId,
 }: {
-  id: string;
-  content: string;
+  templateContent: string;
   userId: string;
 }) {
   try {
-    return await db.insert(template).values({
-      id,
-      content,
-      userId,
-    });
+    const existingTemplate = await getTemplateByUserId({ userId });
+    if (existingTemplate)
+      return await db
+        .update(template)
+        .set({
+          content: templateContent,
+        })
+        .where(eq(template.userId, userId));
+    else
+      return await db.insert(template).values({
+        id: generateUUID(),
+        content: templateContent,
+        userId,
+      });
   } catch (error) {
     console.error("Failed to save template in database");
     throw error;
   }
 }
 
-export async function updateTemplate({
-  content,
+export async function getCompanyInfoByUserId({ userId }: { userId: string }) {
+  try {
+    const [selectedCompanyInfo] = await db
+      .select()
+      .from(companyInfo)
+      .where(eq(companyInfo.userId, userId));
+    return selectedCompanyInfo;
+  } catch (error) {
+    console.error("Failed to get company info by userId from database");
+    throw error;
+  }
+}
+
+export async function saveCompanyInfo({
+  companyInfoContent,
   userId,
 }: {
-  content: string;
+  companyInfoContent: string;
   userId: string;
 }) {
   try {
-    return await db
-      .update(template)
-      .set({
-        content,
-      })
-      .where(eq(template.userId, userId));
+    const existingCompanyInfo = await getCompanyInfoByUserId({ userId });
+    if (existingCompanyInfo)
+      return await db
+        .update(companyInfo)
+        .set({
+          content: companyInfoContent,
+        })
+        .where(eq(companyInfo.userId, userId));
+    else
+      return await db.insert(companyInfo).values({
+        id: generateUUID(),
+        content: companyInfoContent,
+        userId,
+      });
   } catch (error) {
-    console.error("Failed to update template in database");
+    console.error("Failed to save company info in database");
     throw error;
   }
 }
@@ -190,12 +221,9 @@ export async function saveMessages({ messages }: { messages: Array<Message> }) {
 
 export async function getMessagesByChatId({ id }: { id: string }) {
   try {
-    return await db
-      .select()
-      .from(message)
-      .where(eq(message.chatId, id))
-      // removed as was causing error for toolInvocations
-      // .orderBy(asc(message.createdAt));
+    return await db.select().from(message).where(eq(message.chatId, id));
+    // removed as was causing error for toolInvocations
+    // .orderBy(asc(message.createdAt));
   } catch (error) {
     console.error("Failed to get messages by chat id from database", error);
     throw error;

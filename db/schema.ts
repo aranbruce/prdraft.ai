@@ -29,6 +29,16 @@ export const template = pgTable("Template", {
 
 export type Template = InferSelectModel<typeof template>;
 
+export const companyInfo = pgTable("CompanyInfo", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  content: text("content"),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => user.id),
+});
+
+export type CompanyInfo = InferSelectModel<typeof companyInfo>;
+
 export const chat = pgTable("Chat", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   createdAt: timestamp("createdAt").notNull(),

@@ -23,7 +23,7 @@ export const Suggestion = ({
     <AnimatePresence>
       {!isExpanded ? (
         <motion.div
-          className="absolute right-2 md:right-4 cursor-pointer p-1 text-muted-foreground"
+          className="absolute -right-2 cursor-pointer p-1 text-muted-foreground md:-right-6"
           onClick={() => {
             setIsExpanded(true);
           }}
@@ -54,7 +54,9 @@ export const Suggestion = ({
               <CrossIcon size={12} />
             </div>
           </div>
-          <div className="border-l-2 border-secondary pl-2 italic text-secondary-foreground">{suggestion.suggestedText}</div>
+          <div className="border-l-2 border-secondary pl-2 italic text-secondary-foreground">
+            {suggestion.suggestedText}
+          </div>
           <div>{suggestion.description}</div>
           <Button
             variant="outline"

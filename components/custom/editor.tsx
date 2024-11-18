@@ -142,7 +142,10 @@ function PureEditor({
   }, [suggestions, content]);
 
   return (
-    <div className="prose dark:prose-invert mx-auto !max-w-2xl" ref={containerRef} />
+    <div
+      className="prose relative mx-auto !max-w-2xl dark:prose-invert"
+      ref={containerRef}
+    />
   );
 }
 

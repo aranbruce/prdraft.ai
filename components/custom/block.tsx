@@ -1,7 +1,7 @@
 import { Attachment, ChatRequestOptions, CreateMessage, Message } from "ai";
 import cx from "classnames";
 import { formatDistance } from "date-fns";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, easeInOut, motion } from "framer-motion";
 import {
   Dispatch,
   SetStateAction,
@@ -247,15 +247,21 @@ export function Block({
 
   return (
     <motion.div
-      className="fixed left-0 top-0 z-50 grid h-dvh w-dvw grid-cols-2 bg-muted"
-      initial={{ opacity: 1 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { delay: 0.4 } }}
+      className="fixed left-0 top-0 z-40 grid h-dvh w-dvw grid-cols-2 bg-muted dark:bg-background"
+      initial={{ opacity: 0 }}
+      animate={{
+        opacity: 1,
+        transition: {
+          duration: 0.2,
+          type: "easeInOut",
+        },
+      }}
+      exit={{ opacity: 0, transition: { delay: 0.1 } }}
     >
       {!isMobile && (
         <motion.div
           className="h-dvh w-full shrink-0 bg-muted dark:bg-background"
-          initial={{ opacity: 0, x: 10, scale: 1 }}
+          initial={{ opacity: 0, x: 0, scale: 0.95 }}
           animate={{
             opacity: 1,
             x: 0,
@@ -277,7 +283,7 @@ export function Block({
           <AnimatePresence>
             {!isCurrentVersion && (
               <motion.div
-                className="absolute left-0 top-0 z-50 h-dvh w-full bg-zinc-900/50"
+                className="absolute left-0 top-0 z-40 h-dvh w-1/2 bg-zinc-900/50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -288,7 +294,7 @@ export function Block({
           <div className="flex h-full flex-col items-center justify-between gap-4">
             <div
               ref={messagesContainerRef}
-              className="flex size-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20"
+              className="flex size-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2"
             >
               {messages.map((message, index) => (
                 <PreviewMessage
@@ -342,17 +348,13 @@ export function Block({
                 y: 0,
                 width: windowWidth,
                 height: windowHeight,
-                borderRadius: 50,
               }
             : {
                 opacity: 0,
-                // x: block.boundingBox.left,
-                x: "100%",
-                // y: block.boundingBox.top,
+                x: windowWidth ? windowWidth * 1.5 : "150%",
                 y: 0,
-                height: block.boundingBox.height,
-                width: block.boundingBox.width,
-                borderRadius: 50,
+                height: windowHeight,
+                width: windowWidth ? windowWidth - windowWidth * 0.5 : "50%",
               }
         }
         animate={
@@ -365,7 +367,7 @@ export function Block({
                 height: "100dvh",
                 borderRadius: 0,
                 transition: {
-                  delay: 0,
+                  delay: 0.2,
                   type: "spring",
                   stiffness: 200,
                   damping: 30,
@@ -379,16 +381,16 @@ export function Block({
                 width: windowWidth ? windowWidth - windowWidth * 0.5 : "50%",
                 borderRadius: 0,
                 transition: {
-                  delay: 0,
+                  delay: 0.2,
                   type: "spring",
-                  stiffness: 200,
+                  stiffness: 600,
                   damping: 30,
                 },
               }
         }
         exit={{
           opacity: 0,
-          scale: 0.5,
+          x: windowWidth ? windowWidth * 1.5 : "150%",
           transition: {
             delay: 0.1,
             type: "spring",
@@ -397,7 +399,7 @@ export function Block({
           },
         }}
       >
-        <div className="flex h-full flex-col items-center justify-between overflow-scroll rounded-lg border-border bg-background p-1 dark:bg-muted md:border md:shadow-md">
+        <div className="flex h-full flex-col items-center justify-between overflow-scroll border-border bg-background p-1 dark:bg-muted md:rounded-lg md:border md:shadow-md">
           <div className="flex w-full flex-row items-start justify-between p-2">
             <div className="flex flex-row items-start justify-between gap-4 px-2">
               <div className="flex flex-col">
@@ -510,8 +512,8 @@ export function Block({
               </Button>
             </div>
           </div>
-          <div className="prose h-full !max-w-full items-center overflow-y-scroll bg-background px-4 py-8 pb-40 dark:prose-invert dark:bg-muted md:p-20">
-            <div className="mx-auto flex max-w-[600px] flex-row">
+          <div className="prose h-full !w-full !max-w-full items-center overflow-y-scroll bg-background px-4 py-8 pb-40 dark:prose-invert dark:bg-muted md:p-10 md:pb-40">
+            <div className="mx-auto flex w-full max-w-[600px] flex-row">
               {isDocumentsFetching && !block.content ? (
                 <DocumentSkeleton />
               ) : mode === "edit" ? (
@@ -552,18 +554,17 @@ export function Block({
               </AnimatePresence>
             </div>
           </div>
+          <AnimatePresence>
+            {!isCurrentVersion && (
+              <VersionFooter
+                block={block}
+                currentVersionIndex={currentVersionIndex}
+                documents={documents}
+                handleVersionChange={handleVersionChange}
+              />
+            )}
+          </AnimatePresence>
         </div>
-
-        <AnimatePresence>
-          {!isCurrentVersion && (
-            <VersionFooter
-              block={block}
-              currentVersionIndex={currentVersionIndex}
-              documents={documents}
-              handleVersionChange={handleVersionChange}
-            />
-          )}
-        </AnimatePresence>
       </motion.div>
     </motion.div>
   );

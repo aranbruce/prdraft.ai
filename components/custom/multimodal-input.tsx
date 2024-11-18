@@ -298,7 +298,7 @@ export function MultimodalInput({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                transition={{ delay: 0.05 * index }}
+                transition={{ delay: 0.3 + 0.05 * index }}
                 key={index}
                 className={index > 1 ? "hidden sm:block" : "block"}
               >

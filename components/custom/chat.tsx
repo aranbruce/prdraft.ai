@@ -2,7 +2,7 @@
 
 import { Attachment, Message } from "ai";
 import { useChat } from "ai/react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { useWindowSize } from "usehooks-ts";
@@ -81,7 +81,7 @@ export function Chat({
         {messages.length > 0 && (
           <div
             ref={messagesContainerRef}
-            className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll pt-4"
+            className="mx-2 flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll pt-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2"
           >
             {messages.map((message, index) => (
               <PreviewMessage
@@ -114,11 +114,22 @@ export function Chat({
 
         <div className="m-auto w-full px-4 md:max-w-3xl">
           {messages.length === 0 && (
-            <h1 className="w-full text-pretty pb-8 text-center text-2xl font-semibold md:text-4xl">
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="w-full text-pretty pb-8 text-center text-2xl font-semibold md:text-4xl"
+            >
               How can I help you with your next PRD?
-            </h1>
+            </motion.h1>
           )}
-          <form className="mx-auto flex w-full gap-2 bg-background pb-4 md:pb-6">
+          <motion.form
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            onSubmit={handleSubmit}
+            className="mx-auto flex w-full gap-2 bg-background pb-4 md:pb-6"
+          >
             <MultimodalInput
               chatId={id}
               input={input}
@@ -133,7 +144,7 @@ export function Chat({
               className="bg-muted"
               append={append}
             />
-          </form>
+          </motion.form>
         </div>
       </div>
 

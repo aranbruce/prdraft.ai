@@ -54,7 +54,7 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
     a: ({ node, children, ...props }: any) => {
       return (
         <Link
-          className="text-blue-500 hover:underline"
+          className="break-all text-blue-500 hover:underline"
           target="_blank"
           rel="noreferrer"
           {...props}

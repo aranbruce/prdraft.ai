@@ -511,7 +511,7 @@ export function Block({
           </div>
          
         </div>
-        <div className="relative w-full size-full">
+        <div className="relative min-h-0 size-full">
         <div className="prose dark:prose-invert h-full !max-w-full items-center  overflow-y-scroll bg-background pl-4 pr-6 py-8 pb-40 relative dark:bg-muted md:p-8 md:pr-10">
           <div className="mx-auto flex flex-row w-full justify-start">
             {isDocumentsFetching && !block.content ? (

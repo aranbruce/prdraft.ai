@@ -14,7 +14,7 @@ const getActionText = (
   type:
     | "create"
     | "update"
-    | "request-pm-suggestions"
+    | "request-product-manager-suggestions"
     | "request-engineer-suggestions"
     | "request-designer-suggestions",
 ) => {
@@ -23,7 +23,7 @@ const getActionText = (
       return "Creating";
     case "update":
       return "Updating";
-    case "request-pm-suggestions":
+    case "request-product-manager-suggestions":
       return "Adding PM suggestions";
     case "request-engineer-suggestions":
       return "Adding engineer suggestions";
@@ -38,7 +38,7 @@ interface DocumentToolResultProps {
   type:
     | "create"
     | "update"
-    | "request-pm-suggestions"
+    | "request-product-manager-suggestions"
     | "request-engineer-suggestions"
     | "request-designer-suggestions";
   result: any;
@@ -80,7 +80,7 @@ export function DocumentToolResult({
           <FileIcon />
         ) : type === "update" ? (
           <PencilEditIcon />
-        ) : type === "request-pm-suggestions" ? (
+        ) : type === "request-product-manager-suggestions" ? (
           <MessageIcon />
         ) : type === "request-engineer-suggestions" ? (
           <CodeIcon />
@@ -99,7 +99,7 @@ interface DocumentToolCallProps {
   type:
     | "create"
     | "update"
-    | "request-pm-suggestions"
+    | "request-product-manager-suggestions"
     | "request-engineer-suggestions"
     | "request-designer-suggestions";
   args: any;
@@ -114,7 +114,7 @@ export function DocumentToolCall({ type, args }: DocumentToolCallProps) {
             <FileIcon />
           ) : type === "update" ? (
             <PencilEditIcon />
-          ) : type === "request-pm-suggestions" ? (
+          ) : type === "request-product-manager-suggestions" ? (
             <MessageIcon />
           ) : type === "request-engineer-suggestions" ? (
             <CodeIcon />

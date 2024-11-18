@@ -2,10 +2,7 @@
 
 import { ChatRequestOptions, CreateMessage, Message } from "ai";
 import cx from "classnames";
-import {
-  AnimatePresence,
-  motion,
-} from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useOnClickOutside } from "usehooks-ts";
 
@@ -30,9 +27,9 @@ import { Button } from "../ui/button";
 
 type ToolProps = {
   type:
-    | "request-pm-suggestions"
+    | "request-product-manager-suggestions"
     | "request-engineer-suggestions"
-    | "request-designer-suggestions"
+    | "request-designer-suggestions";
   description: string;
   icon: JSX.Element;
   selectedTool: string | null;
@@ -80,7 +77,7 @@ const Tool = ({
     if (selectedTool !== type) {
       setSelectedTool(type);
     } else {
-      if (type === "request-pm-suggestions") {
+      if (type === "request-product-manager-suggestions") {
         append({
           role: "user",
           content:
@@ -181,7 +178,7 @@ export const Tools = ({
         {isToolbarVisible && (
           <>
             <Tool
-              type="request-pm-suggestions"
+              type="request-product-manager-suggestions"
               description="Request PM suggestions"
               icon={<MessageIcon />}
               selectedTool={selectedTool}
@@ -217,7 +214,9 @@ export const Tools = ({
           setIsToolbarVisible(!isToolbarVisible);
           setSelectedTool(null);
         }}
-        >{isToolbarVisible ? <CrossIcon/> : <PenIcon/>}</Button>
+      >
+        {isToolbarVisible ? <CrossIcon /> : <PenIcon />}
+      </Button>
     </motion.div>
   );
 };
@@ -290,12 +289,12 @@ export const Toolbar = ({
         animate={
           isToolbarVisible
             ? {
-                  opacity: 1,
-                  y: 0,
-                  height: 4 * 40 + 3 * 2,
-                  transition: { delay: 0 },
-                  scale: 1,
-                }
+                opacity: 1,
+                y: 0,
+                height: 4 * 40 + 3 * 2,
+                transition: { delay: 0 },
+                scale: 1,
+              }
             : { opacity: 1, y: 0, height: 42, transition: { delay: 0 } }
         }
         exit={{ opacity: 0, y: -20, transition: { duration: 0.1 } }}

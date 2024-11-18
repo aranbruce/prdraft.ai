@@ -74,9 +74,9 @@ export const PreviewMessage = ({
                           block={block}
                           setBlock={setBlock}
                         />
-                      ) : toolName === "requestPMSuggestions" ? (
+                      ) : toolName === "requestProductManagerSuggestions" ? (
                         <DocumentToolResult
-                          type="request-pm-suggestions"
+                          type="request-product-manager-suggestions"
                           result={result}
                           block={block}
                           setBlock={setBlock}
@@ -107,9 +107,9 @@ export const PreviewMessage = ({
                         <DocumentToolCall type="create" args={args} />
                       ) : toolName === "updateDocument" ? (
                         <DocumentToolCall type="update" args={args} />
-                      ) : toolName === "requestPMSuggestions" ? (
+                      ) : toolName === "requestProductManagerSuggestions" ? (
                         <DocumentToolCall
-                          type="request-pm-suggestions"
+                          type="request-product-manager-suggestions"
                           args={args}
                         />
                       ) : toolName === "requestEngineerSuggestions" ? (

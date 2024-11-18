@@ -221,9 +221,12 @@ export async function saveMessages({ messages }: { messages: Array<Message> }) {
 
 export async function getMessagesByChatId({ id }: { id: string }) {
   try {
-    return await db.select().from(message).where(eq(message.chatId, id));
-    // removed as was causing error for toolInvocations
-    // .orderBy(asc(message.createdAt));
+    return await db
+      .select()
+      .from(message)
+      .where(eq(message.chatId, id))
+      // potentially causes issues
+      .orderBy(asc(message.createdAt), asc(message.role));
   } catch (error) {
     console.error("Failed to get messages by chat id from database", error);
     throw error;

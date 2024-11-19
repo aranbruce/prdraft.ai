@@ -1,5 +1,5 @@
 "use client";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, MonitorSmartphone, MoonStar, Sun } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { type User } from "next-auth";
@@ -19,10 +19,11 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
-  const { toggleSidebar, setOpenMobile } = useSidebar();
+  const { setOpenMobile } = useSidebar();
 
   return (
     <SidebarMenu>
@@ -50,13 +51,35 @@ export function SidebarUserNav({ user }: { user: User }) {
                 <span>Settings</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onSelect={() => setTheme(theme === "dark" ? "light" : "dark")}
-            >
-              {`Toggle ${theme === "light" ? "dark" : "light"} mode`}
+            <DropdownMenuItem className="flex w-full flex-row justify-between py-0.5 focus:bg-transparent">
+              Theme
+              <ToggleGroup type="single" size={"sm"} defaultValue={theme}>
+                <ToggleGroupItem
+                  value="system"
+                  aria-label="System"
+                  className="size-7 min-w-6"
+                  onClick={() => setTheme("system")}
+                >
+                  <MonitorSmartphone className="size-2" />
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="light"
+                  aria-label="Light mode"
+                  className="size-7 min-w-6"
+                  onClick={() => setTheme("light")}
+                >
+                  <Sun className="size-2" />
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="dark"
+                  aria-label="Dark mode"
+                  className="size-7 min-w-6"
+                  onClick={() => setTheme("dark")}
+                >
+                  <MoonStar className="size-2" />
+                </ToggleGroupItem>
+              </ToggleGroup>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <button
                 className="w-full cursor-pointer"

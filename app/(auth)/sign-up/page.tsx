@@ -57,7 +57,7 @@ export default function Page() {
             {"Already have an account? "}
             <Link
               href="/login"
-              className="font-semibold text-primary-foreground hover:text-primary-foreground/80"
+              className="font-semibold text-primary hover:text-primary/80"
             >
               Sign in
             </Link>

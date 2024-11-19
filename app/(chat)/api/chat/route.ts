@@ -493,6 +493,7 @@ export async function POST(request: Request) {
               (message) => {
                 const index =
                   responseMessagesWithoutIncompleteToolCalls.indexOf(message);
+                // prevents all messages from being sent at the same time and causing issues when fetching
                 const delay = index * 100;
                 const messageId = generateUUID();
 

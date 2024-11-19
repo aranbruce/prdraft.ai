@@ -226,7 +226,7 @@ export async function getMessagesByChatId({ id }: { id: string }) {
       .from(message)
       .where(eq(message.chatId, id))
       // potentially causes issues
-      .orderBy(asc(message.createdAt), asc(message.role));
+      .orderBy(asc(message.createdAt));
   } catch (error) {
     console.error("Failed to get messages by chat id from database", error);
     throw error;

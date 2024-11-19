@@ -491,6 +491,9 @@ export async function POST(request: Request) {
           await saveMessages({
             messages: responseMessagesWithoutIncompleteToolCalls.map(
               (message) => {
+                const index =
+                  responseMessagesWithoutIncompleteToolCalls.indexOf(message);
+                const delay = index * 100;
                 const messageId = generateUUID();
 
                 if (message.role === "assistant") {
@@ -504,7 +507,7 @@ export async function POST(request: Request) {
                   chatId: id,
                   role: message.role,
                   content: message.content,
-                  createdAt: new Date(),
+                  createdAt: new Date(new Date().getTime() + delay),
                 };
               },
             ),

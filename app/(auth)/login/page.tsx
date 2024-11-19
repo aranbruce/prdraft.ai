@@ -50,10 +50,10 @@ export default function Page() {
         </div>
         <AuthForm action={handleSubmit} defaultEmail={email}>
           <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
-          <p className="mt-4 text-center text-sm text-secondary-foreground dark:text-zinc-400">
+          <p className="mt-4 text-center text-sm text-secondary-foreground">
             {"Don't have an account? "}
             <Link
-              href="/register"
+              href="/sign-up"
               className="font-semibold text-primary hover:text-primary/80"
             >
               Sign up

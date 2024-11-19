@@ -18,7 +18,7 @@ export default function AuthLayout({
             <Link href="/login">Login</Link>
           </Button>
           <Button variant="outline" asChild size="sm">
-            <Link href="/register">Register</Link>
+            <Link href="/sign-up">Register</Link>
           </Button>
         </div>
       </header>

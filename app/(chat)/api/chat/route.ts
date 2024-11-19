@@ -494,7 +494,7 @@ export async function POST(request: Request) {
                 const index =
                   responseMessagesWithoutIncompleteToolCalls.indexOf(message);
                 // prevents all messages from being sent at the same time and causing issues when fetching
-                const delay = index * 100;
+                const delay = index * 10;
                 const messageId = generateUUID();
 
                 if (message.role === "assistant") {

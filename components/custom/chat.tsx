@@ -81,7 +81,7 @@ export function Chat({
         {messages.length > 0 && (
           <div
             ref={messagesContainerRef}
-            className="mx-2 flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll pt-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2"
+            className="scroll-bar m-2 flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll pt-4"
           >
             {messages.map((message, index) => (
               <PreviewMessage
@@ -112,7 +112,7 @@ export function Chat({
           </div>
         )}
 
-        <div className="m-auto w-full px-4 md:max-w-3xl">
+        <div className="m-auto w-full px-4 sm:px-10 md:max-w-3xl">
           {messages.length === 0 && (
             <motion.h1
               initial={{ opacity: 0, y: -20 }}

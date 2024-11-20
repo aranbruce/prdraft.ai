@@ -23,7 +23,7 @@ export const Suggestion = ({
     <AnimatePresence>
       {!isExpanded ? (
         <motion.div
-          className="absolute -right-2 cursor-pointer p-1 text-muted-foreground md:-right-6"
+          className="absolute -right-10 cursor-pointer p-1 text-muted-foreground md:-right-6"
           onClick={() => {
             setIsExpanded(true);
           }}
@@ -34,7 +34,7 @@ export const Suggestion = ({
       ) : (
         <motion.div
           key={suggestion.id}
-          className="absolute right-2 z-50 flex w-64 flex-col gap-3 rounded-2xl border bg-background p-3 text-sm shadow-xl"
+          className="absolute -right-10 z-50 flex w-64 flex-col gap-3 rounded-2xl border bg-background p-3 text-sm shadow-xl"
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: -20 }}

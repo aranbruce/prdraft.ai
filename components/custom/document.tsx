@@ -109,7 +109,7 @@ export function DocumentToolCall({ type, args }: DocumentToolCallProps) {
   return (
     <div className="flex w-fit flex-row items-start justify-between gap-3 rounded-xl border px-3 py-2">
       <div className="flex flex-row items-start gap-3">
-        <div className="mt-1 text-zinc-500">
+        <div className="mt-1 text-secondary-foreground">
           {type === "create" ? (
             <FileIcon />
           ) : type === "update" ? (

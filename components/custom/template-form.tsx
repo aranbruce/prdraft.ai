@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { Editor } from "./editor";
 import { SubmitButton } from "./submit-button";
 import { Textarea } from "../ui/textarea";
 
@@ -34,31 +35,40 @@ export default function TemplateForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex size-full flex-col gap-6">
-      <div className="flex grow flex-col gap-1">
-        <label htmlFor="templateContent" className="text-base font-semibold">
-          Template
-        </label>
-        <Textarea
-          name="templateContent"
-          placeholder="Enter template for your PRDs"
-          value={templateContent ?? ""}
-          onChange={(e) => setTemplateContent(e.target.value)}
-          className="h-full resize-none bg-accent text-base outline-none ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-        />
-      </div>
-      <div className="flex grow flex-col gap-1">
-        <label htmlFor="companyInfoContent" className="text-base font-semibold">
-          Company information
-        </label>
-        <Textarea
-          name="companyInfoContent"
-          placeholder="Enter information about your company"
-          value={companyInfo ?? ""}
-          onChange={(e) => setCompanyInfo(e.target.value)}
-          className="h-full resize-none bg-accent text-base outline-none ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-        />
-      </div>
+    <form
+      onSubmit={handleSubmit}
+      className="grid size-full min-h-0 grid-rows-[1fr_1fr_auto] gap-6"
+    >
+      <label className="flex min-h-0 flex-col text-base font-semibold">
+        Template
+        <div className="mt-1 size-full min-h-0 rounded-md border border-input bg-accent p-2">
+          <div className="scroll-bar size-full overflow-y-scroll">
+            <Editor
+              content={templateContent}
+              suggestions={[]}
+              saveContent={setTemplateContent}
+              status="idle"
+              isCurrentVersion={true}
+              currentVersionIndex={0}
+            />
+          </div>
+        </div>
+      </label>
+      <label className="flex min-h-0 flex-col text-base font-semibold">
+        Company information
+        <div className="mt-1 size-full min-h-0 rounded-md border border-input bg-accent p-2">
+          <div className="scroll-bar size-full overflow-y-scroll">
+            <Editor
+              content={companyInfo ?? ""}
+              suggestions={[]}
+              saveContent={setCompanyInfo}
+              status="idle"
+              isCurrentVersion={true}
+              currentVersionIndex={0}
+            />
+          </div>
+        </div>
+      </label>
 
       <SubmitButton isSuccessful={false}>Save</SubmitButton>
     </form>

@@ -137,7 +137,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="flex w-full flex-row items-center justify-center gap-2 text-sm text-zinc-500">
+          <div className="flex w-full flex-row items-center justify-center gap-2 text-sm text-secondary-foreground">
             <div>Login to save and revisit previous chats!</div>
           </div>
         </SidebarGroupContent>
@@ -176,7 +176,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="flex w-full flex-row items-center justify-center gap-2 text-sm text-zinc-500">
+          <div className="flex w-full flex-row items-center justify-center gap-2 text-sm text-secondary-foreground">
             <div>
               Your conversations will appear here once you start chatting!
             </div>
@@ -224,7 +224,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
         </SidebarGroupContent>
       </SidebarGroup>
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[calc(100%-32px)] rounded-md sm:max-w-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>

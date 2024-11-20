@@ -18,9 +18,10 @@ export async function generateTitleFromUserMessage({
   const { text: title } = await generateText({
     model: customModel("gpt-4o-mini"),
     system: `\n
-    - you will generate a short title based on the first message a user begins a conversation with
+    - you will generate a short title for a Product Requirements Doc (PRD) based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long
     - the title should be a summary of the user's message
+    - the title should be 1-5 words long
     - do not use quotes or colons`,
     prompt: JSON.stringify(message),
   });

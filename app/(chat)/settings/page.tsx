@@ -79,7 +79,7 @@ export default async function Page(props: { params: Promise<any> }) {
     <div className="flex h-dvh min-w-0 flex-col bg-background">
       <ChatHeader selectedModelId={selectedModelId} />
 
-      <section className="mx-auto flex h-dvh w-full min-w-0 max-w-3xl flex-col gap-4 overflow-scroll px-4 py-12">
+      <section className="mx-auto flex h-dvh w-full min-w-0 max-w-3xl flex-col gap-4 overflow-scroll px-4 pb-4 pt-16">
         <h1 className="mb-2 text-3xl font-bold">Settings</h1>
         <TemplateForm
           saveTemplate={saveTemplateContent}

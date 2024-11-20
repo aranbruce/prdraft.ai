@@ -118,6 +118,12 @@
   }
 }
 
+@layer components {
+  .scroll-bar {
+    @apply [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2;
+  }
+}
+
 .skeleton {
   * {
     pointer-events: none !important;
@@ -139,6 +145,38 @@
 
 .ProseMirror {
   outline: none;
+}
+
+.ProseMirror p {
+  @apply text-base font-normal;
+}
+
+.ProseMirror * {
+  @apply first:mt-0;
+}
+
+.ProseMirror h1 {
+  @apply text-3xl;
+}
+
+.ProseMirror h2 {
+  @apply text-2xl;
+}
+
+.ProseMirror h3 {
+  @apply text-xl;
+}
+
+.ProseMirror h4 {
+  @apply text-lg;
+}
+
+.ProseMirror h5 {
+  @apply text-base;
+}
+
+.ProseMirror h6 {
+  @apply text-sm;
 }
 
 .suggestion-highlight {

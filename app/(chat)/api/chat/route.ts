@@ -141,7 +141,7 @@ export async function POST(request: Request) {
           const { fullStream } = await streamText({
             model: customModel(model.apiIdentifier),
             system: `Write a product requirement document (PRD) for the given topic. Markdown is supported. Use headings wherever appropriate. Follow the following structure of a PRD:
-              ${JSON.stringify(fetchedTemplatePrompt.content) || templatePrompt}
+              ${JSON.stringify(fetchedTemplatePrompt?.content) || templatePrompt}
               `,
             prompt: title,
           });
@@ -487,7 +487,7 @@ export async function POST(request: Request) {
         try {
           const responseMessagesWithoutIncompleteToolCalls =
             sanitizeResponseMessages(responseMessages);
-
+          console.log(responseMessagesWithoutIncompleteToolCalls);
           await saveMessages({
             messages: responseMessagesWithoutIncompleteToolCalls.map(
               (message) => {

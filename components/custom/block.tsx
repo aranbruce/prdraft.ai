@@ -283,7 +283,7 @@ export function Block({
           <AnimatePresence>
             {!isCurrentVersion && (
               <motion.div
-                className="absolute left-0 top-0 z-40 h-dvh w-1/2 bg-zinc-900/50"
+                className="absolute left-0 top-0 z-40 h-dvh w-1/2 bg-primary/50 dark:bg-secondary/70"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -294,7 +294,7 @@ export function Block({
           <div className="flex h-full flex-col items-center justify-between gap-4">
             <div
               ref={messagesContainerRef}
-              className="flex size-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2"
+              className="scroll-bar flex size-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20"
             >
               {messages.map((message, index) => (
                 <PreviewMessage
@@ -432,7 +432,7 @@ export function Block({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    className="h-fit p-2 dark:hover:bg-zinc-700"
+                    className="h-fit p-2"
                     onClick={() => {
                       copyToClipboard(block.content);
                       toast.success("Copied to clipboard!");
@@ -448,7 +448,7 @@ export function Block({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    className="!pointer-events-auto h-fit p-2 dark:hover:bg-zinc-700"
+                    className="!pointer-events-auto h-fit p-2"
                     onClick={() => {
                       handleVersionChange("prev");
                     }}
@@ -465,7 +465,7 @@ export function Block({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    className="!pointer-events-auto h-fit p-2 dark:hover:bg-zinc-700"
+                    className="!pointer-events-auto h-fit p-2"
                     onClick={() => {
                       handleVersionChange("next");
                     }}
@@ -480,12 +480,9 @@ export function Block({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cx(
-                      "!pointer-events-auto h-fit p-2 dark:hover:bg-zinc-700",
-                      {
-                        "bg-muted": mode === "diff",
-                      },
-                    )}
+                    className={cx("!pointer-events-auto h-fit p-2", {
+                      "bg-muted": mode === "diff",
+                    })}
                     onClick={() => {
                       handleVersionChange("toggle");
                     }}
@@ -500,7 +497,7 @@ export function Block({
               </Tooltip>
               <Button
                 variant="outline"
-                className="h-fit p-2 dark:hover:bg-zinc-700"
+                className="h-fit p-2"
                 onClick={() => {
                   setBlock((currentBlock) => ({
                     ...currentBlock,
@@ -512,7 +509,7 @@ export function Block({
               </Button>
             </div>
           </div>
-          <div className="prose h-full !w-full !max-w-full items-center overflow-y-scroll bg-background px-4 py-8 pb-40 dark:prose-invert dark:bg-muted md:p-10 md:pb-40">
+          <div className="scroll-bar prose h-full !w-full !max-w-full items-center overflow-y-scroll bg-background px-4 py-8 pb-40 dark:prose-invert dark:bg-muted md:pb-40 md:pr-8 lg:p-10">
             <div className="mx-auto flex w-full max-w-[600px] flex-row">
               {isDocumentsFetching && !block.content ? (
                 <DocumentSkeleton />

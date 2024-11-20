@@ -9,7 +9,7 @@ import {
   getTemplateByUserId,
   saveTemplate,
   saveCompanyInfo,
-} from "@/db/queries";
+} from "@/lib/db/queries";
 
 export default async function Page(props: { params: Promise<any> }) {
   const session = await auth();

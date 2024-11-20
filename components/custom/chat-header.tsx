@@ -15,7 +15,7 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
   const { width: windowWidth } = useWindowSize();
 
   return (
-    <header className="sticky top-0 flex items-center gap-2 bg-background px-2 py-1.5 md:px-2">
+    <header className="sticky top-0 flex w-full items-center gap-2 bg-background px-2 py-1.5 md:px-2">
       {(!open || windowWidth < 768) && (
         <div className="flex flex-row items-center gap-2">
           <Logo size={32} />

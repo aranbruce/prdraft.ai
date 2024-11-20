@@ -17,7 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Chat } from "@/db/schema";
+import { Chat } from "@/lib/db/schema";
 
 interface ChatItemProps {
   chat: Chat;

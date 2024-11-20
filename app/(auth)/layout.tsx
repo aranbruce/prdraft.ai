@@ -10,8 +10,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <section>
-      <header className="flex flex-row justify-between gap-2 p-2">
+    <main className="flex min-h-dvh flex-col">
+      <header className="fixed flex w-full flex-row justify-between gap-2 p-2">
         <Logo size={32} />
         <div className="grid grid-cols-2 gap-2">
           <Button asChild size="sm">
@@ -22,7 +22,7 @@ export default function AuthLayout({
           </Button>
         </div>
       </header>
-      {children}
-    </section>
+      <section>{children}</section>
+    </main>
   );
 }

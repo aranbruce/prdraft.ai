@@ -11,13 +11,15 @@ import {
   chat,
   companyInfo,
   document,
-  Message,
+  type Message,
   message,
-  Suggestion,
+  type Suggestion,
   suggestion,
   template,
+  type Template,
   user,
-  User,
+  type User,
+  Vote,
   vote,
 } from "./schema";
 
@@ -54,7 +56,7 @@ export async function getTemplateByUserId({ userId }: { userId: string }) {
       .select()
       .from(template)
       .where(eq(template.userId, userId));
-    return selectedTemplate;
+    return selectedTemplate as Template;
   } catch (error) {
     console.error("Failed to get template by userId from database");
     throw error;
@@ -221,12 +223,14 @@ export async function saveMessages({ messages }: { messages: Array<Message> }) {
 
 export async function getMessagesByChatId({ id }: { id: string }) {
   try {
-    return await db
-      .select()
-      .from(message)
-      .where(eq(message.chatId, id))
-      // potentially causes issues
-      .orderBy(asc(message.createdAt));
+    return (
+      (await db
+        .select()
+        .from(message)
+        .where(eq(message.chatId, id))
+        // potentially causes issues
+        .orderBy(asc(message.createdAt))) as Array<Message>
+    );
   } catch (error) {
     console.error("Failed to get messages by chat id from database", error);
     throw error;
@@ -268,7 +272,7 @@ export async function voteMessage({
 
 export async function getVotesByChatId({ id }: { id: string }) {
   try {
-    return await db.select().from(vote).where(eq(vote.chatId, id));
+    return (await db.select().from(vote).where(eq(vote.chatId, id))) as Vote[];
   } catch (error) {
     console.error("Failed to get votes by chat id from database", error);
     throw error;
@@ -322,7 +326,6 @@ export async function getDocumentById({ id }: { id: string }) {
       .from(document)
       .where(eq(document.id, id))
       .orderBy(desc(document.createdAt));
-
     return selectedDocument;
   } catch (error) {
     console.error("Failed to get document by id from database");

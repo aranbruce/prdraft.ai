@@ -28,8 +28,8 @@ import {
   saveMessages,
   saveSuggestions,
   updateChat,
-} from "@/db/queries";
-import { Suggestion } from "@/db/schema";
+} from "@/lib/db/queries";
+import { Suggestion } from "@/lib/db/schema";
 import {
   generateUUID,
   getMostRecentUserMessage,

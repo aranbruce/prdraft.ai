@@ -41,8 +41,8 @@ export default function TemplateForm({
     >
       <label className="flex min-h-0 flex-col text-base font-semibold">
         Template
-        <div className="mt-1 size-full min-h-0 rounded-md border border-input bg-accent p-2">
-          <div className="scroll-bar size-full overflow-y-scroll">
+        <div className="mt-1 size-full min-h-0 rounded-md border border-input bg-accent px-1">
+          <div className="scroll-bar size-full overflow-y-scroll py-2">
             <Editor
               content={templateContent}
               suggestions={[]}
@@ -56,8 +56,8 @@ export default function TemplateForm({
       </label>
       <label className="flex min-h-0 flex-col text-base font-semibold">
         Company information
-        <div className="mt-1 size-full min-h-0 rounded-md border border-input bg-accent p-2">
-          <div className="scroll-bar size-full overflow-y-scroll">
+        <div className="mt-1 size-full min-h-0 rounded-md border border-input bg-accent px-1">
+          <div className="scroll-bar size-full overflow-y-scroll py-2">
             <Editor
               content={companyInfo ?? ""}
               suggestions={[]}

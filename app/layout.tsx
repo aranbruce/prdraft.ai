@@ -56,7 +56,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="h-dvh antialiased">
+      <body className="bg-background antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

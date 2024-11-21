@@ -75,7 +75,7 @@ export function Chat({
 
   return (
     <>
-      <div className="flex h-dvh min-w-0 flex-col bg-background">
+      <div className="flex h-full min-w-0 flex-col bg-background">
         <ChatHeader selectedModelId={selectedModelId} />
 
         {messages.length > 0 && (

@@ -20,6 +20,18 @@ export const models: Array<Model> = [
     apiIdentifier: "gpt-4o",
     description: "For complex, multi-step tasks",
   },
+  {
+    id: "gemini-1.5-pro-latest",
+    label: "Gemini 1.5 Pro",
+    apiIdentifier: "gemini-1.5-pro-latest",
+    description: "For generating code, text, and more",
+  },
+  {
+    id: "claude-3-5-sonnet-20241022",
+    label: "Claude 3.5 Sonnet",
+    apiIdentifier: "claude-3-5-sonnet-20241022",
+    description: "For generating poetry and creative writing",
+  },
 ] as const;
 
-export const DEFAULT_MODEL_NAME: string = "gpt-4o-mini";
+export const DEFAULT_MODEL_NAME: string = "claude-3-5-sonnet-20241022";

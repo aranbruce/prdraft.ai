@@ -4,6 +4,7 @@ import { type CoreUserMessage, generateText } from "ai";
 import { cookies } from "next/headers";
 
 import { customModel } from "@/ai";
+import { Model } from "@/ai/models";
 
 export async function saveModelId(model: string) {
   const cookieStore = await cookies();
@@ -12,11 +13,13 @@ export async function saveModelId(model: string) {
 
 export async function generateTitleFromUserMessage({
   message,
+  model,
 }: {
   message: CoreUserMessage;
+  model: Model;
 }) {
   const { text: title } = await generateText({
-    model: customModel("gpt-4o-mini"),
+    model: customModel(model.apiIdentifier),
     system: `\n
     - you will generate a short title for a Product Requirements Doc (PRD) based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long

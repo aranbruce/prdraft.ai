@@ -42,8 +42,6 @@ const ChatItem: React.FC<ChatItemProps> = ({
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
-      console.log("isEditing: ", isEditing);
-      console.log("inputRef.current?.focus():", inputRef.current);
     }
   }, [isEditing]);
 

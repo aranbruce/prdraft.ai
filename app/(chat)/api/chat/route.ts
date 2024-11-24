@@ -7,7 +7,7 @@ import {
 } from "ai";
 import { z } from "zod";
 
-import { customModel } from "@/ai";
+import { customModel, suggestionModel } from "@/ai";
 import { models } from "@/ai/models";
 import {
   templatePrompt,
@@ -87,7 +87,10 @@ export async function POST(request: Request) {
   const chat = await getChatById({ id });
 
   if (!chat) {
-    const title = await generateTitleFromUserMessage({ message: userMessage });
+    const title = await generateTitleFromUserMessage({
+      model,
+      message: userMessage,
+    });
     await saveChat({ id, userId: session.user.id, title });
   }
 
@@ -107,7 +110,7 @@ export async function POST(request: Request) {
     userId: session.user.id,
   });
 
-  const result = await streamText({
+  const result = streamText({
     model: customModel(model.apiIdentifier),
     system: `${systemPrompt} ${fetchedCompanyInfo?.content ? `. Make sure to utilize the following information about the company the user works for in your responses: ${fetchedCompanyInfo.content}` : ""}`,
     messages: coreMessages,
@@ -138,7 +141,7 @@ export async function POST(request: Request) {
             content: "",
           });
 
-          const { fullStream } = await streamText({
+          const { fullStream } = streamText({
             model: customModel(model.apiIdentifier),
             system: `Write a product requirement document (PRD) for the given topic. Markdown is supported. Use headings wherever appropriate. Follow the following structure of a PRD:
               ${JSON.stringify(fetchedTemplatePrompt?.content) || templatePrompt}
@@ -180,7 +183,7 @@ export async function POST(request: Request) {
       },
       updateDocument: {
         description:
-          "Update a product requirements document (PRD) with the given description",
+          "Update a product requirements document (PRD) with the given description. This should only be used if the user requests changes to an existing document. This should never be used immediately after creating a document.",
         parameters: z.object({
           id: z.string().describe("The ID of the document to update"),
           description: z
@@ -204,7 +207,7 @@ export async function POST(request: Request) {
             content: document.title,
           });
 
-          const { fullStream } = await streamText({
+          const { fullStream } = streamText({
             model: customModel(model.apiIdentifier),
             system: `You are a helpful writing assistant. Based on the description, please update the product requirement document (PRD) using the following format:
               ${JSON.stringify(fetchedTemplatePrompt.content) || templatePrompt}
@@ -260,7 +263,7 @@ export async function POST(request: Request) {
       },
       requestProductManagerSuggestions: {
         description:
-          "Request suggestions for a document from a product manager",
+          "Request suggestions for a document from a product manager. This should only be used if the user requests edits to an existing document.",
         parameters: z.object({
           documentId: z
             .string()
@@ -279,14 +282,23 @@ export async function POST(request: Request) {
             Omit<Suggestion, "userId" | "createdAt" | "documentCreatedAt">
           > = [];
 
-          const { elementStream } = await streamObject({
-            model: customModel(model.apiIdentifier),
+          const { elementStream } = streamObject({
+            // model: customModel(model.apiIdentifier),
+            model: suggestionModel,
             system: productManagerPrompt,
             prompt: document.content,
             output: "array",
             schema: z.object({
-              originalSentence: z.string().describe("The original sentence"),
-              suggestedSentence: z.string().describe("The suggested sentence"),
+              originalSentence: z
+                .string()
+                .describe(
+                  "The original sentence. This must be a full sentence",
+                ),
+              suggestedSentence: z
+                .string()
+                .describe(
+                  "The suggested sentence. This must be a full sentence.",
+                ),
               description: z
                 .string()
                 .describe("The description of the suggestion"),
@@ -294,6 +306,14 @@ export async function POST(request: Request) {
           });
 
           for await (const element of elementStream) {
+            // remove leading whitespace, * and - characters
+            element.originalSentence = element.originalSentence
+              .replace(/^[*-]*/, "")
+              .trim();
+            element.suggestedSentence = element.suggestedSentence
+              .replace(/^[*-]*/, "")
+              .trim();
+
             const suggestion = {
               originalText: element.originalSentence,
               suggestedText: element.suggestedSentence,
@@ -334,7 +354,7 @@ export async function POST(request: Request) {
       },
       requestEngineerSuggestions: {
         description:
-          "Request suggestions from a lead engineer to improve a document",
+          "Request suggestions from a lead engineer to improve a document. This should only be used if the user requests edits to an existing document.",
         parameters: z.object({
           documentId: z
             .string()
@@ -353,14 +373,22 @@ export async function POST(request: Request) {
             Omit<Suggestion, "userId" | "createdAt" | "documentCreatedAt">
           > = [];
 
-          const { elementStream } = await streamObject({
+          const { elementStream } = streamObject({
             model: customModel(model.apiIdentifier),
             system: engineerPrompt,
             prompt: document.content,
             output: "array",
             schema: z.object({
-              originalSentence: z.string().describe("The original sentence"),
-              suggestedSentence: z.string().describe("The suggested sentence"),
+              originalSentence: z
+                .string()
+                .describe(
+                  "The original sentence. This must be a full sentence",
+                ),
+              suggestedSentence: z
+                .string()
+                .describe(
+                  "The suggested sentence. This must be a full sentence",
+                ),
               description: z
                 .string()
                 .describe("The description of the suggestion"),
@@ -368,6 +396,13 @@ export async function POST(request: Request) {
           });
 
           for await (const element of elementStream) {
+            // remove leading whitespace, * and - characters
+            element.originalSentence = element.originalSentence
+              .replace(/^[*-]*/, "")
+              .trim();
+            element.suggestedSentence = element.suggestedSentence
+              .replace(/^[*-]*/, "")
+              .trim();
             const suggestion = {
               originalText: element.originalSentence,
               suggestedText: element.suggestedSentence,
@@ -408,7 +443,7 @@ export async function POST(request: Request) {
       },
       requestDesignerSuggestions: {
         description:
-          "Request suggestions from a product designer to improve a document",
+          "Request suggestions from a product designer to improve a document. This should only be used if the user requests edits to an existing document.",
         parameters: z.object({
           documentId: z
             .string()
@@ -427,14 +462,22 @@ export async function POST(request: Request) {
             Omit<Suggestion, "userId" | "createdAt" | "documentCreatedAt">
           > = [];
 
-          const { elementStream } = await streamObject({
+          const { elementStream } = streamObject({
             model: customModel(model.apiIdentifier),
             system: productDesignerPrompt,
             prompt: document.content,
             output: "array",
             schema: z.object({
-              originalSentence: z.string().describe("The original sentence"),
-              suggestedSentence: z.string().describe("The suggested sentence"),
+              originalSentence: z
+                .string()
+                .describe(
+                  "The original sentence. This must be a full sentence",
+                ),
+              suggestedSentence: z
+                .string()
+                .describe(
+                  "The suggested sentence. This must be a full sentence",
+                ),
               description: z
                 .string()
                 .describe("The description of the suggestion"),
@@ -442,6 +485,13 @@ export async function POST(request: Request) {
           });
 
           for await (const element of elementStream) {
+            // remove leading whitespace, * and - characters
+            element.originalSentence = element.originalSentence
+              .replace(/^[*-]*/, "")
+              .trim();
+            element.suggestedSentence = element.suggestedSentence
+              .replace(/^[*-]*/, "")
+              .trim();
             const suggestion = {
               originalText: element.originalSentence,
               suggestedText: element.suggestedSentence,
@@ -482,12 +532,11 @@ export async function POST(request: Request) {
       },
     },
 
-    onFinish: async ({ responseMessages }) => {
-      if (session.user && session.user.id) {
+    onFinish: async ({ response }) => {
+      if (session?.user?.id) {
         try {
           const responseMessagesWithoutIncompleteToolCalls =
-            sanitizeResponseMessages(responseMessages);
-          console.log(responseMessagesWithoutIncompleteToolCalls);
+            sanitizeResponseMessages(response.messages);
           await saveMessages({
             messages: responseMessagesWithoutIncompleteToolCalls.map(
               (message) => {

@@ -21,14 +21,15 @@ function findPositionsInDoc(doc: Node, searchText: string): Position | null {
 
   doc.nodesBetween(0, doc.content.size, (node, pos) => {
     if (node.isText && node.text) {
-      const index = node.text.indexOf(searchText);
-
-      if (index !== -1) {
+      if (node.text === searchText) {
+        const index = node.text.indexOf(searchText);
         positions = {
           start: pos + index,
           end: pos + index + searchText.length,
         };
-
+      } else if (node.text.includes(searchText)) {
+        return false;
+      } else {
         return false;
       }
     }

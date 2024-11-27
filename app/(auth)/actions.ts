@@ -83,3 +83,14 @@ export const register = async (
     return { status: "failed" };
   }
 };
+
+export const loginWithProvider = async (provider: string) => {
+  console.log("provider", provider);
+  if (!provider) {
+    return { status: "failed" };
+  }
+  if (provider === "github") {
+    await signIn("github");
+    return { status: "success" };
+  }
+};

@@ -89,8 +89,8 @@ export const loginWithProvider = async (provider: string) => {
   if (!provider) {
     return { status: "failed" };
   }
-  if (provider === "github") {
-    await signIn("github");
+  if (provider === "github" || provider === "google") {
+    await signIn(provider);
     return { status: "success" };
   }
 };

@@ -17,8 +17,12 @@ export const authConfig = {
     newUser: "/",
   },
   providers: [
-    GitHub,
-    Google,
+    GitHub({
+      allowDangerousEmailAccountLinking: true,
+    }),
+    Google({
+      allowDangerousEmailAccountLinking: true,
+    }),
     Credentials({
       credentials: {},
       async authorize({ email, password }: any) {

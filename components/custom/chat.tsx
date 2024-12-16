@@ -107,14 +107,14 @@ export function Chat({
 
             <div
               ref={messagesEndRef}
-              className="mt-40 min-h-[24px] min-w-[24px] shrink-0"
+              className="min-h-[24px] min-w-[24px] shrink-0"
             />
           </div>
         )}
 
         <div
           className={cn(
-            `m-auto w-full px-4 md:max-w-3xl ${messages.length > 0 && "absolute bottom-0 left-0 right-0"}`,
+            `m-auto w-full px-4 md:max-w-3xl ${messages.length > 0 && "sticky bottom-0 left-0 right-0"}`,
           )}
         >
           {messages.length === 0 && (

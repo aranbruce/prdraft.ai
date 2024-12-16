@@ -75,7 +75,7 @@ export function Chat({
 
   return (
     <>
-      <div className="flex h-svh min-w-0 flex-col bg-background">
+      <div className="relative flex h-svh w-full min-w-0 flex-col bg-background">
         <ChatHeader selectedModelId={selectedModelId} />
 
         {messages.length > 0 && (
@@ -114,7 +114,7 @@ export function Chat({
 
         <div
           className={cn(
-            `m-auto w-full px-4 md:max-w-3xl ${messages.length > 0 && "fixed bottom-0 left-0 right-0"}`,
+            `m-auto w-full px-4 md:max-w-3xl ${messages.length > 0 && "absolute bottom-0 left-0 right-0"}`,
           )}
         >
           {messages.length === 0 && (

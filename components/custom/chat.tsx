@@ -11,7 +11,7 @@ import { ChatHeader } from "@/components/custom/chat-header";
 import { PreviewMessage, ThinkingMessage } from "@/components/custom/message";
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
 import { Vote } from "@/lib/db/schema";
-import { fetcher } from "@/lib/utils";
+import { cn, fetcher } from "@/lib/utils";
 
 import { Block, UIBlock } from "./block";
 import { BlockStreamHandler } from "./block-stream-handler";
@@ -75,7 +75,7 @@ export function Chat({
 
   return (
     <>
-      <div className="flex h-full min-w-0 flex-col bg-background">
+      <div className="flex h-svh min-w-0 flex-col bg-background">
         <ChatHeader selectedModelId={selectedModelId} />
 
         {messages.length > 0 && (
@@ -107,12 +107,16 @@ export function Chat({
 
             <div
               ref={messagesEndRef}
-              className="min-h-[24px] min-w-[24px] shrink-0"
+              className="mt-40 min-h-[24px] min-w-[24px] shrink-0"
             />
           </div>
         )}
 
-        <div className="m-auto w-full px-4 md:max-w-3xl">
+        <div
+          className={cn(
+            `m-auto w-full px-4 md:max-w-3xl ${messages.length > 0 && "fixed bottom-0 left-0 right-0"}`,
+          )}
+        >
           {messages.length === 0 && (
             <motion.h1
               initial={{ opacity: 0, y: -20 }}

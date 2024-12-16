@@ -3,6 +3,7 @@
 import { Attachment, ChatRequestOptions, CreateMessage, Message } from "ai";
 import cx from "classnames";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import React, {
   ChangeEvent,
   Dispatch,
@@ -74,6 +75,7 @@ export function MultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -118,7 +120,15 @@ export function MultimodalInput({
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
   const submitForm = useCallback(() => {
-    window.history.replaceState({}, "", `/chat/${chatId}`);
+    if (session && status === "authenticated") {
+      window.history.replaceState({}, "", `/chat/${chatId}`);
+    }
+    console.log("session", session);
+
+    if (!session && messages.length > 2) {
+      toast.error("Please login or sign up to continue.");
+      return;
+    }
 
     handleSubmit(undefined, {
       experimental_attachments: attachments,
@@ -131,8 +141,11 @@ export function MultimodalInput({
       textareaRef.current?.focus();
     }
   }, [
-    attachments,
+    session,
+    status,
+    messages.length,
     handleSubmit,
+    attachments,
     setAttachments,
     setLocalStorageInput,
     width,
@@ -305,7 +318,10 @@ export function MultimodalInput({
                 <Button
                   variant="ghost"
                   onClick={async () => {
-                    window.history.replaceState({}, "", `/chat/${chatId}`);
+                    if (session && status === "authenticated") {
+                      console.log("session", session);
+                      window.history.replaceState({}, "", `/chat/${chatId}`);
+                    }
 
                     append({
                       role: "user",

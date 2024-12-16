@@ -66,10 +66,9 @@ export async function POST(request: Request) {
     await request.json();
 
   const session = await auth();
-
-  if (!session || !session.user || !session.user.id) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const streamingData = new StreamData();
+  const coreMessages = convertToCoreMessages(messages);
+  const userMessage = getMostRecentUserMessage(coreMessages);
 
   const model = models.find((model) => model.id === modelId);
 
@@ -77,38 +76,43 @@ export async function POST(request: Request) {
     return new Response("Model not found", { status: 404 });
   }
 
-  const coreMessages = convertToCoreMessages(messages);
-  const userMessage = getMostRecentUserMessage(coreMessages);
-
   if (!userMessage) {
     return new Response("No user message found", { status: 400 });
   }
 
   const chat = await getChatById({ id });
 
-  if (!chat) {
+  if (!chat && session?.user?.id) {
     const title = await generateTitleFromUserMessage({
       model,
       message: userMessage,
     });
     await saveChat({ id, userId: session.user.id, title });
   }
+  if (session?.user?.id) {
+    await saveMessages({
+      messages: [
+        {
+          ...userMessage,
+          id: generateUUID(),
+          createdAt: new Date(),
+          chatId: id,
+        },
+      ],
+    });
+  }
 
-  await saveMessages({
-    messages: [
-      { ...userMessage, id: generateUUID(), createdAt: new Date(), chatId: id },
-    ],
-  });
+  const fetchedTemplatePrompt = session
+    ? await getTemplateByUserId({
+        userId: session?.user?.id ?? "",
+      })
+    : null;
 
-  const streamingData = new StreamData();
-
-  const fetchedTemplatePrompt = await getTemplateByUserId({
-    userId: session.user.id,
-  });
-
-  const fetchedCompanyInfo = await getCompanyInfoByUserId({
-    userId: session.user.id,
-  });
+  const fetchedCompanyInfo = session
+    ? await getCompanyInfoByUserId({
+        userId: session?.user?.id ?? "",
+      })
+    : null;
 
   const result = streamText({
     model: customModel(model.apiIdentifier),
@@ -165,7 +169,7 @@ export async function POST(request: Request) {
 
           streamingData.append({ type: "finish", content: "" });
 
-          if (session.user && session.user.id) {
+          if (session?.user?.id) {
             await saveDocument({
               id,
               title,
@@ -210,7 +214,7 @@ export async function POST(request: Request) {
           const { fullStream } = streamText({
             model: customModel(model.apiIdentifier),
             system: `You are a helpful writing assistant. Based on the description, please update the product requirement document (PRD) using the following format:
-              ${JSON.stringify(fetchedTemplatePrompt.content) || templatePrompt}
+              ${JSON.stringify(fetchedTemplatePrompt?.content) || templatePrompt}
               `,
             experimental_providerMetadata: {
               openai: {
@@ -245,7 +249,7 @@ export async function POST(request: Request) {
 
           streamingData.append({ type: "finish", content: "" });
 
-          if (session.user && session.user.id) {
+          if (session?.user?.id) {
             await saveDocument({
               id,
               title: document.title,
@@ -331,7 +335,7 @@ export async function POST(request: Request) {
             suggestions.push(suggestion);
           }
 
-          if (session.user && session.user.id) {
+          if (session?.user?.id) {
             const userId = session.user.id;
 
             await saveSuggestions({
@@ -420,7 +424,7 @@ export async function POST(request: Request) {
             suggestions.push(suggestion);
           }
 
-          if (session.user && session.user.id) {
+          if (session?.user?.id) {
             const userId = session.user.id;
 
             await saveSuggestions({
@@ -476,7 +480,7 @@ export async function POST(request: Request) {
               suggestedSentence: z
                 .string()
                 .describe(
-                  "The suggested sentence. This must be a full sentence",
+                  "The suggested sentence. This must be a full sentence.",
                 ),
               description: z
                 .string()
@@ -509,7 +513,7 @@ export async function POST(request: Request) {
             suggestions.push(suggestion);
           }
 
-          if (session.user && session.user.id) {
+          if (session?.user?.id) {
             const userId = session.user.id;
 
             await saveSuggestions({

@@ -56,24 +56,37 @@ export const authConfig = {
       }
       return session;
     },
-    async authorized({ auth, request: { nextUrl } }) {
+    authorized({
+      auth,
+      request: { nextUrl },
+    }: {
+      auth: any;
+      request: { nextUrl: URL };
+    }) {
       const isLoggedIn = !!auth?.user;
+      const isOnChat = nextUrl.pathname.startsWith("/chat");
+      const isOnRegister = nextUrl.pathname.startsWith("/register");
+      const isOnLogin = nextUrl.pathname.startsWith("/login");
 
-      // Check if the path is a callback URL
-      const isAuthCallback = nextUrl.pathname.startsWith("/api/auth/callback");
-
-      // Public routes - always accessible
-      const publicRoutes = ["/login", "/sign-up"];
-      const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
-
-      if (isAuthCallback || isPublicRoute) {
-        if (isLoggedIn && !isAuthCallback) {
-          return Response.redirect(new URL("/", nextUrl));
+      if (isLoggedIn) {
+        if (isOnLogin || isOnRegister) {
+          return Response.redirect(new URL("/", nextUrl as unknown as URL));
         }
-        return true;
+        if (isOnChat) {
+          return true; // Allow access to chat page if logged in
+        }
+        return true; // Allow access to other pages if logged in
       }
 
-      return isLoggedIn;
+      if (isOnRegister || isOnLogin) {
+        return true; // Always allow access to register and login pages
+      }
+
+      if (isOnChat) {
+        return false; // Redirect unauthenticated users to login page
+      }
+
+      return true; // Allow access to other pages if not logged in
     },
   },
 } satisfies NextAuthConfig;

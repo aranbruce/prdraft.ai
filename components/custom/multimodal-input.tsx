@@ -247,7 +247,7 @@ export function MultimodalInput({
           placeholder="Send a message..."
           value={input}
           onChange={handleInput}
-          className="max-h-[calc(50dvh)] resize-none overflow-hidden rounded-none border-0 border-none bg-transparent text-base outline-none ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="max-h-32 resize-none overflow-y-scroll rounded-none border-0 border-none bg-transparent text-base outline-none ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
           rows={2}
           autoFocus
           onKeyDown={(event) => {

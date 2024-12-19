@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { SessionProvider } from "next-auth/react";
 
 import { AppSidebar } from "@/components/custom/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -16,12 +17,14 @@ export default async function Layout({
   const isCollapsed = cookieStore.get("sidebar:state")?.value !== "true";
 
   return (
-    <SidebarProvider
-      defaultOpen={!isCollapsed}
-      className="h-dvh min-h-0 w-full"
-    >
-      <AppSidebar user={session?.user} />
-      <SidebarInset className="relative w-full">{children}</SidebarInset>
-    </SidebarProvider>
+    <SessionProvider session={session}>
+      <SidebarProvider
+        defaultOpen={!isCollapsed}
+        className="h-dvh min-h-0 w-full"
+      >
+        <AppSidebar user={session?.user} />
+        <SidebarInset className="relative w-full">{children}</SidebarInset>
+      </SidebarProvider>
+    </SessionProvider>
   );
 }

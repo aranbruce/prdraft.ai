@@ -18,11 +18,13 @@ export default async function Layout({
 
   return (
     <SessionProvider session={session}>
-      defaultOpen={!isCollapsed}
-      className="h-dvh min-h-0 w-full"
-    >
-      <AppSidebar user={session?.user} />
-      <SidebarInset className="relative w-full">{children}</SidebarInset>
-    </SidebarProvider>
+      <SidebarProvider
+        defaultOpen={!isCollapsed}
+        className="h-dvh min-h-0 w-full"
+      >
+        <AppSidebar user={session?.user} />
+        <SidebarInset className="relative w-full">{children}</SidebarInset>
+      </SidebarProvider>
+    </SessionProvider>
   );
 }

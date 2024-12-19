@@ -19,7 +19,7 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
   const { width: windowWidth } = useWindowSize();
 
   return (
-    <header className="sticky top-0 flex items-center justify-between gap-2 bg-background p-2 md:bg-transparent">
+    <header className="relative top-0 flex items-center  justify-between gap-2 bg-background p-2 md:bg-transparent">
       {(!open || windowWidth < 768) && (
         <div className="flex h-9 flex-row items-center gap-2">
           <Link href="/">

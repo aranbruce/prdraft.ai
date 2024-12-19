@@ -11,7 +11,7 @@ import { ChatHeader } from "@/components/custom/chat-header";
 import { PreviewMessage, ThinkingMessage } from "@/components/custom/message";
 import { useScrollToBottom } from "@/components/custom/use-scroll-to-bottom";
 import { Vote } from "@/lib/db/schema";
-import { cn, fetcher } from "@/lib/utils";
+import { fetcher } from "@/lib/utils";
 
 import { Block, UIBlock } from "./block";
 import { BlockStreamHandler } from "./block-stream-handler";
@@ -75,13 +75,13 @@ export function Chat({
 
   return (
     <>
-      <div className="relative flex h-svh w-full min-w-0 flex-col bg-background">
+      <div className="absolute inset-0 flex flex-col justify-center overflow-hidden">
         <ChatHeader selectedModelId={selectedModelId} />
 
         {messages.length > 0 && (
           <div
             ref={messagesContainerRef}
-            className="scroll-bar mx-2 mt-11 flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll"
+            className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll px-2"
           >
             {messages.map((message, index) => (
               <PreviewMessage
@@ -112,11 +112,7 @@ export function Chat({
           </div>
         )}
 
-        <div
-          className={cn(
-            `m-auto w-full px-4 md:max-w-3xl ${messages.length > 0 && "sticky bottom-0 left-0 right-0"}`,
-          )}
-        >
+        <div className="m-auto w-full px-4 md:max-w-3xl">
           {messages.length === 0 && (
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
@@ -132,7 +128,7 @@ export function Chat({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             onSubmit={handleSubmit}
-            className="mx-auto flex w-full gap-2 bg-background pb-4 md:pb-6"
+            className="mx-auto flex w-full gap-2 bg-background pb-2 md:pb-4"
           >
             <MultimodalInput
               chatId={id}

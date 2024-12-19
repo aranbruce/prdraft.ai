@@ -16,9 +16,12 @@ export default async function Layout({
   const isCollapsed = cookieStore.get("sidebar:state")?.value !== "true";
 
   return (
-    <SidebarProvider defaultOpen={!isCollapsed}>
+    <SidebarProvider
+      defaultOpen={!isCollapsed}
+      className="h-dvh min-h-0 w-full"
+    >
       <AppSidebar user={session?.user} />
-      <SidebarInset className="h-dvh w-full">{children}</SidebarInset>
+      <SidebarInset className="relative w-full">{children}</SidebarInset>
     </SidebarProvider>
   );
 }

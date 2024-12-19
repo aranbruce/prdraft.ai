@@ -294,7 +294,7 @@ export function Block({
           <div className="flex h-full flex-col items-center justify-between gap-4">
             <div
               ref={messagesContainerRef}
-              className="scroll-bar flex size-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20"
+              className="flex size-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20"
             >
               {messages.map((message, index) => (
                 <PreviewMessage
@@ -509,7 +509,7 @@ export function Block({
               </Button>
             </div>
           </div>
-          <div className="scroll-bar prose h-full !w-full !max-w-full items-center overflow-y-scroll bg-background px-4 py-8 pb-40 dark:prose-invert dark:bg-muted md:pb-40 md:pr-8 lg:p-10">
+          <div className="prose h-full !w-full !max-w-full items-center overflow-y-scroll bg-background px-4 py-8 pb-40 dark:prose-invert dark:bg-muted md:pb-40 md:pr-8 lg:p-10">
             <div className="mx-auto flex w-full max-w-[600px] flex-row">
               {isDocumentsFetching && !block.content ? (
                 <DocumentSkeleton />

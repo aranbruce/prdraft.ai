@@ -118,12 +118,6 @@
   }
 }
 
-@layer components {
-  .scroll-bar {
-    @apply [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5;
-  }
-}
-
 .skeleton {
   * {
     pointer-events: none !important;

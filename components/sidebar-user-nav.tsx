@@ -44,7 +44,7 @@ export function SidebarUserNav({ user }: { user: User }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             side="top"
-            className="w-[--radix-popper-anchor-width]"
+            className="w-(--radix-popper-anchor-width)"
           >
             <DropdownMenuItem asChild className="w-full cursor-pointer">
               <Link href={`/settings`} onClick={() => setOpenMobile(false)}>

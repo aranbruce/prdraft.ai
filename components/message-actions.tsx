@@ -7,13 +7,13 @@ import { Vote } from "@/lib/db/schema";
 import { getMessageIdFromAnnotations } from "@/lib/utils";
 
 import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from "./icons";
-import { Button } from "../ui/button";
+import { Button } from "./ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../ui/tooltip";
+} from "./ui/tooltip";
 
 export function MessageActions({
   chatId,
@@ -56,7 +56,7 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="!pointer-events-auto h-fit px-2 py-1 text-muted-foreground"
+              className="pointer-events-auto! h-fit px-2 py-1 text-muted-foreground"
               disabled={vote && vote.isUpvoted}
               variant="outline"
               onClick={async () => {
@@ -110,7 +110,7 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="!pointer-events-auto h-fit px-2 py-1 text-muted-foreground"
+              className="pointer-events-auto! h-fit px-2 py-1 text-muted-foreground"
               variant="outline"
               disabled={vote && !vote.isUpvoted}
               onClick={async () => {

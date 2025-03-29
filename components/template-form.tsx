@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { Editor } from "./editor";
 import { SubmitButton } from "./submit-button";
-import { Textarea } from "../ui/textarea";
+import { Textarea } from "./ui/textarea";
 
 export default function TemplateForm({
   saveTemplate,

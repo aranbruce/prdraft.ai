@@ -20,8 +20,8 @@ import { sanitizeUIMessages } from "@/lib/utils";
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
+import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea";
 
 const suggestedActions = [
   {
@@ -236,69 +236,71 @@ export function MultimodalInput({
           ))}
         </div>
       )}
-      <div
-        className={cx(
-          "outline:none overflow-hidden rounded-xl border border-input ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 has-[button:focus]:ring-0",
-          className,
-        )}
-      >
-        <Textarea
-          ref={textareaRef}
-          placeholder="Send a message..."
-          value={input}
-          onChange={handleInput}
-          className="max-h-32 resize-none overflow-y-scroll rounded-none border-0 border-none bg-transparent text-base outline-none ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-          rows={2}
-          autoFocus
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-              event.preventDefault();
-
-              if (isLoading) {
-                toast.error(
-                  "Please wait for the model to finish its response!",
-                );
-              } else {
-                submitForm();
-              }
-            }
-          }}
-        />
-        <div className="flex flex-row items-center justify-between gap-2 p-2">
-          <Button
-            className="h-8 rounded-lg p-2"
-            onClick={(event) => {
-              event.preventDefault();
-              fileInputRef.current?.click();
-            }}
-            variant="outline"
-            disabled={isLoading}
-          >
-            <PaperclipIcon size={14} />
-          </Button>
-          {isLoading ? (
-            <Button
-              className="h-8 rounded-lg p-2"
-              onClick={(event) => {
-                event.preventDefault();
-                stop();
-                setMessages((messages) => sanitizeUIMessages(messages));
-              }}
-            >
-              <StopIcon size={14} />
-            </Button>
-          ) : (
-            <Button
-              className="h-8 rounded-lg p-2"
-              onClick={(event) => {
-                event.preventDefault();
-                submitForm();
-              }}
-              disabled={input.length === 0 || uploadQueue.length > 0}
-            >
-              <ArrowUpIcon size={14} />
-            </Button>
+      <div className="-gap-2 flex flex-col">
+        <div
+          className={cx(
+            "outline:none overflow-hidden rounded-xl border border-input ring-offset-background focus-within:outline-hidden focus-within:ring-2 focus-within:ring-ring focus:outline-hidden focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 has-[button:focus]:ring-0",
+            className,
           )}
+        >
+          <Textarea
+            ref={textareaRef}
+            placeholder="Send a message..."
+            value={input}
+            onChange={handleInput}
+            className="max-h-32 resize-none overflow-y-scroll rounded-none border-0 border-none bg-transparent text-base outline-hidden ring-0 focus:outline-hidden focus-visible:outline-hidden focus-visible:ring-0 focus-visible:ring-offset-0"
+            rows={2}
+            autoFocus
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+
+                if (isLoading) {
+                  toast.error(
+                    "Please wait for the model to finish its response!",
+                  );
+                } else {
+                  submitForm();
+                }
+              }
+            }}
+          />
+          <div className="flex flex-row items-center justify-between gap-2 p-2">
+            <Button
+              className="h-8 rounded-lg p-2"
+              onClick={(event) => {
+                event.preventDefault();
+                fileInputRef.current?.click();
+              }}
+              variant="outline"
+              disabled={isLoading}
+            >
+              <PaperclipIcon size={14} />
+            </Button>
+            {isLoading ? (
+              <Button
+                className="h-8 rounded-lg p-2"
+                onClick={(event) => {
+                  event.preventDefault();
+                  stop();
+                  setMessages((messages) => sanitizeUIMessages(messages));
+                }}
+              >
+                <StopIcon size={14} />
+              </Button>
+            ) : (
+              <Button
+                className="h-8 rounded-lg p-2"
+                onClick={(event) => {
+                  event.preventDefault();
+                  submitForm();
+                }}
+                disabled={input.length === 0 || uploadQueue.length > 0}
+              >
+                <ArrowUpIcon size={14} />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -328,7 +330,7 @@ export function MultimodalInput({
                       content: suggestedAction.action,
                     });
                   }}
-                  className="h-auto w-fit flex-1 items-start justify-start gap-1 rounded-full border px-3 py-2 text-left text-sm sm:flex-col"
+                  className="h-auto w-fit flex-1 items-start justify-start gap-1 rounded-full border px-2.5 py-1 text-left text-xs sm:flex-col"
                 >
                   <span className="font-medium">{suggestedAction.title}</span>
                 </Button>

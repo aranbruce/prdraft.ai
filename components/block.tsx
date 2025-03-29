@@ -29,8 +29,8 @@ import { MultimodalInput } from "./multimodal-input";
 import { Toolbar } from "./toolbar";
 import { useScrollToBottom } from "./use-scroll-to-bottom";
 import { VersionFooter } from "./version-footer";
-import { Button } from "../ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { Button } from "./ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 export interface UIBlock {
   title: string;
   documentId: string;
@@ -448,7 +448,7 @@ export function Block({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    className="!pointer-events-auto h-fit p-2"
+                    className="pointer-events-auto! h-fit p-2"
                     onClick={() => {
                       handleVersionChange("prev");
                     }}
@@ -465,7 +465,7 @@ export function Block({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    className="!pointer-events-auto h-fit p-2"
+                    className="pointer-events-auto! h-fit p-2"
                     onClick={() => {
                       handleVersionChange("next");
                     }}
@@ -480,7 +480,7 @@ export function Block({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cx("!pointer-events-auto h-fit p-2", {
+                    className={cx("pointer-events-auto! h-fit p-2", {
                       "bg-muted": mode === "diff",
                     })}
                     onClick={() => {
@@ -509,7 +509,7 @@ export function Block({
               </Button>
             </div>
           </div>
-          <div className="prose h-full !w-full !max-w-full items-center overflow-y-scroll bg-background px-4 py-8 pb-40 dark:prose-invert dark:bg-muted md:pb-40 md:pr-8 lg:p-10">
+          <div className="prose h-full w-full! max-w-full! items-center overflow-y-scroll bg-background px-4 py-8 pb-40 dark:prose-invert dark:bg-muted md:pb-40 md:pr-8 lg:p-10">
             <div className="mx-auto flex w-full max-w-[600px] flex-row">
               {isDocumentsFetching && !block.content ? (
                 <DocumentSkeleton />

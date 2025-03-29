@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 
 import { templatePrompt } from "@/ai/prompts";
 import { auth } from "@/app/(auth)/auth";
-import { ChatHeader } from "@/components/custom/chat-header";
-import TemplateForm from "@/components/custom/template-form";
+import { ChatHeader } from "@/components/chat-header";
+import TemplateForm from "@/components/template-form";
 import {
   getCompanyInfoByUserId,
   getTemplateByUserId,

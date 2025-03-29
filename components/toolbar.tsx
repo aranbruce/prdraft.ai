@@ -30,7 +30,7 @@ import {
   PaletteIcon,
   CrossIcon,
 } from "./icons";
-import { Button } from "../ui/button";
+import { Button } from "./ui/button";
 
 type ToolProps = {
   type:
@@ -116,7 +116,7 @@ const Tool = ({
       <TooltipTrigger asChild>
         <motion.div
           className={cx("rounded-lg p-3", {
-            "bg-primary !text-primary-foreground": selectedTool === type,
+            "bg-primary text-primary-foreground!": selectedTool === type,
           })}
           onHoverStart={() => {
             setIsHovered(true);

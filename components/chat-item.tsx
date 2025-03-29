@@ -5,7 +5,7 @@ import {
   MoreHorizontalIcon,
   TrashIcon,
   PencilEditIcon,
-} from "@/components/custom/icons";
+} from "@/components/icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,7 +70,7 @@ const ChatItem: React.FC<ChatItemProps> = ({
             onBlur={handleRename}
             onKeyDown={handleKeyDown}
             contentEditable={isEditing}
-            className="focus-visible:ring-opacity/50 absolute left-0 w-full rounded-md py-1.5 pl-2 pr-8 focus:ring-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 focus-visible:ring-offset-background"
+            className="focus-visible:ring-opacity/50 absolute left-0 w-full rounded-md py-1.5 pl-2 pr-8 focus:ring-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 focus-visible:ring-offset-background"
           />
         ) : (
           <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>

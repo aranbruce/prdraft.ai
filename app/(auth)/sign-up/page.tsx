@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { AuthForm } from "@/components/custom/auth-form";
-import { LogoGoogle } from "@/components/custom/icons";
-import { SubmitButton } from "@/components/custom/submit-button";
+import { AuthForm } from "@/components/auth-form";
+import { LogoGoogle } from "@/components/icons";
+import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 
 import { loginWithProvider, register, RegisterActionState } from "../actions";

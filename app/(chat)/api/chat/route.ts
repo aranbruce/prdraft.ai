@@ -7,7 +7,7 @@ import {
 } from "ai";
 import { z } from "zod";
 
-import { customModel, suggestionModel } from "@/ai";
+import { customModel } from "@/ai";
 import { models } from "@/ai/models";
 import {
   templatePrompt,
@@ -287,8 +287,8 @@ export async function POST(request: Request) {
           > = [];
 
           const { elementStream } = streamObject({
-            // model: customModel(model.apiIdentifier),
-            model: suggestionModel,
+            model: customModel(model.apiIdentifier),
+            // model: suggestionModel,
             system: productManagerPrompt,
             prompt: document.content,
             output: "array",

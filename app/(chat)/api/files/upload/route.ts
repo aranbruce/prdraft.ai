@@ -7,8 +7,8 @@ import { auth } from "@/app/(auth)/auth";
 const FileSchema = z.object({
   file: z
     .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: "File size should be less than 5MB",
+    .refine((file) => file.size <= 20 * 1024 * 1024, {
+      message: "File size should be less than 20MB",
     })
     .refine(
       (file) =>
@@ -20,6 +20,7 @@ const FileSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  console.log("File upload request received");
   const session = await auth();
 
   if (!session) {
@@ -54,10 +55,12 @@ export async function POST(request: Request) {
     try {
       const data = await put(`${filename}`, fileBuffer, {
         access: "public",
+        allowOverwrite: true,
       });
 
       return NextResponse.json(data);
     } catch (error) {
+      console.error("File upload error:", error);
       return NextResponse.json({ error: "Upload failed" }, { status: 500 });
     }
   } catch (error) {

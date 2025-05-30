@@ -117,7 +117,9 @@ export function MultimodalInput({
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
+  const [uploadQueue, setUploadQueue] = useState<
+    Array<{ name: string; contentType: string }>
+  >([]);
 
   const submitForm = useCallback(() => {
     if (session && status === "authenticated") {
@@ -164,12 +166,13 @@ export function MultimodalInput({
 
       if (response.ok) {
         const data = await response.json();
-        const { url, pathname, contentType } = data;
+        const { url, pathname, contentType, originalFileName } = data;
 
         return {
           url,
-          name: pathname,
+          name: originalFileName,
           contentType: contentType,
+          pathname: pathname,
         };
       } else {
         const { error } = await response.json();
@@ -184,7 +187,9 @@ export function MultimodalInput({
     async (event: ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files || []);
 
-      setUploadQueue(files.map((file) => file.name));
+      setUploadQueue(
+        files.map((file) => ({ name: file.name, contentType: file.type })),
+      );
 
       try {
         const uploadPromises = files.map((file) => uploadFile(file));
@@ -210,7 +215,7 @@ export function MultimodalInput({
     <div className="relative flex w-full flex-col gap-4">
       <input
         type="file"
-        className="pointer-events-none fixed -left-4 -top-4 size-0.5 opacity-0"
+        className="pointer-events-none fixed -top-4 -left-4 size-0.5 opacity-0"
         ref={fileInputRef}
         multiple
         onChange={handleFileChange}
@@ -219,17 +224,23 @@ export function MultimodalInput({
 
       {(attachments.length > 0 || uploadQueue.length > 0) && (
         <div className="flex flex-row items-end gap-2 overflow-x-scroll">
-          {attachments.map((attachment) => (
-            <PreviewAttachment key={attachment.url} attachment={attachment} />
+          {attachments.map((attachment, idx) => (
+            <PreviewAttachment
+              key={attachment.url}
+              attachment={attachment}
+              onRemove={() => {
+                setAttachments((prev) => prev.filter((a, i) => i !== idx));
+              }}
+            />
           ))}
 
-          {uploadQueue.map((filename) => (
+          {uploadQueue.map((file) => (
             <PreviewAttachment
-              key={filename}
+              key={file.name}
               attachment={{
                 url: "",
-                name: filename,
-                contentType: "",
+                name: file.name,
+                contentType: file.contentType,
               }}
               isUploading={true}
             />
@@ -239,7 +250,7 @@ export function MultimodalInput({
       <div className="-gap-2 flex flex-col">
         <div
           className={cx(
-            "outline:none overflow-hidden rounded-xl border border-input ring-offset-background focus-within:outline-hidden focus-within:ring-2 focus-within:ring-ring focus:outline-hidden focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 has-[button:focus]:ring-0",
+            "outline:none border-input ring-offset-background focus-within:ring-ring overflow-hidden rounded-xl border focus-within:ring-2 focus-within:outline-hidden focus:outline-hidden focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-hidden has-[button:focus]:ring-0",
             className,
           )}
         >
@@ -248,7 +259,7 @@ export function MultimodalInput({
             placeholder="Send a message..."
             value={input}
             onChange={handleInput}
-            className="max-h-32 resize-none overflow-y-scroll rounded-none border-0 border-none bg-transparent text-base outline-hidden ring-0 focus:outline-hidden focus-visible:outline-hidden focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="max-h-32 resize-none overflow-y-scroll rounded-none border-0 border-none bg-transparent text-base ring-0 outline-hidden focus:outline-hidden focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden"
             rows={2}
             autoFocus
             onKeyDown={(event) => {

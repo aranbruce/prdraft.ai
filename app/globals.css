@@ -178,9 +178,7 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
@@ -319,19 +317,6 @@ h6 {
 }
 .ProseMirror .suggestion:hover {
   @apply bg-muted/70;
-}
-.ProseMirror .suggestion-highlight {
-  @apply bg-primary text-primary-foreground;
-}
-.ProseMirror .suggestion-highlight:hover {
-  @apply bg-primary-foreground text-primary;
-}
-.ProseMirror .suggestion-highlight,
-.ProseMirror .suggestion-highlight:hover {
-  @apply bg-blue-200 text-blue-800 dark:bg-blue-500/40 dark:text-blue-50;
-}
-.ProseMirror .suggestion-highlight:hover {
-  @apply bg-blue-300 dark:bg-blue-400/50;
 }
 .ProseMirror .suggestion-highlight {
   @apply bg-blue-200 text-blue-800 dark:bg-blue-500/40 dark:text-blue-50;

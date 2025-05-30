@@ -93,10 +93,11 @@ export async function POST(request: Request) {
     await saveMessages({
       messages: [
         {
-          ...userMessage,
           id: generateUUID(),
           createdAt: new Date(),
           chatId: id,
+          content: userMessage.content,
+          role: "user",
         },
       ],
     });

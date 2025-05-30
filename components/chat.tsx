@@ -1,9 +1,9 @@
 "use client";
 
 import { Attachment, Message } from "ai";
-import { useChat } from "ai/react";
+import { useChat } from "@ai-sdk/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { useWindowSize } from "usehooks-ts";
 
@@ -35,7 +35,7 @@ export function Chat({
     input,
     setInput,
     append,
-    isLoading,
+    status,
     stop,
     data: streamingData,
   } = useChat({
@@ -90,7 +90,7 @@ export function Chat({
                 message={message}
                 block={block}
                 setBlock={setBlock}
-                isLoading={isLoading && messages.length - 1 === index}
+                isLoading={status === "streaming" || status === "submitted"}
                 vote={
                   votes
                     ? votes.find((vote) => vote.messageId === message.id)
@@ -99,11 +99,7 @@ export function Chat({
               />
             ))}
 
-            {isLoading &&
-              messages.length > 0 &&
-              messages[messages.length - 1].role === "user" && (
-                <ThinkingMessage />
-              )}
+            {status === "submitted" && <ThinkingMessage />}
 
             <div
               ref={messagesEndRef}
@@ -118,7 +114,7 @@ export function Chat({
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="w-full text-pretty pb-8 text-center text-2xl font-semibold md:text-4xl"
+              className="w-full pb-8 text-center text-2xl font-semibold text-pretty md:text-4xl"
             >
               How can I help you with your next PRD?
             </motion.h1>
@@ -128,14 +124,14 @@ export function Chat({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             onSubmit={handleSubmit}
-            className="mx-auto flex w-full gap-2 bg-background pb-2 md:pb-4"
+            className="bg-background mx-auto flex w-full gap-2 pb-2 md:pb-4"
           >
             <MultimodalInput
               chatId={id}
               input={input}
               setInput={setInput}
               handleSubmit={handleSubmit}
-              isLoading={isLoading}
+              isLoading={status === "streaming" || status === "submitted"}
               stop={stop}
               attachments={attachments}
               setAttachments={setAttachments}
@@ -155,7 +151,7 @@ export function Chat({
             input={input}
             setInput={setInput}
             handleSubmit={handleSubmit}
-            isLoading={isLoading}
+            isLoading={status === "streaming" || status === "submitted"}
             stop={stop}
             attachments={attachments}
             setAttachments={setAttachments}

@@ -189,7 +189,7 @@
     @apply bg-background text-foreground;
   }
 
-  /* @font-face {
+  @font-face {
     font-family: "geist";
     font-style: normal;
     font-weight: 400 900;
@@ -201,7 +201,7 @@
     font-style: normal;
     font-weight: 400 900;
     src: url(/fonts/geist-mono.woff2) format("woff2");
-  } */
+  }
 }
 
 .skeleton {

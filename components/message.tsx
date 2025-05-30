@@ -38,7 +38,7 @@ export const PreviewMessage = ({
     >
       <div
         className={cx(
-          "flex w-full gap-4 rounded-xl group-data-[role=user]/message:ml-auto group-data-[role=user]/message:w-fit group-data-[role=user]/message:max-w-[calc(100%-48px)] group-data-[role=user]/message:bg-secondary group-data-[role=user]/message:px-3 group-data-[role=user]/message:py-2 group-data-[role=user]/message:text-secondary-foreground",
+          "group-data-[role=user]/message:bg-secondary group-data-[role=user]/message:text-secondary-foreground flex w-full gap-4 rounded-xl group-data-[role=user]/message:ml-auto group-data-[role=user]/message:w-fit group-data-[role=user]/message:max-w-[calc(100%-48px)] group-data-[role=user]/message:px-3 group-data-[role=user]/message:py-2",
         )}
       >
         {message.role === "assistant" && <Logo size={32} />}
@@ -174,7 +174,7 @@ export const ThinkingMessage = () => {
       >
         <Logo size={32} />
         <div className="flex w-full flex-col gap-2 pt-1">
-          <div className="flex flex-col gap-4 text-muted-foreground">
+          <div className="text-muted-foreground flex flex-col gap-4">
             Thinking...
           </div>
         </div>

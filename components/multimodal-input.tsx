@@ -125,7 +125,6 @@ export function MultimodalInput({
     if (session && status === "authenticated") {
       window.history.replaceState({}, "", `/chat/${chatId}`);
     }
-    console.log("session", session);
 
     if (!session && messages.length > 2) {
       toast.error("Please login or sign up to continue.");
@@ -332,7 +331,6 @@ export function MultimodalInput({
                   variant="ghost"
                   onClick={async () => {
                     if (session && status === "authenticated") {
-                      console.log("session", session);
                       window.history.replaceState({}, "", `/chat/${chatId}`);
                     }
 

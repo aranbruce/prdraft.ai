@@ -1,43 +1,40 @@
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid"; // Import uuid
+import { v4 as uuidv4 } from "uuid";
 
 import { auth } from "@/app/(auth)/auth";
 
+// Use Blob instead of File since File is not available in Node.js environment
 const FileSchema = z.object({
   file: z
-    .instanceof(File)
-    .refine((file) => file.size <= 4.5 * 1024 * 1024, {
-      message: "File size should be less than 4.5 MB",
+    .instanceof(Blob)
+    .refine((file) => file.size <= 5 * 1024 * 1024, {
+      message: "File size should be less than 5MB",
     })
     .refine(
       (file) =>
         ["image/jpeg", "image/png", "application/pdf"].includes(file.type),
       {
-        message: "File type should be JPEG, PNG, or PDF",
+        message: "File type should be JPEG, PNG or PDF",
       },
     ),
 });
 
 export async function POST(request: Request) {
-  console.log("File upload request received");
   const session = await auth();
 
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Consider removing this check.
-  // request.formData() will likely throw an error for an empty or malformed body,
-  // which will be caught by the try...catch block below.
   if (request.body === null) {
     return new Response("Request body is empty", { status: 400 });
   }
 
   try {
     const formData = await request.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file") as Blob;
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
@@ -53,26 +50,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
-    // Sanitize or use a unique name for the blob
-    // Example: prefixing with a UUID to ensure uniqueness
-    const uniqueBlobName = `${uuidv4()}-${file.name}`;
+    // Get filename from formData since Blob doesn't have name property
+    const originalFile = formData.get("file") as File;
+    const originalName = originalFile.name;
+    // Generate a unique filename using uuidv4
+    const uuid = uuidv4();
+    const filename = `${uuid}-${originalName}`;
     const fileBuffer = await file.arrayBuffer();
 
     try {
-      const data = await put(uniqueBlobName, fileBuffer, {
+      const data = await put(`${filename}`, fileBuffer, {
         access: "public",
-        // With unique names, allowOverwrite: false is often preferred
-        // as each upload should be a distinct object.
-        allowOverwrite: false,
       });
 
-      return NextResponse.json({ ...data, originalFilename: file.name });
+      return NextResponse.json(data);
     } catch (error) {
-      console.error("File upload error:", error);
       return NextResponse.json({ error: "Upload failed" }, { status: 500 });
     }
   } catch (error) {
-    console.error("Error processing file upload request:", error); // Enhanced logging
     return NextResponse.json(
       { error: "Failed to process request" },
       { status: 500 },

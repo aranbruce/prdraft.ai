@@ -174,7 +174,7 @@ export const ThinkingMessage = () => {
       >
         <Logo size={32} />
         <div className="flex w-full flex-col gap-2 pt-1">
-          <div className="text-muted-foreground flex flex-col gap-4">
+          <div className="text-muted-foreground flex animate-pulse flex-col gap-4">
             Thinking...
           </div>
         </div>

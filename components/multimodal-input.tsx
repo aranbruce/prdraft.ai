@@ -165,14 +165,16 @@ export function MultimodalInput({
 
       if (response.ok) {
         const data = await response.json();
+        // Fallback to file.name if originalFileName is missing (for PDFs or any file)
         const { url, pathname, contentType, originalFileName } = data;
-
         return {
           url,
-          name: originalFileName,
+          name: originalFileName || file.name,
           contentType: contentType,
           pathname: pathname,
         };
+      } else if (response.status === 401) {
+        toast.error("You must be logged in to upload files.");
       } else {
         const { error } = await response.json();
         toast.error(error);

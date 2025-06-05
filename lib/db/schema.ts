@@ -15,6 +15,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import type { AdapterAccountType } from "next-auth/adapters";
+import { title } from "process";
 
 const connectionString = process.env.POSTGRES_URL!;
 const pool = postgres(connectionString, { max: 1 });
@@ -102,10 +103,13 @@ export const authenticators = pgTable(
 
 export const template = pgTable("Template", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
+  title: text("title"),
   content: text("content"),
   userId: uuid("userId")
     .notNull()
     .references(() => user.id),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
 
 export type Template = InferSelectModel<typeof template>;

@@ -50,43 +50,81 @@ export async function createUser(email: string, password: string) {
   }
 }
 
-export async function getTemplateByUserId({ userId }: { userId: string }) {
+export async function getTemplatesByUserId({ userId }: { userId: string }) {
+  console.log("Getting templates for userId:", userId);
   try {
-    const [selectedTemplate] = await db
+    const templates = await db
       .select()
       .from(template)
       .where(eq(template.userId, userId));
-    return selectedTemplate as Template;
+    return templates as Array<Template>;
   } catch (error) {
-    console.error("Failed to get template by userId from database");
+    console.error("Failed to get templates by userId from database");
     throw error;
   }
 }
 
 export async function saveTemplate({
-  templateContent,
+  content,
+  userId,
+  title,
+}: {
+  content: string;
+  userId: string;
+  title: string;
+}) {
+  try {
+    return await db.insert(template).values({
+      id: generateUUID(),
+      content,
+      userId,
+      title,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  } catch (error) {
+    console.error("Failed to save template in database");
+    throw error;
+  }
+}
+
+export async function updateTemplate({
+  id,
+  content,
+  title,
+  updatedAt,
   userId,
 }: {
-  templateContent: string;
+  id: string;
+  content: string;
+  title: string;
+  updatedAt: Date;
   userId: string;
 }) {
   try {
-    const existingTemplate = await getTemplateByUserId({ userId });
-    if (existingTemplate)
-      return await db
-        .update(template)
-        .set({
-          content: templateContent,
-        })
-        .where(eq(template.userId, userId));
-    else
-      return await db.insert(template).values({
-        id: generateUUID(),
-        content: templateContent,
-        userId,
-      });
+    return await db
+      .update(template)
+      .set({ content, title: title, updatedAt })
+      .where(and(eq(template.id, id), eq(template.userId, userId)));
   } catch (error) {
-    console.error("Failed to save template in database");
+    console.error("Failed to update template in database");
+    throw error;
+  }
+}
+
+export async function deleteTemplateById({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}) {
+  try {
+    return await db
+      .delete(template)
+      .where(and(eq(template.id, id), eq(template.userId, userId)));
+  } catch (error) {
+    console.error("Failed to delete template by id from database");
     throw error;
   }
 }

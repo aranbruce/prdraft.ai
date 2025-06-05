@@ -2,17 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/app/(auth)/auth";
 import { updateTemplate, deleteTemplateById } from "@/lib/db/queries";
 
-export async function PUT(
-  req: NextRequest,
-  context: { params: { id: string } },
-) {
-  const params = await context.params;
+export async function PUT(req: NextRequest, context: any) {
+  const { params } = context;
   try {
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { id } = await params;
+    const { id } = params;
     const body = await req.json();
     const { title, content } = body;
     if (!id || !title || !content) {
@@ -22,7 +19,6 @@ export async function PUT(
       );
     }
     const now = new Date();
-    // Use the updateTemplate query with correct argument names
     const result = await updateTemplate({
       id,
       content,
@@ -39,11 +35,8 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  context: { params: { id: string } },
-) {
-  const params = await context.params;
+export async function DELETE(req: NextRequest, context: any) {
+  const { params } = context;
   try {
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
@@ -53,7 +46,6 @@ export async function DELETE(
     if (!id) {
       return NextResponse.json({ error: "Missing id" }, { status: 400 });
     }
-    // Use the deleteTemplateById query to ensure only the user's template is deleted
     const result = await deleteTemplateById({ id, userId: session.user.id });
     return NextResponse.json({ success: true, result }, { status: 200 });
   } catch (error) {

@@ -66,7 +66,13 @@ export default function TemplateManager() {
     const res = await fetch(`/api/templates`);
     if (res.ok) {
       const data = await res.json();
-      setTemplates(data || []);
+      // Sort templates by creation date (oldest first), handling missing/null createdAt
+      const sorted = (data || []).slice().sort((a: Template, b: Template) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return aTime - bTime;
+      });
+      setTemplates(sorted);
     }
   }, []);
 
@@ -132,7 +138,7 @@ export default function TemplateManager() {
   ]);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto w-full max-w-4xl space-y-6">
       <div className="flex justify-between">
         <div className="text-left">
           <h1 className="mb-2 text-3xl font-bold">Settings</h1>

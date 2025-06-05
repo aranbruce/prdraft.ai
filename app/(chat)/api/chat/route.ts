@@ -22,7 +22,7 @@ import {
   getChatById,
   getCompanyInfoByUserId,
   getDocumentById,
-  getTemplateByUserId,
+  getTemplatesByUserId,
   saveChat,
   saveDocument,
   saveMessages,
@@ -62,8 +62,13 @@ export async function POST(request: Request) {
     id,
     messages,
     modelId,
-  }: { id: string; messages: Array<Message>; modelId: string } =
-    await request.json();
+    templateId,
+  }: {
+    id: string;
+    messages: Array<Message>;
+    modelId: string;
+    templateId: string;
+  } = await request.json();
 
   const session = await auth();
   const streamingData = new StreamData();
@@ -103,11 +108,22 @@ export async function POST(request: Request) {
     });
   }
 
-  const fetchedTemplatePrompt = session
-    ? await getTemplateByUserId({
+  const fetchedTemplates = session
+    ? await getTemplatesByUserId({
         userId: session?.user?.id ?? "",
       })
     : null;
+  // Select the template that matches templateId, or fallback to the first
+  let fetchedTemplatePrompt = null;
+  if (fetchedTemplates && fetchedTemplates.length > 0) {
+    if (templateId) {
+      fetchedTemplatePrompt =
+        fetchedTemplates.find((t) => t.id === templateId) ||
+        fetchedTemplates[0];
+    } else {
+      fetchedTemplatePrompt = fetchedTemplates[0];
+    }
+  }
 
   const fetchedCompanyInfo = session
     ? await getCompanyInfoByUserId({
@@ -117,7 +133,9 @@ export async function POST(request: Request) {
 
   const result = streamText({
     model: customModel(model.apiIdentifier),
-    system: `${systemPrompt} ${fetchedCompanyInfo?.content ? `. Make sure to utilize the following information about the company the user works for in your responses: ${fetchedCompanyInfo.content}` : ""}`,
+    system: `${systemPrompt} ${fetchedCompanyInfo?.content ? `. Make sure to utilize the following information about the company the user works for in your responses: ${fetchedCompanyInfo.content}` : ""}
+    ${fetchedTemplatePrompt?.content ? `Use the following template for the product requirements document (PRD): ${fetchedTemplatePrompt.content}` : templatePrompt}
+    `,
     messages: coreMessages,
     maxSteps: 5,
     experimental_activeTools: allTools,

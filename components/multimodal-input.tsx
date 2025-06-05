@@ -17,11 +17,21 @@ import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 
 import { sanitizeUIMessages } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+
+import { Template } from "./template-card";
+import { template } from "@/lib/db/schema";
 
 const suggestedActions = [
   {
@@ -120,6 +130,20 @@ export function MultimodalInput({
   const [uploadQueue, setUploadQueue] = useState<
     Array<{ name: string; contentType: string }>
   >([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+
+  // Fetch templates for the user
+  useEffect(() => {
+    async function fetchTemplates() {
+      const res = await fetch("/api/templates");
+      if (res.ok) {
+        const data = await res.json();
+        setTemplates((data || []) as Template[]);
+      }
+    }
+    fetchTemplates();
+  }, []);
 
   const submitForm = useCallback(() => {
     if (session && status === "authenticated") {
@@ -133,6 +157,9 @@ export function MultimodalInput({
 
     handleSubmit(undefined, {
       experimental_attachments: attachments,
+      body: {
+        templateId: selectedTemplateId || undefined,
+      },
     });
 
     setAttachments([]);
@@ -278,20 +305,38 @@ export function MultimodalInput({
             }}
           />
           <div className="flex flex-row items-center justify-between gap-2 p-2">
-            <Button
-              className="h-8 rounded-lg p-2"
-              onClick={(event) => {
-                event.preventDefault();
-                fileInputRef.current?.click();
-              }}
-              variant="outline"
-              disabled={isLoading}
-            >
-              <PaperclipIcon size={14} />
-            </Button>
+            <div className="flex flex-1 items-center gap-1">
+              <Button
+                className="h-9 rounded-lg p-2"
+                onClick={(event) => {
+                  event.preventDefault();
+                  fileInputRef.current?.click();
+                }}
+                variant="outline"
+                disabled={isLoading}
+              >
+                <PaperclipIcon size={14} />
+              </Button>
+              <Select
+                value={selectedTemplateId}
+                onValueChange={setSelectedTemplateId}
+              >
+                <SelectTrigger className="h-9 w-[200px] rounded-lg pr-2 pl-3 text-sm font-medium">
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.length > 0 &&
+                    templates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.title}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
             {isLoading ? (
               <Button
-                className="h-8 rounded-lg p-2"
+                className="h-9 rounded-lg p-2"
                 onClick={(event) => {
                   event.preventDefault();
                   stop();

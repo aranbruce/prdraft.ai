@@ -234,11 +234,11 @@
 }
 
 .ProseMirror h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
   @apply my-4 font-semibold;
 }
 

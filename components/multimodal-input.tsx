@@ -139,7 +139,11 @@ export function MultimodalInput({
       const res = await fetch("/api/templates");
       if (res.ok) {
         const data = await res.json();
-        setTemplates((data || []) as Template[]);
+        const templatesArray = (data || []) as Template[];
+        setTemplates(templatesArray);
+        if (templatesArray.length > 0) {
+          setSelectedTemplateId(templatesArray[0].id);
+        }
       }
     }
     fetchTemplates();
@@ -322,7 +326,9 @@ export function MultimodalInput({
                 onValueChange={setSelectedTemplateId}
               >
                 <SelectTrigger className="hover:bg-secondary focus-visible:bg-secondary h-9 w-auto cursor-pointer gap-2 rounded-lg border-0 bg-transparent pr-2 pl-3 text-sm font-medium focus:ring-0 focus:ring-offset-0 focus:outline-0 focus-visible:ring-2 focus-visible:ring-offset-1">
-                  <SelectValue placeholder="Select a template" />
+                  <SelectValue
+                    placeholder={templates[0]?.title || "Select a template"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {templates.length > 0 &&

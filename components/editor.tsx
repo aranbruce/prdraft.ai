@@ -30,6 +30,7 @@ type EditorProps = {
   isCurrentVersion: boolean;
   currentVersionIndex: number;
   suggestions: Array<Suggestion>;
+  id?: string;
 };
 
 function PureEditor({
@@ -37,6 +38,7 @@ function PureEditor({
   saveContent,
   suggestions,
   status,
+  id,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
@@ -143,8 +145,9 @@ function PureEditor({
 
   return (
     <div
-      className="prose relative mx-auto max-w-2xl! dark:prose-invert"
+      className="prose dark:prose-invert relative mx-auto max-w-2xl!"
       ref={containerRef}
+      id={id}
     />
   );
 }

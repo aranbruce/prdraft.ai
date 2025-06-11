@@ -305,14 +305,14 @@ export function MultimodalInput({
             }}
           />
           <div className="flex flex-row items-center justify-between gap-2 p-2">
-            <div className="flex flex-1 items-center gap-1">
+            <div className="flex flex-1 items-center">
               <Button
-                className="h-9 rounded-lg p-2"
+                className="hover:bg-secondary focus-visible:bg-secondary h-9 rounded-lg p-2"
                 onClick={(event) => {
                   event.preventDefault();
                   fileInputRef.current?.click();
                 }}
-                variant="outline"
+                variant="ghost"
                 disabled={isLoading}
               >
                 <PaperclipIcon size={14} />
@@ -321,7 +321,7 @@ export function MultimodalInput({
                 value={selectedTemplateId}
                 onValueChange={setSelectedTemplateId}
               >
-                <SelectTrigger className="h-9 w-[200px] rounded-lg pr-2 pl-3 text-sm font-medium">
+                <SelectTrigger className="hover:bg-secondary focus-visible:bg-secondary h-9 w-auto cursor-pointer gap-2 rounded-lg border-0 bg-transparent pr-2 pl-3 text-sm font-medium focus:ring-0 focus:ring-offset-0 focus:outline-0 focus-visible:ring-2 focus-visible:ring-offset-1">
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
                 <SelectContent>

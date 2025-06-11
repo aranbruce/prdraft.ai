@@ -48,7 +48,7 @@ export default async function Page(props: { params: Promise<any> }) {
     <div className="bg-background flex h-dvh min-w-0 flex-col">
       <ChatHeader selectedModelId={selectedModelId} />
 
-      <section className="mx-auto flex h-dvh w-full max-w-3xl min-w-0 flex-col gap-12 overflow-scroll px-4 py-12">
+      <section className="mx-auto flex h-dvh w-full min-w-0 flex-col gap-12 overflow-scroll px-4 py-12">
         <TemplateManager />
         <CompanyForm
           saveCompanyInfo={saveCompanyInfoContent}

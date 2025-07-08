@@ -267,11 +267,11 @@
 }
 
 .ProseMirror a {
-  @apply text-primary underline underline-offset-2;
+  @apply text-accent-foreground cursor-pointer underline underline-offset-2;
 }
 
 .ProseMirror a:hover {
-  @apply text-primary-foreground;
+  @apply text-accent-foreground/80;
 }
 .ProseMirror blockquote {
   @apply text-muted-foreground border-l-2 pl-4 italic;
@@ -323,4 +323,43 @@
 }
 .ProseMirror .suggestion-highlight:hover {
   @apply bg-blue-300 dark:bg-blue-400/50;
+}
+
+.ProseMirror[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  @apply text-muted-foreground pointer-events-none absolute;
+}
+
+.ProseMirror {
+  @apply border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border p-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+/* Preview-specific styles to override default ProseMirror styling */
+.prosemirror-preview .ProseMirror {
+  @apply border-0 bg-transparent p-0 text-sm;
+}
+
+.prosemirror-preview .ProseMirror * {
+  @apply text-sm;
+}
+
+.prosemirror-preview .ProseMirror h1,
+.prosemirror-preview .ProseMirror h2,
+.prosemirror-preview .ProseMirror h3,
+.prosemirror-preview .ProseMirror h4,
+.prosemirror-preview .ProseMirror h5,
+.prosemirror-preview .ProseMirror h6 {
+  @apply my-1 text-sm font-semibold;
+}
+
+.prosemirror-preview .ProseMirror p {
+  @apply my-1 text-sm;
+}
+
+.prosemirror-preview .ProseMirror code {
+  @apply text-xs;
+}
+
+.prosemirror-preview .ProseMirror pre {
+  @apply text-xs;
 }

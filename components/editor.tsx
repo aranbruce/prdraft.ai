@@ -143,13 +143,7 @@ function PureEditor({
     }
   }, [suggestions, content]);
 
-  return (
-    <div
-      className="prose dark:prose-invert relative mx-auto max-w-2xl!"
-      ref={containerRef}
-      id={id}
-    />
-  );
+  return <div className="relative mx-auto" ref={containerRef} id={id} />;
 }
 
 function areEqual(prevProps: EditorProps, nextProps: EditorProps) {

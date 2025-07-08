@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Editor } from "./editor";
-import { SubmitButton } from "./submit-button";
+import { SubmitButton } from "@/components/submit-button";
+import { MarkDownEditor } from "@/components/markdown-editor";
 
 export default function CompanyForm({
   saveCompanyInfo,
@@ -41,20 +41,15 @@ export default function CompanyForm({
           This information will be used to generate responses in the chat. You
           can edit it at any time.
         </p>
-
-        <div className="border-input bg-accent mt-1 size-full min-h-0 rounded-md border px-1">
-          <div className="size-full overflow-y-scroll py-2">
-            <Editor
-              content={companyInfo ?? ""}
-              id="company-info-editor"
-              suggestions={[]}
-              saveContent={setCompanyInfo}
-              status="idle"
-              isCurrentVersion={true}
-              currentVersionIndex={0}
-            />
-          </div>
-        </div>
+        <MarkDownEditor
+          content={companyInfo}
+          onChange={(content) => setCompanyInfo(content)}
+          placeholder="Enter company information in markdown format"
+          className="prose prose-sm size-full min-h-0 max-w-none focus:outline-none"
+          id="company-info-editor"
+        />
+        {/* </div> */}
+        {/* </div> */}
       </div>
 
       <SubmitButton isSuccessful={false}>Save</SubmitButton>

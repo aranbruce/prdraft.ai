@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, Trash2 } from "lucide-react";
 import React from "react";
+import { ProseMirrorPreview } from "./prosemirror-preview";
 
 import Template from "./template-manager";
 
@@ -45,8 +46,11 @@ export function TemplateCard({
       >
         <CardHeader className="p-4 pb-3">
           <CardTitle className="text-md truncate">{template.title}</CardTitle>
-          <CardDescription className="text-muted-foreground line-clamp-3 text-sm">
-            {template.content}
+          <CardDescription className="text-muted-foreground line-clamp-3">
+            <ProseMirrorPreview
+              content={template.content || ""}
+              className="text-sm"
+            />
           </CardDescription>
         </CardHeader>
       </div>

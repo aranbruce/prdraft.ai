@@ -10,6 +10,7 @@ import { Suggestion } from "@/lib/db/schema";
 import {
   documentSchema,
   handleTransaction,
+  headingKeymapPlugin,
   headingRule,
 } from "@/lib/editor/config";
 import {
@@ -48,6 +49,7 @@ function PureEditor({
       const state = EditorState.create({
         doc: buildDocumentFromContent(content),
         plugins: [
+          headingKeymapPlugin(), // Add keyboard shortcuts FIRST for higher priority
           ...exampleSetup({ schema: documentSchema, menuBar: false }),
           inputRules({
             rules: [

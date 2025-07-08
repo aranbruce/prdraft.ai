@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
@@ -188,6 +189,11 @@ export default function TemplateManager() {
             <DialogTitle>
               {editingTemplate ? "Edit Template" : "Add Template"}
             </DialogTitle>
+            <DialogDescription>
+              {editingTemplate
+                ? "Modify your existing template content and settings."
+                : "Create a new template for reusable content in your chats."}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid flex-grow gap-4 overflow-y-auto px-2 py-2">
             <div className="grid gap-2">
@@ -205,7 +211,7 @@ export default function TemplateManager() {
                 content={formContent}
                 onChange={setFormContent}
                 placeholder="Add your template content here"
-                className="max-h-96 min-h-24"
+                className="max-h-96 min-h-24 overflow-scroll"
               />
             </div>
           </div>

@@ -15,7 +15,7 @@ export function ProseMirrorPreview({
   content,
   className,
 }: ProseMirrorPreviewProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLSpanElement>(null);
   const editorRef = useRef<EditorView | null>(null);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export function ProseMirrorPreview({
   }, [content]);
 
   return (
-    <div
+    <span
       ref={containerRef}
       className={cn(
         "prosemirror-preview text-muted-foreground line-clamp-3 text-sm",

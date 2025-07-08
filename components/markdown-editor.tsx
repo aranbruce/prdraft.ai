@@ -11,6 +11,8 @@ import {
   documentSchema,
   headingRule,
   markdownLinkRule,
+  paragraphRule,
+  headingKeymapPlugin,
 } from "@/lib/editor/config";
 import {
   buildContentFromDocument,
@@ -55,6 +57,7 @@ export function MarkDownEditor({
       const state = EditorState.create({
         doc: buildDocumentFromContent(content),
         plugins: [
+          headingKeymapPlugin(), // Add keyboard shortcuts FIRST for higher priority
           ...exampleSetup({
             schema: documentSchema,
             menuBar: false,
@@ -69,6 +72,8 @@ export function MarkDownEditor({
               headingRule(4),
               headingRule(5),
               headingRule(6),
+              // Paragraph conversion rule
+              paragraphRule(),
               // Simple markdown link rule
               markdownLinkRule(),
             ],

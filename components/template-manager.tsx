@@ -1,21 +1,23 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import { PlusCircle } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { PlusCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { TemplateCard, Template } from "@/components/template-card";
-import { useSession } from "next-auth/react";
+import { MarkDownEditor } from "@/components/markdown-editor";
 
 export default function TemplateManager() {
   const { data: session } = useSession();
@@ -187,6 +189,11 @@ export default function TemplateManager() {
             <DialogTitle>
               {editingTemplate ? "Edit Template" : "Add Template"}
             </DialogTitle>
+            <DialogDescription>
+              {editingTemplate
+                ? "Modify your existing template content and settings."
+                : "Create a new template for reusable content in your chats."}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid flex-grow gap-4 overflow-y-auto px-2 py-2">
             <div className="grid gap-2">
@@ -200,12 +207,11 @@ export default function TemplateManager() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="content">Template Content</Label>
-              <Textarea
-                id="content"
-                value={formContent}
-                onChange={(e) => setFormContent(e.target.value)}
-                placeholder="Hello, welcome to our service. How can I help you today?"
-                className="min-h-[150px]"
+              <MarkDownEditor
+                content={formContent}
+                onChange={setFormContent}
+                placeholder="Add your template content here"
+                className="max-h-96 min-h-24 overflow-scroll"
               />
             </div>
           </div>

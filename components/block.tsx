@@ -247,43 +247,40 @@ export function Block({
 
   return (
     <motion.div
-      className="fixed left-0 top-0 z-40 grid h-dvh w-dvw grid-cols-2 bg-muted dark:bg-background"
+      className="bg-muted dark:bg-background fixed top-0 left-0 z-40 grid h-dvh w-dvw grid-cols-2"
       initial={{ opacity: 0 }}
-      animate={{
-        opacity: 1,
-        transition: {
-          duration: 0.2,
-          type: "easeInOut",
-        },
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{
+        duration: 0.2,
+        ease: "easeInOut",
       }}
-      exit={{ opacity: 0, transition: { delay: 0.1 } }}
     >
       {!isMobile && (
         <motion.div
-          className="h-dvh w-full shrink-0 bg-muted dark:bg-background"
+          className="bg-muted dark:bg-background h-dvh w-full shrink-0"
           initial={{ opacity: 0, x: 0, scale: 0.95 }}
           animate={{
             opacity: 1,
             x: 0,
             scale: 1,
-            transition: {
-              delay: 0.2,
-              type: "spring",
-              stiffness: 200,
-              damping: 30,
-            },
           }}
           exit={{
             opacity: 0,
             x: 0,
             scale: 0.95,
-            transition: { delay: 0 },
+          }}
+          transition={{
+            delay: 0.2,
+            type: "spring",
+            stiffness: 200,
+            damping: 30,
           }}
         >
           <AnimatePresence>
             {!isCurrentVersion && (
               <motion.div
-                className="absolute left-0 top-0 z-40 h-dvh w-1/2 bg-primary/50 dark:bg-secondary/70"
+                className="bg-primary/50 dark:bg-secondary/70 absolute top-0 left-0 z-40 h-dvh w-1/2"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -339,7 +336,7 @@ export function Block({
       )}
 
       <motion.div
-        className="fixed flex h-dvh flex-col bg-muted dark:bg-background md:p-4"
+        className="bg-muted dark:bg-background fixed flex h-dvh flex-col md:p-4"
         initial={
           isMobile
             ? {
@@ -366,12 +363,6 @@ export function Block({
                 width: windowWidth,
                 height: "100dvh",
                 borderRadius: 0,
-                transition: {
-                  delay: 0.2,
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 30,
-                },
               }
             : {
                 opacity: 1,
@@ -380,26 +371,29 @@ export function Block({
                 height: windowHeight,
                 width: windowWidth ? windowWidth - windowWidth * 0.5 : "50%",
                 borderRadius: 0,
-                transition: {
-                  delay: 0.2,
-                  type: "spring",
-                  stiffness: 600,
-                  damping: 30,
-                },
               }
         }
         exit={{
           opacity: 0,
           x: windowWidth ? windowWidth * 1.5 : "150%",
-          transition: {
-            delay: 0.1,
-            type: "spring",
-            stiffness: 600,
-            damping: 30,
-          },
         }}
+        transition={
+          isMobile
+            ? {
+                delay: 0.2,
+                type: "spring",
+                stiffness: 200,
+                damping: 30,
+              }
+            : {
+                delay: 0.2,
+                type: "spring",
+                stiffness: 600,
+                damping: 30,
+              }
+        }
       >
-        <div className="flex h-full flex-col items-center justify-between overflow-scroll border-border bg-background p-1 dark:bg-muted md:rounded-lg md:border md:shadow-md">
+        <div className="border-border bg-background dark:bg-muted flex h-full flex-col items-center justify-between overflow-scroll p-1 md:rounded-lg md:border md:shadow-md">
           <div className="flex w-full flex-row items-start justify-between p-2">
             <div className="flex flex-row items-start justify-between gap-4 px-2">
               <div className="flex flex-col">
@@ -408,11 +402,11 @@ export function Block({
                 </div>
 
                 {isContentDirty ? (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-muted-foreground text-sm">
                     Saving changes...
                   </div>
                 ) : document ? (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-muted-foreground text-sm">
                     {`Updated ${formatDistance(
                       new Date(document.createdAt),
                       new Date(),
@@ -422,7 +416,7 @@ export function Block({
                     )}`}
                   </div>
                 ) : (
-                  <div className="mt-2 h-3 w-32 animate-pulse rounded-md bg-muted-foreground/20" />
+                  <div className="bg-muted-foreground/20 mt-2 h-3 w-32 animate-pulse rounded-md" />
                 )}
               </div>
             </div>
@@ -509,7 +503,7 @@ export function Block({
               </Button>
             </div>
           </div>
-          <div className="prose h-full w-full! max-w-full! items-center overflow-y-scroll bg-background px-4 py-8 pb-40 dark:prose-invert dark:bg-muted md:pb-40 md:pr-8 lg:p-10">
+          <div className="prose bg-background dark:prose-invert dark:bg-muted h-full w-full! max-w-full! items-center overflow-y-scroll px-4 py-8 pb-40 md:pr-8 md:pb-40 lg:p-10">
             <div className="mx-auto flex w-full max-w-[600px] flex-row">
               {isDocumentsFetching && !block.content ? (
                 <DocumentSkeleton />

@@ -111,39 +111,6 @@ export function headingKeymapPlugin() {
             }
             return true; // Event handled
           }
-        } // Check for Backspace at the beginning of a heading
-        if (event.key === "Backspace") {
-          console.log("Backspace detected in headingKeymapPlugin"); // Debug
-          const { state, dispatch } = view;
-          const { selection } = state;
-          const { $from } = selection;
-
-          console.log("Node type:", $from.parent.type.name); // Debug
-          console.log("Parent offset:", $from.parentOffset); // Debug
-          console.log("Selection empty:", selection.empty); // Debug
-          console.log("Parent content size:", $from.parent.content.size); // Debug
-
-          // Check if cursor is at the very beginning of a heading and selection is empty
-          if (
-            $from.parent.type === documentSchema.nodes.heading &&
-            $from.parentOffset === 0 &&
-            selection.empty &&
-            $from.parent.content.size > 0 // Ensure heading has content
-          ) {
-            console.log("Converting heading to paragraph!"); // Debug
-            // Prevent default backspace behavior
-            event.preventDefault();
-            event.stopPropagation();
-
-            // Convert heading to paragraph, preserving content
-            const tr = state.tr.setBlockType(
-              $from.start($from.depth),
-              $from.end($from.depth),
-              documentSchema.nodes.paragraph,
-            );
-            dispatch(tr);
-            return true; // Event handled
-          }
         }
 
         return false; // Let other handlers process the event

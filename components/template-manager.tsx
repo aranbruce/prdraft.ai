@@ -203,6 +203,7 @@ export default function TemplateManager() {
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="e.g., Standard Welcome"
+                className="bg-muted"
               />
             </div>
             <div className="grid gap-2">

@@ -86,7 +86,7 @@ export function MarkDownEditor({
         dispatchTransaction: handleTransaction,
         attributes: {
           class: clsx(
-            " min-w-0 prose prose-sm max-w-none border border-input p-2 rounded-md overflow-y-scroll bg-background ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            " min-w-0 prose prose-sm max-w-none bg-muted border border-input p-2 rounded-md overflow-y-scroll bg-background ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             className,
           ),
           "data-placeholder": placeholder,

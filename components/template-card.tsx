@@ -39,7 +39,7 @@ export function TemplateCard({
   onDelete,
 }: TemplateCardProps) {
   return (
-    <Card className="flex flex-col justify-between transition-shadow hover:shadow-lg">
+    <Card className="flex min-w-0 flex-col justify-between transition-shadow hover:shadow-lg">
       <div
         className="flex-grow cursor-pointer"
         onClick={() => onClick(template)}

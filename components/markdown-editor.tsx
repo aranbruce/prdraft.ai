@@ -86,7 +86,7 @@ export function MarkDownEditor({
         dispatchTransaction: handleTransaction,
         attributes: {
           class: clsx(
-            "prose prose-sm max-w-none border border-input p-2 rounded-md overflow-y-scroll ",
+            " min-w-0 prose prose-sm max-w-none border border-input p-2 rounded-md overflow-y-scroll bg-background ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             className,
           ),
           "data-placeholder": placeholder,
@@ -123,5 +123,11 @@ export function MarkDownEditor({
     }
   }, [content]);
 
-  return <div className={`relative ${className}`} ref={containerRef} id={id} />;
+  return (
+    <div
+      className={`relative min-w-0 ${className}`}
+      ref={containerRef}
+      id={id}
+    />
+  );
 }

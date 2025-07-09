@@ -157,7 +157,7 @@ export default function TemplateManager() {
       </div>
 
       {templates.length === 0 ? (
-        <Card className="bg-muted text-center">
+        <Card className="bg-muted min-w-0 text-center">
           <CardContent className="p-6">
             <p className="text-muted-foreground">
               No templates yet. Click "Add template" to get started.
@@ -186,10 +186,10 @@ export default function TemplateManager() {
       >
         <DialogContent className="flex max-h-[90vh] flex-col overflow-auto p-4 pt-6 sm:max-w-[600px]">
           <DialogHeader className="px-2">
-            <DialogTitle>
+            <DialogTitle className="text-left">
               {editingTemplate ? "Edit Template" : "Add Template"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="sr-only">
               {editingTemplate
                 ? "Modify your existing template content and settings."
                 : "Create a new template for reusable content in your chats."}
@@ -211,7 +211,7 @@ export default function TemplateManager() {
                 content={formContent}
                 onChange={setFormContent}
                 placeholder="Add your template content here"
-                className="max-h-96 min-h-24 overflow-scroll"
+                className="max-h-96 min-h-24 w-full"
               />
             </div>
           </div>

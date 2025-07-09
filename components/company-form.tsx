@@ -48,8 +48,6 @@ export default function CompanyForm({
           className="prose prose-sm size-full min-h-0 max-w-none focus:outline-none"
           id="company-info-editor"
         />
-        {/* </div> */}
-        {/* </div> */}
       </div>
 
       <SubmitButton isSuccessful={false}>Save</SubmitButton>

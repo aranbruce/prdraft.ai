@@ -211,7 +211,7 @@ export default function TemplateManager() {
                 content={formContent}
                 onChange={setFormContent}
                 placeholder="Add your template content here"
-                className="max-h-96 min-h-24 w-full overflow-auto"
+                className="max-h-96 min-h-24 w-full"
               />
             </div>
           </div>

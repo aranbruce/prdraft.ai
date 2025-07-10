@@ -303,22 +303,6 @@
     @apply border-border my-4 border-t;
   }
 
-  .suggestion {
-    @apply bg-muted/50 text-muted-foreground rounded-md px-2 py-1;
-
-    &:hover {
-      @apply bg-muted/70;
-    }
-  }
-
-  .suggestion-highlight {
-    @apply bg-blue-200 text-blue-800 dark:bg-blue-500/40 dark:text-blue-50;
-
-    &:hover {
-      @apply bg-blue-300 dark:bg-blue-400/50;
-    }
-  }
-
   &[data-placeholder]:empty::before {
     content: attr(data-placeholder);
     @apply text-muted-foreground pointer-events-none absolute;
@@ -357,4 +341,38 @@
   pre {
     @apply text-xs;
   }
+}
+
+/* Editor Text Selection Styles */
+.ProseMirror {
+  position: relative;
+}
+
+.ProseMirror::selection {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+.ProseMirror *::selection {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Better selection highlighting */
+.ProseMirror-selectednode {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Improve selection visibility */
+.ProseMirror-focused .ProseMirror-selectednode {
+  outline: 2px solid rgba(59, 130, 246, 0.8);
 }

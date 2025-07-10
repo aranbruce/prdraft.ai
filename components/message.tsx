@@ -38,7 +38,7 @@ export const PreviewMessage = ({
     >
       <div
         className={cx(
-          "group-data-[role=user]/message:bg-secondary group-data-[role=user]/message:text-secondary-foreground flex w-full gap-4 rounded-xl group-data-[role=user]/message:ml-auto group-data-[role=user]/message:w-fit group-data-[role=user]/message:max-w-[calc(100%-48px)] group-data-[role=user]/message:px-3 group-data-[role=user]/message:py-2",
+          "group-data-[role=user]/message:bg-card group-data-[role=user]/message:text-secondary-foreground group-data-[role=user]/message:border-secondary flex w-full gap-4 rounded-xl px-3 group-data-[role=user]/message:ml-auto group-data-[role=user]/message:w-fit group-data-[role=user]/message:max-w-[calc(100%-48px)] group-data-[role=user]/message:border group-data-[role=user]/message:py-2",
         )}
       >
         {message.role === "assistant" && <Logo size={32} />}
@@ -74,27 +74,6 @@ export const PreviewMessage = ({
                           block={block}
                           setBlock={setBlock}
                         />
-                      ) : toolName === "requestProductManagerSuggestions" ? (
-                        <DocumentToolResult
-                          type="request-product-manager-suggestions"
-                          result={result}
-                          block={block}
-                          setBlock={setBlock}
-                        />
-                      ) : toolName === "requestEngineerSuggestions" ? (
-                        <DocumentToolResult
-                          type="request-engineer-suggestions"
-                          result={result}
-                          block={block}
-                          setBlock={setBlock}
-                        />
-                      ) : toolName === "requestDesignerSuggestions" ? (
-                        <DocumentToolResult
-                          type="request-designer-suggestions"
-                          result={result}
-                          block={block}
-                          setBlock={setBlock}
-                        />
                       ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       )}
@@ -107,21 +86,6 @@ export const PreviewMessage = ({
                         <DocumentToolCall type="create" args={args} />
                       ) : toolName === "updateDocument" ? (
                         <DocumentToolCall type="update" args={args} />
-                      ) : toolName === "requestProductManagerSuggestions" ? (
-                        <DocumentToolCall
-                          type="request-product-manager-suggestions"
-                          args={args}
-                        />
-                      ) : toolName === "requestEngineerSuggestions" ? (
-                        <DocumentToolCall
-                          type="request-engineer-suggestions"
-                          args={args}
-                        />
-                      ) : toolName === "requestDesignerSuggestions" ? (
-                        <DocumentToolCall
-                          type="request-designer-suggestions"
-                          args={args}
-                        />
                       ) : null}
                     </div>
                   );

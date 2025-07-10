@@ -9,8 +9,40 @@ import { Plugin } from "prosemirror-state";
 
 import { buildContentFromDocument } from "./functions";
 
+// Constants for loading text
+const LOADING_TEXT = "✨ Adjusting text";
+
+// Custom loading node specification
+const loadingNodeSpec = {
+  group: "inline",
+  inline: true,
+  atom: true,
+  attrs: {
+    text: { default: LOADING_TEXT },
+  },
+  toDOM: (node: any) =>
+    [
+      "span" as const,
+      {
+        class: "font-semibold animate-pulse",
+        "data-loading": "true",
+      },
+      node.attrs.text,
+    ] as const,
+  parseDOM: [
+    {
+      tag: "span[data-loading]",
+      getAttrs: (dom: any) => ({
+        text: dom.textContent || LOADING_TEXT,
+      }),
+    },
+  ],
+};
+
 export const documentSchema = new Schema({
-  nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
+  nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block").append({
+    loading_text: loadingNodeSpec,
+  }),
   marks: schema.spec.marks,
 });
 

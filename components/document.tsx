@@ -10,37 +10,19 @@ import {
   PaletteIcon,
 } from "./icons";
 
-const getActionText = (
-  type:
-    | "create"
-    | "update"
-    | "request-product-manager-suggestions"
-    | "request-engineer-suggestions"
-    | "request-designer-suggestions",
-) => {
+const getActionText = (type: "create" | "update") => {
   switch (type) {
     case "create":
       return "Creating";
     case "update":
       return "Updating";
-    case "request-product-manager-suggestions":
-      return "Adding PM suggestions";
-    case "request-engineer-suggestions":
-      return "Adding engineer suggestions";
-    case "request-designer-suggestions":
-      return "Adding designer suggestions";
     default:
       return null;
   }
 };
 
 interface DocumentToolResultProps {
-  type:
-    | "create"
-    | "update"
-    | "request-product-manager-suggestions"
-    | "request-engineer-suggestions"
-    | "request-designer-suggestions";
+  type: "create" | "update";
   result: any;
   block: UIBlock;
   setBlock: (value: SetStateAction<UIBlock>) => void;
@@ -54,7 +36,7 @@ export function DocumentToolResult({
 }: DocumentToolResultProps) {
   return (
     <div
-      className="flex w-fit cursor-pointer flex-row items-start gap-3 rounded-xl border bg-card px-3 py-2"
+      className="bg-card border-secondary flex w-fit cursor-pointer flex-row items-start gap-3 rounded-xl border px-3 py-2"
       onClick={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
 
@@ -75,17 +57,11 @@ export function DocumentToolResult({
         });
       }}
     >
-      <div className="mt-1 text-muted-foreground">
+      <div className="text-muted-foreground mt-1">
         {type === "create" ? (
           <FileIcon />
         ) : type === "update" ? (
           <PencilEditIcon />
-        ) : type === "request-product-manager-suggestions" ? (
-          <MessageIcon />
-        ) : type === "request-engineer-suggestions" ? (
-          <CodeIcon />
-        ) : type === "request-designer-suggestions" ? (
-          <PaletteIcon />
         ) : null}
       </div>
       <div className="">
@@ -96,12 +72,7 @@ export function DocumentToolResult({
 }
 
 interface DocumentToolCallProps {
-  type:
-    | "create"
-    | "update"
-    | "request-product-manager-suggestions"
-    | "request-engineer-suggestions"
-    | "request-designer-suggestions";
+  type: "create" | "update";
   args: any;
 }
 
@@ -109,17 +80,11 @@ export function DocumentToolCall({ type, args }: DocumentToolCallProps) {
   return (
     <div className="flex w-fit flex-row items-start justify-between gap-3 rounded-xl border px-3 py-2">
       <div className="flex flex-row items-start gap-3">
-        <div className="mt-1 text-secondary-foreground">
+        <div className="text-secondary-foreground mt-1">
           {type === "create" ? (
             <FileIcon />
           ) : type === "update" ? (
             <PencilEditIcon />
-          ) : type === "request-product-manager-suggestions" ? (
-            <MessageIcon />
-          ) : type === "request-engineer-suggestions" ? (
-            <CodeIcon />
-          ) : type === "request-designer-suggestions" ? (
-            <PaletteIcon />
           ) : null}
         </div>
 

@@ -13,8 +13,6 @@ import {
   document,
   type Message,
   message,
-  type Suggestion,
-  suggestion,
   template,
   type Template,
   user,
@@ -379,52 +377,12 @@ export async function deleteDocumentsByIdAfterTimestamp({
   timestamp: Date;
 }) {
   try {
-    await db
-      .delete(suggestion)
-      .where(
-        and(
-          eq(suggestion.documentId, id),
-          gt(suggestion.documentCreatedAt, timestamp),
-        ),
-      );
-
     return await db
       .delete(document)
       .where(and(eq(document.id, id), gt(document.createdAt, timestamp)));
   } catch (error) {
     console.error(
       "Failed to delete documents by id after timestamp from database",
-    );
-    throw error;
-  }
-}
-
-export async function saveSuggestions({
-  suggestions,
-}: {
-  suggestions: Array<Suggestion>;
-}) {
-  try {
-    return await db.insert(suggestion).values(suggestions);
-  } catch (error) {
-    console.error("Failed to save suggestions in database");
-    throw error;
-  }
-}
-
-export async function getSuggestionsByDocumentId({
-  documentId,
-}: {
-  documentId: string;
-}) {
-  try {
-    return await db
-      .select()
-      .from(suggestion)
-      .where(and(eq(suggestion.documentId, documentId)));
-  } catch (error) {
-    console.error(
-      "Failed to get suggestions by document version from database",
     );
     throw error;
   }

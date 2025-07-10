@@ -17,7 +17,7 @@ import {
   useWindowSize,
 } from "usehooks-ts";
 
-import { Document, Suggestion, Vote } from "@/lib/db/schema";
+import { Document, Vote } from "@/lib/db/schema";
 import { fetcher } from "@/lib/utils";
 
 import { DiffView } from "./diffview";
@@ -26,7 +26,6 @@ import { Editor } from "./editor";
 import { CopyIcon, CrossIcon, DeltaIcon, RedoIcon, UndoIcon } from "./icons";
 import { PreviewMessage } from "./message";
 import { MultimodalInput } from "./multimodal-input";
-import { Toolbar } from "./toolbar";
 import { useScrollToBottom } from "./use-scroll-to-bottom";
 import { VersionFooter } from "./version-footer";
 import { Button } from "./ui/button";
@@ -60,6 +59,7 @@ export function Block({
   messages,
   setMessages,
   votes,
+  modelId,
 }: {
   chatId: string;
   input: string;
@@ -83,6 +83,7 @@ export function Block({
     },
     chatRequestOptions?: ChatRequestOptions,
   ) => void;
+  modelId: string;
 }) {
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
@@ -96,16 +97,6 @@ export function Block({
       ? `/api/document?id=${block.documentId}`
       : null,
     fetcher,
-  );
-
-  const { data: suggestions } = useSWR<Array<Suggestion>>(
-    documents && block && block.status !== "streaming"
-      ? `/api/suggestions?documentId=${block.documentId}`
-      : null,
-    fetcher,
-    {
-      dedupingInterval: 5000,
-    },
   );
 
   const [mode, setMode] = useState<"edit" | "diff">("edit");
@@ -420,7 +411,6 @@ export function Block({
                 )}
               </div>
             </div>
-
             <div className="flex flex-row gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -518,7 +508,9 @@ export function Block({
                   currentVersionIndex={currentVersionIndex}
                   status={block.status}
                   saveContent={saveContent}
-                  suggestions={isCurrentVersion ? (suggestions ?? []) : []}
+                  documentId={block.documentId}
+                  chatId={chatId}
+                  modelId={modelId}
                 />
               ) : (
                 <DiffView
@@ -526,23 +518,6 @@ export function Block({
                   newContent={getDocumentContentById(currentVersionIndex)}
                 />
               )}
-
-              {suggestions ? (
-                <div className="h-dvh w-12 shrink-0 md:hidden" />
-              ) : null}
-
-              <AnimatePresence>
-                {isCurrentVersion && (
-                  <Toolbar
-                    isToolbarVisible={isToolbarVisible}
-                    setIsToolbarVisible={setIsToolbarVisible}
-                    append={append}
-                    isLoading={isLoading}
-                    stop={stop}
-                    setMessages={setMessages}
-                  />
-                )}
-              </AnimatePresence>
             </div>
           </div>
           <AnimatePresence>

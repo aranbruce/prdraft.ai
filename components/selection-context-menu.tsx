@@ -3,7 +3,6 @@
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { WandIcon } from "@/components/icons";
 import { MessageSquareText, Pen } from "lucide-react";
 
 interface SelectionContextMenuProps {

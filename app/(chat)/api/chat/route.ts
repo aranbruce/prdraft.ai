@@ -1,21 +1,9 @@
-import {
-  convertToCoreMessages,
-  Message,
-  StreamData,
-  streamObject,
-  streamText,
-} from "ai";
+import { convertToCoreMessages, Message, StreamData, streamText } from "ai";
 import { z } from "zod";
 
 import { customModel } from "@/ai";
 import { models } from "@/ai/models";
-import {
-  templatePrompt,
-  systemPrompt,
-  productManagerPrompt,
-  engineerPrompt,
-  productDesignerPrompt,
-} from "@/ai/prompts";
+import { templatePrompt, systemPrompt } from "@/ai/prompts";
 import { auth } from "@/app/(auth)/auth";
 import {
   deleteChatById,
@@ -26,10 +14,8 @@ import {
   saveChat,
   saveDocument,
   saveMessages,
-  saveSuggestions,
   updateChat,
 } from "@/lib/db/queries";
-import { Suggestion } from "@/lib/db/schema";
 import {
   generateUUID,
   getMostRecentUserMessage,
@@ -40,20 +26,9 @@ import { generateTitleFromUserMessage } from "../../actions";
 
 export const maxDuration = 60;
 
-type AllowedTools =
-  | "createDocument"
-  | "updateDocument"
-  | "requestProductManagerSuggestions"
-  | "requestEngineerSuggestions"
-  | "requestDesignerSuggestions";
+type AllowedTools = "createDocument" | "updateDocument";
 
-const blocksTools: AllowedTools[] = [
-  "createDocument",
-  "updateDocument",
-  "requestProductManagerSuggestions",
-  "requestEngineerSuggestions",
-  "requestDesignerSuggestions",
-];
+const blocksTools: AllowedTools[] = ["createDocument", "updateDocument"];
 
 const allTools: AllowedTools[] = [...blocksTools];
 
@@ -281,275 +256,6 @@ export async function POST(request: Request) {
             id,
             title: document.title,
             content: "The document has been updated successfully.",
-          };
-        },
-      },
-      requestProductManagerSuggestions: {
-        description:
-          "Request suggestions for a document from a product manager. This should only be used if the user requests edits to an existing document.",
-        parameters: z.object({
-          documentId: z
-            .string()
-            .describe("The ID of the document to request edits"),
-        }),
-        execute: async ({ documentId }) => {
-          const document = await getDocumentById({ id: documentId });
-
-          if (!document || !document.content) {
-            return {
-              error: "Document not found",
-            };
-          }
-
-          let suggestions: Array<
-            Omit<Suggestion, "userId" | "createdAt" | "documentCreatedAt">
-          > = [];
-
-          const { elementStream } = streamObject({
-            model: customModel(model.apiIdentifier),
-            // model: suggestionModel,
-            system: productManagerPrompt,
-            prompt: document.content,
-            output: "array",
-            schema: z.object({
-              originalSentence: z
-                .string()
-                .describe(
-                  "The original sentence. This must be a full sentence",
-                ),
-              suggestedSentence: z
-                .string()
-                .describe(
-                  "The suggested sentence. This must be a full sentence.",
-                ),
-              description: z
-                .string()
-                .describe("The description of the suggestion"),
-            }),
-          });
-
-          for await (const element of elementStream) {
-            // remove leading whitespace, * and - characters
-            element.originalSentence = element.originalSentence
-              .replace(/^[*-]*/, "")
-              .trim();
-            element.suggestedSentence = element.suggestedSentence
-              .replace(/^[*-]*/, "")
-              .trim();
-
-            const suggestion = {
-              originalText: element.originalSentence,
-              suggestedText: element.suggestedSentence,
-              description: element.description,
-              id: generateUUID(),
-              documentId: documentId,
-              isResolved: false,
-            };
-
-            streamingData.append({
-              type: "suggestion",
-              content: suggestion,
-            });
-
-            suggestions.push(suggestion);
-          }
-
-          if (session?.user?.id) {
-            const userId = session.user.id;
-
-            await saveSuggestions({
-              suggestions: suggestions.map((suggestion) => ({
-                ...suggestion,
-                userId,
-                createdAt: new Date(),
-                documentCreatedAt: document.createdAt,
-              })),
-            });
-          }
-
-          return {
-            id: documentId,
-            title: document.title,
-            message:
-              "Suggestions have been added to the document by the product manager",
-          };
-        },
-      },
-      requestEngineerSuggestions: {
-        description:
-          "Request suggestions from a lead engineer to improve a document. This should only be used if the user requests edits to an existing document.",
-        parameters: z.object({
-          documentId: z
-            .string()
-            .describe("The ID of the document to request edits"),
-        }),
-        execute: async ({ documentId }) => {
-          const document = await getDocumentById({ id: documentId });
-
-          if (!document || !document.content) {
-            return {
-              error: "Document not found",
-            };
-          }
-
-          let suggestions: Array<
-            Omit<Suggestion, "userId" | "createdAt" | "documentCreatedAt">
-          > = [];
-
-          const { elementStream } = streamObject({
-            model: customModel(model.apiIdentifier),
-            system: engineerPrompt,
-            prompt: document.content,
-            output: "array",
-            schema: z.object({
-              originalSentence: z
-                .string()
-                .describe(
-                  "The original sentence. This must be a full sentence",
-                ),
-              suggestedSentence: z
-                .string()
-                .describe(
-                  "The suggested sentence. This must be a full sentence",
-                ),
-              description: z
-                .string()
-                .describe("The description of the suggestion"),
-            }),
-          });
-
-          for await (const element of elementStream) {
-            // remove leading whitespace, * and - characters
-            element.originalSentence = element.originalSentence
-              .replace(/^[*-]*/, "")
-              .trim();
-            element.suggestedSentence = element.suggestedSentence
-              .replace(/^[*-]*/, "")
-              .trim();
-            const suggestion = {
-              originalText: element.originalSentence,
-              suggestedText: element.suggestedSentence,
-              description: element.description,
-              id: generateUUID(),
-              documentId: documentId,
-              isResolved: false,
-            };
-
-            streamingData.append({
-              type: "suggestion",
-              content: suggestion,
-            });
-
-            suggestions.push(suggestion);
-          }
-
-          if (session?.user?.id) {
-            const userId = session.user.id;
-
-            await saveSuggestions({
-              suggestions: suggestions.map((suggestion) => ({
-                ...suggestion,
-                userId,
-                createdAt: new Date(),
-                documentCreatedAt: document.createdAt,
-              })),
-            });
-          }
-
-          return {
-            id: documentId,
-            title: document.title,
-            message:
-              "Suggestions have been added to the document by the lead engineer",
-          };
-        },
-      },
-      requestDesignerSuggestions: {
-        description:
-          "Request suggestions from a product designer to improve a document. This should only be used if the user requests edits to an existing document.",
-        parameters: z.object({
-          documentId: z
-            .string()
-            .describe("The ID of the document to request edits"),
-        }),
-        execute: async ({ documentId }) => {
-          const document = await getDocumentById({ id: documentId });
-
-          if (!document || !document.content) {
-            return {
-              error: "Document not found",
-            };
-          }
-
-          let suggestions: Array<
-            Omit<Suggestion, "userId" | "createdAt" | "documentCreatedAt">
-          > = [];
-
-          const { elementStream } = streamObject({
-            model: customModel(model.apiIdentifier),
-            system: productDesignerPrompt,
-            prompt: document.content,
-            output: "array",
-            schema: z.object({
-              originalSentence: z
-                .string()
-                .describe(
-                  "The original sentence. This must be a full sentence",
-                ),
-              suggestedSentence: z
-                .string()
-                .describe(
-                  "The suggested sentence. This must be a full sentence.",
-                ),
-              description: z
-                .string()
-                .describe("The description of the suggestion"),
-            }),
-          });
-
-          for await (const element of elementStream) {
-            // remove leading whitespace, * and - characters
-            element.originalSentence = element.originalSentence
-              .replace(/^[*-]*/, "")
-              .trim();
-            element.suggestedSentence = element.suggestedSentence
-              .replace(/^[*-]*/, "")
-              .trim();
-            const suggestion = {
-              originalText: element.originalSentence,
-              suggestedText: element.suggestedSentence,
-              description: element.description,
-              id: generateUUID(),
-              documentId: documentId,
-              isResolved: false,
-            };
-
-            streamingData.append({
-              type: "suggestion",
-              content: suggestion,
-            });
-
-            suggestions.push(suggestion);
-          }
-
-          if (session?.user?.id) {
-            const userId = session.user.id;
-
-            await saveSuggestions({
-              suggestions: suggestions.map((suggestion) => ({
-                ...suggestion,
-                userId,
-                createdAt: new Date(),
-                documentCreatedAt: document.createdAt,
-              })),
-            });
-          }
-
-          return {
-            id: documentId,
-            title: document.title,
-            message:
-              "Suggestions have been added to the document by the product designer",
           };
         },
       },

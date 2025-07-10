@@ -70,7 +70,7 @@ const ChatItem: React.FC<ChatItemProps> = ({
             onBlur={handleRename}
             onKeyDown={handleKeyDown}
             contentEditable={isEditing}
-            className="focus-visible:ring-opacity/50 absolute left-0 w-full rounded-md py-1.5 pl-2 pr-8 focus:ring-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 focus-visible:ring-offset-background"
+            className="focus-visible:ring-opacity/50 focus-visible:ring-primary focus-visible:ring-offset-background absolute left-0 w-full rounded-md py-1.5 pr-8 pl-2 focus:ring-2 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:outline-hidden"
           />
         ) : (
           <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
@@ -82,7 +82,7 @@ const ChatItem: React.FC<ChatItemProps> = ({
         <DropdownMenu modal={true}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuAction
-              className="mr-0.5 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground mr-0.5 cursor-pointer"
               showOnHover={!isActive}
             >
               <MoreHorizontalIcon />
@@ -91,14 +91,14 @@ const ChatItem: React.FC<ChatItemProps> = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent side="bottom" align="end">
             <DropdownMenuItem
-              className="cursor-pointer text-secondary-foreground focus:bg-primary-foreground focus:text-primary dark:text-secondary-foreground"
+              className="text-secondary-foreground focus:bg-primary-foreground focus:text-primary dark:text-secondary-foreground cursor-pointer"
               onSelect={() => setIsEditing(true)}
             >
               <PencilEditIcon />
               <span>Rename</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
+              className="text-destructive focus:bg-destructive/15 focus:text-destructive cursor-pointer dark:text-red-500"
               onSelect={() => onDelete(chat.id)}
             >
               <TrashIcon />

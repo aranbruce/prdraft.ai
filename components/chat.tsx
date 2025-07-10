@@ -161,6 +161,7 @@ export function Chat({
             messages={messages}
             setMessages={setMessages}
             votes={votes}
+            modelId={selectedModelId}
           />
         )}
       </AnimatePresence>

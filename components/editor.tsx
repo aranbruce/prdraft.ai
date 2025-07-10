@@ -241,8 +241,9 @@ function PureEditor({
       // Set the streaming position to where we inserted the node
       setStreamingPosition(from);
 
-      // Set the initial completion length to 1 (since it's a single node)
-      setLastCompletionLength(1);
+      // Set the initial completion length to the actual length of the loading node
+      const loadingNodeLength = loadingNode.textContent.length;
+      setLastCompletionLength(loadingNodeLength);
     }
 
     // Reset streaming position when not loading

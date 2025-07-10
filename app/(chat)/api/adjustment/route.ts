@@ -1,4 +1,4 @@
-import { convertToCoreMessages, generateText, Message, streamText } from "ai";
+import { streamText } from "ai";
 
 import { customModel } from "@/ai";
 import { models } from "@/ai/models";

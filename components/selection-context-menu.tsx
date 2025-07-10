@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageSquareText, Pen } from "lucide-react";
+import { MessageSquareText } from "lucide-react";
 
 interface SelectionContextMenuProps {
   selectedText: string;

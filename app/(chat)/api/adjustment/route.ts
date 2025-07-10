@@ -71,9 +71,6 @@ export async function POST(request: Request) {
       model: customModel(model.apiIdentifier),
       system: systemPrompt,
       prompt,
-      onFinish: ({ text }) => {
-        // Optional: log completion length for monitoring
-      },
     });
 
     return result.toDataStreamResponse();

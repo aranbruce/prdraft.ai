@@ -132,6 +132,14 @@ function PureEditor({
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
+  const streamingPositionRef = useRef<number | null>(null);
+  const lastCompletionLengthRef = useRef<number>(0);
+  const originalSelectionRef = useRef<{
+    from: number;
+    to: number;
+    text: string;
+  } | null>(null);
+
   const [selectionMenu, setSelectionMenu] = useState<{
     selectedText: string;
     position: { x: number; y: number };
@@ -150,6 +158,7 @@ function PureEditor({
 
   const { completion, complete, isLoading, error } = useCompletion({
     api: "/api/adjustment",
+
     onFinish: (prompt, completion) => {
       // Clean the completion text
       let cleaned = completion.trim();
@@ -158,6 +167,36 @@ function PureEditor({
         (cleaned.startsWith("'") && cleaned.endsWith("'"))
       ) {
         cleaned = cleaned.slice(1, -1);
+      }
+
+      // Finalize the completion by saving it and triggering a save
+      if (
+        editorRef.current &&
+        streamingPositionRef.current !== null &&
+        cleaned
+      ) {
+        const { state } = editorRef.current;
+        const endPos =
+          streamingPositionRef.current + lastCompletionLengthRef.current;
+
+        // Replace with final cleaned text and trigger save
+        const transaction = state.tr.replaceWith(
+          streamingPositionRef.current,
+          endPos,
+          state.schema.text(cleaned),
+        );
+        // Explicitly set meta to ensure this transaction triggers a save
+        transaction.setMeta("no-debounce", true); // Avoid debounce delay
+        // Don't set "no-save" meta so this gets saved to the database
+        editorRef.current.dispatch(transaction);
+
+        // Reset streaming state after successful dispatch
+        streamingPositionRef.current = null;
+        lastCompletionLengthRef.current = 0;
+        originalSelectionRef.current = null;
+        setStreamingPosition(null);
+        setOriginalSelection(null);
+        setLastCompletionLength(0);
       }
 
       // Close the selection menu after adjustment is complete
@@ -225,11 +264,6 @@ function PureEditor({
       const { state } = editorRef.current;
       const { from, to } = originalSelection;
 
-      console.log(
-        "� Replacing selected text with loading placeholder at positions:",
-        { from, to },
-      );
-
       // Create a loading node
       const loadingNode = createLoadingNode(state.schema);
 
@@ -238,18 +272,16 @@ function PureEditor({
       transaction.setMeta("no-save", true);
       editorRef.current.dispatch(transaction);
 
-      // Set the streaming position to where we inserted the node
+      // Set the streaming position to where we inserted the node (both state and ref)
       setStreamingPosition(from);
+      streamingPositionRef.current = from;
 
       // Set the initial completion length to 1 (since it's a single node)
       setLastCompletionLength(1);
-    }
+      lastCompletionLengthRef.current = 1;
 
-    // Reset streaming position when not loading
-    if (!isLoading && streamingPosition !== null) {
-      setStreamingPosition(null);
-      setOriginalSelection(null);
-      setLastCompletionLength(0);
+      // Also store in ref
+      originalSelectionRef.current = originalSelection;
     }
   }, [isLoading, originalSelection, streamingPosition]);
 
@@ -278,8 +310,9 @@ function PureEditor({
       transaction.setMeta("no-save", true);
       editorRef.current.dispatch(transaction);
 
-      // Update the last completion length for next iteration
+      // Update the last completion length for next iteration (both state and ref)
       setLastCompletionLength(cleanedCompletion.trim().length);
+      lastCompletionLengthRef.current = cleanedCompletion.trim().length;
     }
   }, [cleanedCompletion, isLoading, streamingPosition]);
 
@@ -675,10 +708,7 @@ function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
     return false;
   } else if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) {
     return false;
-  } else if (
-    prevProps.status === "streaming" &&
-    nextProps.status === "streaming"
-  ) {
+  } else if (prevProps.status !== nextProps.status) {
     return false;
   } else if (prevProps.content !== nextProps.content) {
     return false;
@@ -689,6 +719,8 @@ function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
   } else if (prevProps.chatId !== nextProps.chatId) {
     return false;
   } else if (prevProps.modelId !== nextProps.modelId) {
+    return false;
+  } else if (prevProps.id !== nextProps.id) {
     return false;
   }
 

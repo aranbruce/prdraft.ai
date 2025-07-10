@@ -1,10 +1,4 @@
-import {
-  convertToCoreMessages,
-  Message,
-  StreamData,
-  streamObject,
-  streamText,
-} from "ai";
+import { convertToCoreMessages, Message, StreamData, streamText } from "ai";
 import { z } from "zod";
 
 import { customModel } from "@/ai";

@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageSquareText } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SelectionContextMenuProps {
   selectedText: string;
@@ -27,6 +28,7 @@ export function SelectionContextMenu({
   onInputStateChange,
   editorContainer,
 }: SelectionContextMenuProps) {
+  const isMobile = useIsMobile();
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [showInput, setShowInput] = useState(false);
@@ -36,16 +38,23 @@ export function SelectionContextMenu({
   const [adjustedPosition, setAdjustedPosition] = useState(position);
 
   useEffect(() => {
-    if (!editorContainer) return;
+    if (!editorContainer) {
+      // If no editor container, use position as-is
+      setAdjustedPosition(position);
+      return;
+    }
 
     const containerRect = editorContainer.getBoundingClientRect();
     const menuElement = menuRef.current;
-    if (!menuElement) return;
+    if (!menuElement) {
+      setAdjustedPosition(position);
+      return;
+    }
 
-    // Get the menu dimensions (we need to temporarily show it to measure)
+    // Get the menu dimensions
     const menuRect = menuElement.getBoundingClientRect();
-    const menuWidth = menuRect.width || 320; // fallback width
-    const menuHeight = menuRect.height || 60; // fallback height
+    const menuWidth = menuRect.width || (isMobile ? 288 : 320);
+    const menuHeight = menuRect.height || (isMobile ? 60 : 50);
 
     // Convert viewport coordinates to container-relative coordinates
     let x = position.x - containerRect.left;
@@ -60,7 +69,7 @@ export function SelectionContextMenu({
 
     // Adjust X position if menu would overflow right edge
     if (x + menuWidth > containerWidth) {
-      x = containerWidth - menuWidth - 8; // 8px padding from edge
+      x = containerWidth - menuWidth - 8;
     }
 
     // Ensure minimum distance from left edge
@@ -69,7 +78,7 @@ export function SelectionContextMenu({
     }
 
     // Position below the selection with some padding
-    y = y + 4; // Add some space below the selection
+    y = y + 4;
 
     // Adjust Y position if menu would overflow bottom edge
     if (y + menuHeight > containerHeight) {
@@ -83,12 +92,43 @@ export function SelectionContextMenu({
     }
 
     setAdjustedPosition({ x, y });
-  }, [position, editorContainer, showInput]);
+  }, [position, editorContainer, showInput, isMobile]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        // Notify parent that input is no longer active if it was
+        // For touch events, check if it's a scroll gesture or intentional tap
+        if (event.type === "touchstart") {
+          const touchEvent = event as TouchEvent;
+          // If multiple touches (like pinch/zoom) or if it's on the editor container,
+          // it might be scrolling - don't close the menu immediately
+          if (touchEvent.touches.length > 1) {
+            return; // Multi-touch gesture, likely zoom/scroll
+          }
+
+          // Check if touch target is part of the editor container
+          const editorElement = editorContainer;
+          if (editorElement && editorElement.contains(event.target as Node)) {
+            // Touch is in editor area, might be scrolling - add a delay before closing
+            setTimeout(() => {
+              // Check if selection is still active after delay
+              const currentSelection = window.getSelection();
+              if (
+                !currentSelection ||
+                currentSelection.toString().trim().length === 0
+              ) {
+                // No selection anymore, safe to close
+                if (showInput) {
+                  onInputStateChange?.(false);
+                }
+                onClose();
+              }
+            }, 150);
+            return;
+          }
+        }
+
+        // For mouse events or touches outside editor, close immediately
         if (showInput) {
           onInputStateChange?.(false);
         }
@@ -96,9 +136,15 @@ export function SelectionContextMenu({
       }
     };
 
+    // Add both mouse and touch event listeners for better mobile support
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose, showInput, onInputStateChange]);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [onClose, showInput, onInputStateChange, editorContainer]);
 
   // Focus the input when it becomes visible
   useEffect(() => {
@@ -112,7 +158,7 @@ export function SelectionContextMenu({
     }
   }, [showInput]);
 
-  const handleAdjustClick = (event: React.MouseEvent) => {
+  const handleAdjustClick = (event: React.MouseEvent | React.TouchEvent) => {
     // Prevent the click from affecting text selection
     event.preventDefault();
     event.stopPropagation();
@@ -160,7 +206,9 @@ export function SelectionContextMenu({
   return (
     <div
       ref={menuRef}
-      className="selection-context-menu bg-background animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 border-accent absolute z-40 rounded-lg border p-1 shadow-lg transition-all duration-200 ease-out"
+      className={`selection-context-menu bg-background animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 border-accent absolute z-40 rounded-lg border shadow-lg transition-all duration-200 ease-out ${
+        isMobile ? "p-2" : "p-1"
+      }`}
       style={{
         left: `${adjustedPosition.x}px`,
         top: `${adjustedPosition.y}px`,
@@ -170,31 +218,46 @@ export function SelectionContextMenu({
         e.preventDefault();
         e.stopPropagation();
       }}
+      onTouchStart={(e) => {
+        // Prevent touch events from affecting text selection
+        e.stopPropagation();
+      }}
     >
       {!showInput ? (
         <Button
-          size="default"
+          size={isMobile ? "lg" : "default"}
           onClick={handleAdjustClick}
           variant="ghost"
+          className={isMobile ? "h-12 px-4 text-base" : ""}
           onMouseDown={(e) => {
             // Prevent mouse down from affecting text selection
             e.preventDefault();
             e.stopPropagation();
           }}
+          onTouchStart={(e) => {
+            // Prevent touch start from affecting text selection
+            e.stopPropagation();
+          }}
         >
-          <MessageSquareText size={14} />
-          <span className="ml-1">Adjust</span>
+          <MessageSquareText size={isMobile ? 18 : 14} />
+          <span className="ml-2">Adjust</span>
         </Button>
       ) : (
-        <form onSubmit={handleSubmit} className="relative w-full min-w-80">
+        <form
+          onSubmit={handleSubmit}
+          className={`relative w-full ${isMobile ? "min-w-72" : "min-w-80"}`}
+        >
           <Input
             ref={inputRef}
             value={adjustmentRequest}
             onChange={(e) => setAdjustmentRequest(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Describe what you want to adjust..."
-            className="h-10 pr-20"
+            className={isMobile ? "h-12 pr-20 text-base" : "h-10 pr-20"}
             onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
+            onTouchStart={(e) => {
               e.stopPropagation();
             }}
           />
@@ -203,9 +266,12 @@ export function SelectionContextMenu({
               type="submit"
               variant="default"
               size="sm"
-              className="absolute top-1 right-1 h-8"
+              className={`absolute ${isMobile ? "top-1.5 right-1.5 h-9" : "top-1 right-1 h-8"}`}
               onMouseDown={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
                 e.stopPropagation();
               }}
             >

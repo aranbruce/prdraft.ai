@@ -221,8 +221,7 @@ export class ListOperationManager {
 
   hasOperationsPending(): boolean {
     return (
-      this.saveTimeout !== null ||
-      Date.now() - this.lastOperationTime < 1000
+      this.saveTimeout !== null || Date.now() - this.lastOperationTime < 1000
     );
   }
 
@@ -245,7 +244,9 @@ export class ListOperationManager {
 }
 
 // Function to check if list operations are pending
-export function hasListOperationsPending(listOperationManager: ListOperationManager): boolean {
+export function hasListOperationsPending(
+  listOperationManager: ListOperationManager,
+): boolean {
   return listOperationManager.hasOperationsPending();
 }
 

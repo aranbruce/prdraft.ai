@@ -158,9 +158,11 @@ function PureEditor({
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartPositionRef = useRef<{ x: number; y: number } | null>(null);
   const isScrollingRef = useRef<boolean>(false);
-  
+
   // Create a list operation manager instance for this editor
-  const listOperationManagerRef = useRef<ListOperationManager>(new ListOperationManager());
+  const listOperationManagerRef = useRef<ListOperationManager>(
+    new ListOperationManager(),
+  );
 
   // Track recent typing activity to prevent content updates during active editing
   const lastTypingTimeRef = useRef<number>(0);
@@ -724,7 +726,24 @@ function PureEditor({
           keydown: (view, event) => {
             // Track typing activity for content update prevention
             // Only track actual typing keys, not modifier or navigation keys
-            if (!["Shift", "Control", "Meta", "Alt", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown", "Tab", "Escape"].includes(event.key)) {
+            if (
+              ![
+                "Shift",
+                "Control",
+                "Meta",
+                "Alt",
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight",
+                "Home",
+                "End",
+                "PageUp",
+                "PageDown",
+                "Tab",
+                "Escape",
+              ].includes(event.key)
+            ) {
               lastTypingTimeRef.current = Date.now();
             }
 
@@ -798,15 +817,19 @@ function PureEditor({
       editorRef.current.setProps({
         dispatchTransaction: (transaction) => {
           // Track typing activity when document changes occur from user input
-          if (transaction.docChanged && !transaction.getMeta("no-save") && !transaction.getMeta("ai-completion")) {
+          if (
+            transaction.docChanged &&
+            !transaction.getMeta("no-save") &&
+            !transaction.getMeta("ai-completion")
+          ) {
             lastTypingTimeRef.current = Date.now();
           }
-          
-          handleTransaction({ 
-            transaction, 
-            editorRef, 
-            saveContent, 
-            listOperationManager: listOperationManagerRef.current 
+
+          handleTransaction({
+            transaction,
+            editorRef,
+            saveContent,
+            listOperationManager: listOperationManagerRef.current,
           });
         },
       });
@@ -835,7 +858,10 @@ function PureEditor({
 
       // Don't update editor content if there was a recent list operation or recent typing
       // This prevents saved content from overriding user's active editing
-      if (hasListOperationsPending(listOperationManagerRef.current) || wasRecentlyTyping()) {
+      if (
+        hasListOperationsPending(listOperationManagerRef.current) ||
+        wasRecentlyTyping()
+      ) {
         return;
       }
 
@@ -844,7 +870,7 @@ function PureEditor({
 
         // Store the current selection before replacing content
         const currentSelection = editorRef.current.state.selection;
-        
+
         const transaction = editorRef.current.state.tr.replaceWith(
           0,
           editorRef.current.state.doc.content.size,
@@ -857,8 +883,13 @@ function PureEditor({
           const newDocSize = newDocument.content.size;
           const fromPos = Math.min(currentSelection.from, newDocSize);
           const toPos = Math.min(currentSelection.to, newDocSize);
-          
-          if (fromPos >= 0 && toPos >= 0 && fromPos <= newDocSize && toPos <= newDocSize) {
+
+          if (
+            fromPos >= 0 &&
+            toPos >= 0 &&
+            fromPos <= newDocSize &&
+            toPos <= newDocSize
+          ) {
             // Create a new selection at the same positions
             if (fromPos === toPos) {
               // Cursor selection
@@ -867,11 +898,17 @@ function PureEditor({
             } else {
               // Range selection
               try {
-                const newSelection = TextSelection.create(newDocument, fromPos, toPos);
+                const newSelection = TextSelection.create(
+                  newDocument,
+                  fromPos,
+                  toPos,
+                );
                 transaction.setSelection(newSelection);
               } catch {
                 // Fall back to cursor at start position
-                const newSelection = Selection.near(newDocument.resolve(fromPos));
+                const newSelection = Selection.near(
+                  newDocument.resolve(fromPos),
+                );
                 transaction.setSelection(newSelection);
               }
             }

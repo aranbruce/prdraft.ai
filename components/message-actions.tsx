@@ -31,8 +31,13 @@ export function MessageActions({
 
   if (isLoading) return null;
   if (message.role === "user") return null;
-  if (message.toolInvocations && message.toolInvocations.length > 0)
-    return null;
+
+  // Check if there are tool invocations using the parts approach
+  const hasToolInvocations = message.parts
+    ? message.parts.some((part) => part.type === "tool-invocation")
+    : false;
+
+  if (hasToolInvocations) return null;
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -40,7 +45,7 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="h-fit px-2 py-1 text-muted-foreground"
+              className="text-muted-foreground h-fit px-2 py-1"
               variant="outline"
               onClick={async () => {
                 await copyToClipboard(message.content as string);
@@ -56,7 +61,7 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="pointer-events-auto! h-fit px-2 py-1 text-muted-foreground"
+              className="text-muted-foreground pointer-events-auto! h-fit px-2 py-1"
               disabled={vote && vote.isUpvoted}
               variant="outline"
               onClick={async () => {
@@ -110,7 +115,7 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="pointer-events-auto! h-fit px-2 py-1 text-muted-foreground"
+              className="text-muted-foreground pointer-events-auto! h-fit px-2 py-1"
               variant="outline"
               disabled={vote && !vote.isUpvoted}
               onClick={async () => {

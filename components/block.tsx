@@ -22,7 +22,7 @@ import { fetcher } from "@/lib/utils";
 
 import { DiffView } from "./diffview";
 import { DocumentSkeleton } from "./document-skeleton";
-import { Editor } from "./editor";
+import { Editor } from "@/components/editor";
 import { CopyIcon, CrossIcon, DeltaIcon, RedoIcon, UndoIcon } from "./icons";
 import { PreviewMessage } from "./message";
 import { MultimodalInput } from "./multimodal-input";
@@ -171,7 +171,7 @@ export function Block({
 
   const debouncedHandleContentChange = useDebounceCallback(
     handleContentChange,
-    2000,
+    1000,
   );
 
   const saveContent = useCallback(

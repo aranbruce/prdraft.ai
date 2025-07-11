@@ -59,23 +59,28 @@ function addToolMessageToChat({
   messages: Array<Message>;
 }): Array<Message> {
   return messages.map((message) => {
-    if (message.toolInvocations) {
+    if (message.parts) {
       return {
         ...message,
-        toolInvocations: message.toolInvocations.map((toolInvocation) => {
-          const toolResult = toolMessage.content.find(
-            (tool) => tool.toolCallId === toolInvocation.toolCallId,
-          );
+        parts: message.parts.map((part) => {
+          if (part.type === "tool-invocation") {
+            const toolResult = toolMessage.content.find(
+              (tool) => tool.toolCallId === part.toolInvocation.toolCallId,
+            );
 
-          if (toolResult) {
-            return {
-              ...toolInvocation,
-              state: "result",
-              result: toolResult.result,
-            };
+            if (toolResult) {
+              return {
+                ...part,
+                toolInvocation: {
+                  ...part.toolInvocation,
+                  state: "result",
+                  result: toolResult.result,
+                },
+              };
+            }
           }
 
-          return toolInvocation;
+          return part;
         }),
       };
     }
@@ -96,21 +101,28 @@ export function convertToUIMessages(
     }
 
     let textContent = "";
-    let toolInvocations: Array<ToolInvocation> = [];
+    let parts: Array<any> = [];
     let attachments: Array<any> = [];
 
     if (typeof message.content === "string") {
       textContent = message.content;
+      if (textContent) {
+        parts.push({ type: "text", text: textContent });
+      }
     } else if (Array.isArray(message.content)) {
       for (const content of message.content) {
         if (content.type === "text") {
           textContent += content.text;
+          parts.push({ type: "text", text: content.text });
         } else if (content.type === "tool-call") {
-          toolInvocations.push({
-            state: "call",
-            toolCallId: content.toolCallId,
-            toolName: content.toolName,
-            args: content.args,
+          parts.push({
+            type: "tool-invocation",
+            toolInvocation: {
+              state: "call",
+              toolCallId: content.toolCallId,
+              toolName: content.toolName,
+              args: content.args,
+            },
           });
         } else if (content.type === "file") {
           attachments.push(content);
@@ -137,7 +149,7 @@ export function convertToUIMessages(
       id: message.id,
       role: message.role as Message["role"],
       content: textContent,
-      toolInvocations,
+      parts: parts.length > 0 ? parts : undefined,
       experimental_attachments,
     });
 
@@ -185,36 +197,51 @@ export function sanitizeResponseMessages(
 }
 
 export function sanitizeUIMessages(messages: Array<Message>): Array<Message> {
-  const messagesBySanitizedToolInvocations = messages.map((message) => {
+  const messagesBySanitizedParts = messages.map((message) => {
     if (message.role !== "assistant") return message;
 
-    if (!message.toolInvocations) return message;
+    // Handle modern parts approach
+    if (message.parts) {
+      let toolResultIds: Array<string> = [];
 
-    let toolResultIds: Array<string> = [];
-
-    for (const toolInvocation of message.toolInvocations) {
-      if (toolInvocation.state === "result") {
-        toolResultIds.push(toolInvocation.toolCallId);
+      // First pass: collect all tool result IDs from parts
+      for (const part of message.parts) {
+        if (
+          part.type === "tool-invocation" &&
+          part.toolInvocation.state === "result"
+        ) {
+          toolResultIds.push(part.toolInvocation.toolCallId);
+        }
       }
+
+      // Filter parts to only include tool invocations that have results or are referenced
+      const sanitizedParts = message.parts.filter((part) => {
+        if (part.type !== "tool-invocation") return true;
+
+        const toolInvocation = part.toolInvocation;
+        return (
+          toolInvocation.state === "result" ||
+          toolResultIds.includes(toolInvocation.toolCallId)
+        );
+      });
+
+      return {
+        ...message,
+        parts: sanitizedParts,
+      };
     }
 
-    const sanitizedToolInvocations = message.toolInvocations.filter(
-      (toolInvocation) =>
-        toolInvocation.state === "result" ||
-        toolResultIds.includes(toolInvocation.toolCallId),
-    );
-
-    return {
-      ...message,
-      toolInvocations: sanitizedToolInvocations,
-    };
+    return message;
   });
 
-  return messagesBySanitizedToolInvocations.filter(
-    (message) =>
-      message.content.length > 0 ||
-      (message.toolInvocations && message.toolInvocations.length > 0),
-  );
+  return messagesBySanitizedParts.filter((message) => {
+    const hasContent = message.content.length > 0;
+    const hasToolParts =
+      message.parts &&
+      message.parts.some((part) => part.type === "tool-invocation");
+
+    return hasContent || hasToolParts;
+  });
 }
 
 export function getMostRecentUserMessage(messages: Array<CoreMessage>) {

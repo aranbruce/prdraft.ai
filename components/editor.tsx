@@ -13,6 +13,8 @@ import {
   handleTransaction,
   headingKeymapPlugin,
   headingRule,
+  listKeymapPlugin,
+  hasListOperationsPending,
 } from "@/lib/editor/config";
 import {
   buildContentFromDocument,
@@ -21,14 +23,8 @@ import {
 import { SelectionContextMenu } from "@/components/selection-context-menu";
 import { useCompletion } from "@ai-sdk/react";
 
-// Constants for loading text
-const LOADING_TEXT = "✨ Adjusting text";
+// Constants for loading UI
 const LOADING_UI_TEXT = "AI Adjusting Text";
-
-// Helper function to create a loading node
-const createLoadingNode = (schema: any) => {
-  return schema.nodes.loading_text.create({ text: LOADING_TEXT });
-};
 
 // Function to create text highlight decorations (for selection highlighting only)
 const createTextHighlightDecorations = (
@@ -87,6 +83,11 @@ const createTextHighlightPlugin = () => {
           // Clear highlights
           return DecorationSet.empty;
         } else if (highlightRange) {
+          // Handle pulse decorations (for loading state)
+          if (highlightRange.decorations) {
+            return highlightRange.decorations;
+          }
+
           // Set new highlight - create fresh decoration set
           return createTextHighlightDecorations(
             highlightRange.from,
@@ -250,7 +251,7 @@ function PureEditor({
     return cleaned;
   }, [completion]);
 
-  // Clear highlight when loading starts and insert loading placeholder
+  // Clear highlight when loading starts and keep the original text with pulse animation
   React.useEffect(() => {
     if (
       isLoading &&
@@ -260,25 +261,34 @@ function PureEditor({
     ) {
       clearTextHighlight(editorRef.current);
 
-      // Immediately replace the selected text with a loading placeholder
+      // Keep the original text but apply pulse animation via decoration
       const { state } = editorRef.current;
-      const { from, to } = originalSelection;
+      const { from, to, text } = originalSelection;
 
-      // Create a loading node
-      const loadingNode = createLoadingNode(state.schema);
+      // Apply pulse decoration to the original text
+      const pulseDecoration = DecorationSet.create(state.doc, [
+        Decoration.inline(from, to, {
+          class:
+            "animate-pulse bg-blue-200/60 border border-blue-300/40 rounded-sm px-1 py-0.5",
+          style: "animation: pulse 1.5s ease-in-out infinite;",
+        }),
+      ]);
 
-      const transaction = state.tr.replaceWith(from, to, loadingNode);
+      const transaction = state.tr;
+      transaction.setMeta(textHighlightPluginKey, {
+        decorations: pulseDecoration,
+      });
       transaction.setMeta("no-debounce", true);
       transaction.setMeta("no-save", true);
       editorRef.current.dispatch(transaction);
 
-      // Set the streaming position to where we inserted the node (both state and ref)
+      // Set the streaming position to the start of the selection
       setStreamingPosition(from);
       streamingPositionRef.current = from;
 
-      // Set the initial completion length to 1 (since it's a single node)
-      setLastCompletionLength(1);
-      lastCompletionLengthRef.current = 1;
+      // Set the initial completion length to the original text length
+      setLastCompletionLength(to - from);
+      lastCompletionLengthRef.current = to - from;
 
       // Also store in ref
       originalSelectionRef.current = originalSelection;
@@ -298,7 +308,10 @@ function PureEditor({
     ) {
       const { state } = editorRef.current;
 
-      // Replace the loading node or previous completion with new text
+      // Clear the pulse decoration before replacing with new text
+      clearTextHighlight(editorRef.current);
+
+      // Replace the original text or previous completion with new text
       const endPos = streamingPosition + lastCompletionLength;
 
       const transaction = state.tr.replaceWith(
@@ -351,6 +364,7 @@ function PureEditor({
         doc: buildDocumentFromContent(content),
         plugins: [
           headingKeymapPlugin(), // Add keyboard shortcuts FIRST for higher priority
+          listKeymapPlugin(), // Handle Tab/Shift+Tab for list indentation
           ...exampleSetup({ schema: documentSchema, menuBar: false }),
           inputRules({
             rules: [
@@ -552,6 +566,12 @@ function PureEditor({
 
         transaction.setMeta("no-save", true);
         editorRef.current.dispatch(transaction);
+        return;
+      }
+
+      // Don't update editor content if there was a recent list operation
+      // This prevents saved content from overriding user's Tab operations
+      if (hasListOperationsPending()) {
         return;
       }
 

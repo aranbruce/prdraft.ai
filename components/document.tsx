@@ -8,21 +8,24 @@ import {
   PencilEditIcon,
   CodeIcon,
   PaletteIcon,
+  SearchIcon,
 } from "./icons";
 
-const getActionText = (type: "create" | "update") => {
+const getActionText = (type: "create" | "update" | "view") => {
   switch (type) {
     case "create":
       return "Creating";
     case "update":
       return "Updating";
+    case "view":
+      return "Viewing";
     default:
       return null;
   }
 };
 
 interface DocumentToolResultProps {
-  type: "create" | "update";
+  type: "create" | "update" | "view";
   result: any;
   block: UIBlock;
   setBlock: (value: SetStateAction<UIBlock>) => void;
@@ -62,17 +65,21 @@ export function DocumentToolResult({
           <FileIcon />
         ) : type === "update" ? (
           <PencilEditIcon />
+        ) : type === "view" ? (
+          <SearchIcon />
         ) : null}
       </div>
       <div className="">
-        {getActionText(type)} {result.title}
+        {type === "view"
+          ? `Fetched "${result.title}"`
+          : `${getActionText(type)} ${result.title}`}
       </div>
     </div>
   );
 }
 
 interface DocumentToolCallProps {
-  type: "create" | "update";
+  type: "create" | "update" | "view";
   args: any;
 }
 
@@ -85,11 +92,15 @@ export function DocumentToolCall({ type, args }: DocumentToolCallProps) {
             <FileIcon />
           ) : type === "update" ? (
             <PencilEditIcon />
+          ) : type === "view" ? (
+            <SearchIcon />
           ) : null}
         </div>
 
         <div className="">
-          {getActionText(type)} {args.title}
+          {type === "view"
+            ? `Fetching document ${args.id}...`
+            : `${getActionText(type)} ${args.title}`}
         </div>
       </div>
 

@@ -28,24 +28,6 @@ export function Chat({
 }) {
   const { mutate } = useSWRConfig();
 
-  const {
-    messages,
-    setMessages,
-    handleSubmit,
-    input,
-    setInput,
-    append,
-    status,
-    stop,
-    data: streamingData,
-  } = useChat({
-    body: { id, modelId: selectedModelId },
-    initialMessages,
-    onFinish: () => {
-      mutate("/api/history");
-    },
-  });
-
   const { width: windowWidth = 1920, height: windowHeight = 1080 } =
     useWindowSize();
 
@@ -60,6 +42,29 @@ export function Chat({
       left: windowWidth / 4,
       width: 250,
       height: 50,
+    },
+  });
+
+  const {
+    messages,
+    setMessages,
+    handleSubmit,
+    input,
+    setInput,
+    append,
+    status,
+    stop,
+    data: streamingData,
+  } = useChat({
+    body: {
+      id,
+      modelId: selectedModelId,
+      // Include current document context if available
+      currentDocumentId: block.documentId !== "init" ? block.documentId : null,
+    },
+    initialMessages,
+    onFinish: () => {
+      mutate("/api/history");
     },
   });
 

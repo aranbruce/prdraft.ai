@@ -50,10 +50,28 @@ export const PreviewMessage = ({
             </div>
           )}
 
-          {message.parts && message.parts.length > 0 && (
-            <div className="flex flex-col gap-4">
-              {message.parts.map((part, index) => {
-                if (part.type === "tool-invocation") {
+          {(() => {
+            // Filter parts to only include tool invocations that will render content
+            const toolInvocationParts = message.parts?.filter((part) => {
+              if (part.type === "tool-invocation") {
+                const { toolName } = part.toolInvocation;
+                return [
+                  "createDocument",
+                  "updateDocument",
+                  "getDocument",
+                ].includes(toolName);
+              }
+              return false;
+            }) as Array<{ type: "tool-invocation"; toolInvocation: any }>;
+
+            // Only render the container if there are valid tool invocations
+            if (!toolInvocationParts || toolInvocationParts.length === 0) {
+              return null;
+            }
+
+            return (
+              <div className="flex flex-col gap-4">
+                {toolInvocationParts.map((part, index) => {
                   const { toolInvocation } = part;
                   const { toolName, toolCallId, state, args } = toolInvocation;
 
@@ -90,7 +108,7 @@ export const PreviewMessage = ({
                     );
                   } else {
                     return (
-                      <div key={`${toolCallId}-${index}`} className={cx({})}>
+                      <div key={`${toolCallId}-${index}`}>
                         {toolName === "createDocument" ? (
                           <DocumentToolCall type="create" args={args} />
                         ) : toolName === "updateDocument" ? (
@@ -101,11 +119,10 @@ export const PreviewMessage = ({
                       </div>
                     );
                   }
-                }
-                return null;
-              })}
-            </div>
-          )}
+                })}
+              </div>
+            );
+          })()}
 
           {message.experimental_attachments && (
             <div className="flex flex-row gap-2">

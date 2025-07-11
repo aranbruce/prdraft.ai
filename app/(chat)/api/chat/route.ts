@@ -119,12 +119,11 @@ export async function POST(request: Request) {
       const currentDocument = await getDocumentById({ id: currentDocumentId });
       if (currentDocument && currentDocument.userId === session.user.id) {
         currentDocumentContext = `
-
-CURRENT DOCUMENT CONTEXT:
-You are currently working with a document titled "${currentDocument.title}" (ID: ${currentDocument.id}).
-When users reference "the document", "this document", "my document", or similar terms, they are referring to this document.
-You can use the getDocument tool to retrieve the full content of this document when needed for context.
-Current document preview: ${currentDocument.content?.substring(0, 500)}${(currentDocument.content?.length || 0) > 500 ? "..." : ""}`;
+          CURRENT DOCUMENT CONTEXT:
+          You are currently working with a document titled "${currentDocument.title}" (ID: ${currentDocument.id}).
+          When users reference "the document", "this document", "my document", or similar terms, they are referring to this document.
+          You can use the getDocument tool to retrieve the full content of this document when needed for context.
+          Current document preview: ${currentDocument.content?.substring(0, 500)}${(currentDocument.content?.length || 0) > 500 ? "..." : ""}`;
       }
     } catch (error) {
       console.error("Error fetching current document context:", error);

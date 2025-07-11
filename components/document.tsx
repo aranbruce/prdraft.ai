@@ -1,15 +1,7 @@
 import { SetStateAction } from "react";
 
 import { UIBlock } from "./block";
-import {
-  FileIcon,
-  LoaderIcon,
-  MessageIcon,
-  PencilEditIcon,
-  CodeIcon,
-  PaletteIcon,
-  SearchIcon,
-} from "./icons";
+import { FileIcon, LoaderIcon, PencilEditIcon, SearchIcon } from "./icons";
 
 const getActionText = (type: "create" | "update" | "view") => {
   switch (type) {
@@ -34,7 +26,6 @@ interface DocumentToolResultProps {
 export function DocumentToolResult({
   type,
   result,
-  block,
   setBlock,
 }: DocumentToolResultProps) {
   return (
@@ -51,9 +42,9 @@ export function DocumentToolResult({
         };
 
         setBlock({
-          documentId: result.id,
+          documentId: result?.id || "",
           content: "",
-          title: result.title,
+          title: result?.title || "Untitled Document",
           isVisible: true,
           status: "idle",
           boundingBox,
@@ -71,8 +62,8 @@ export function DocumentToolResult({
       </div>
       <div className="">
         {type === "view"
-          ? `Fetched "${result.title}"`
-          : `${getActionText(type)} ${result.title}`}
+          ? `Fetched "${result?.title || "document"}"`
+          : `${getActionText(type)} ${result?.title || "document"}`}
       </div>
     </div>
   );
@@ -85,7 +76,7 @@ interface DocumentToolCallProps {
 
 export function DocumentToolCall({ type, args }: DocumentToolCallProps) {
   return (
-    <div className="flex w-fit flex-row items-start justify-between gap-3 rounded-xl border px-3 py-2">
+    <div className="bg-card flex w-fit flex-row items-start justify-between gap-3 rounded-xl border px-3 py-2">
       <div className="flex flex-row items-start gap-3">
         <div className="text-secondary-foreground mt-1">
           {type === "create" ? (
@@ -99,8 +90,8 @@ export function DocumentToolCall({ type, args }: DocumentToolCallProps) {
 
         <div className="">
           {type === "view"
-            ? `Fetching document ${args.id}...`
-            : `${getActionText(type)} ${args.title}`}
+            ? `Fetching document ${args?.title || "document"}...`
+            : `${getActionText(type)} ${args?.title || "document"}`}
         </div>
       </div>
 

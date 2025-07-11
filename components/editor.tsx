@@ -2,12 +2,10 @@
 
 import { exampleSetup } from "prosemirror-example-setup";
 import { inputRules } from "prosemirror-inputrules";
-import { Plugin, PluginKey } from "prosemirror-state";
 import { EditorState, Selection, TextSelection } from "prosemirror-state";
-import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
-import React, { memo, useEffect, useRef, useState } from "react";
+import { EditorView, Decoration, DecorationSet } from "prosemirror-view";
+import React, { memo, useEffect, useRef } from "react";
 
-import { Vote } from "@/lib/db/schema";
 import {
   documentSchema,
   handleTransaction,
@@ -21,102 +19,20 @@ import {
   buildContentFromDocument,
   buildDocumentFromContent,
 } from "@/lib/editor/functions";
+import {
+  createTextHighlightPlugin,
+  applyTextHighlight,
+  clearTextHighlight,
+  textHighlightPluginKey,
+} from "@/lib/editor/text-highlight";
 import { SelectionContextMenu } from "@/components/selection-context-menu";
 import { useCompletion } from "@ai-sdk/react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTextSelection } from "@/hooks/use-text-selection";
+import { useTextHighlight } from "@/hooks/use-text-highlight";
 
 // Constants for loading UI
 const LOADING_UI_TEXT = "AI Adjusting Text";
-
-// Function to create text highlight decorations (for selection highlighting only)
-const createTextHighlightDecorations = (
-  from: number,
-  to: number,
-  doc: any,
-  active: boolean = false,
-) => {
-  const className = active
-    ? "bg-blue-500/35 rounded-sm pb-1 transition-colors duration-200 ease-in-out"
-    : "bg-blue-500/20 rounded-sm pb-1 transition-colors duration-200 ease-in-out";
-
-  return DecorationSet.create(doc, [
-    Decoration.inline(from, to, {
-      class: className,
-    }),
-  ]);
-};
-
-// Plugin key for text highlighting
-const textHighlightPluginKey = new PluginKey("textHighlight");
-
-// Function to apply text highlight
-const applyTextHighlight = (
-  view: EditorView,
-  from: number,
-  to: number,
-  active: boolean = false,
-) => {
-  const transaction = view.state.tr;
-  const highlightRange = { from, to, active };
-  transaction.setMeta(textHighlightPluginKey, highlightRange);
-  view.dispatch(transaction);
-};
-
-// Function to clear text highlight
-const clearTextHighlight = (view: EditorView) => {
-  const transaction = view.state.tr;
-  transaction.setMeta(textHighlightPluginKey, null);
-  view.dispatch(transaction);
-};
-
-// Plugin to handle text highlighting
-const createTextHighlightPlugin = () => {
-  return new Plugin({
-    key: textHighlightPluginKey,
-    state: {
-      init() {
-        return DecorationSet.empty;
-      },
-      apply(tr, decorationSet) {
-        // Get highlight range from transaction meta
-        const highlightRange = tr.getMeta(textHighlightPluginKey);
-
-        if (highlightRange === null) {
-          // Clear highlights
-          return DecorationSet.empty;
-        } else if (highlightRange) {
-          // Handle pulse decorations (for loading state)
-          if (highlightRange.decorations) {
-            return highlightRange.decorations;
-          }
-
-          // Set new highlight - create fresh decoration set
-          return createTextHighlightDecorations(
-            highlightRange.from,
-            highlightRange.to,
-            tr.doc,
-            highlightRange.active,
-          );
-        }
-
-        // Map existing decorations through the transaction to maintain them
-        // This is important for keeping highlights stable during scroll and other operations
-        try {
-          return decorationSet.map(tr.mapping, tr.doc);
-        } catch (error) {
-          // If mapping fails, return empty set to avoid errors
-          console.debug("Failed to map decorations:", error);
-          return DecorationSet.empty;
-        }
-      },
-    },
-    props: {
-      decorations(state) {
-        return textHighlightPluginKey.getState(state);
-      },
-    },
-  });
-};
 
 type EditorProps = {
   content: string;
@@ -142,22 +58,11 @@ function PureEditor({
   const isMobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
-  const streamingPositionRef = useRef<number | null>(null);
-  const lastCompletionLengthRef = useRef<number>(0);
-  const originalSelectionRef = useRef<{
-    from: number;
-    to: number;
-    text: string;
-  } | null>(null);
-
-  // Touch handling state for mobile
-  const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastTouchTimeRef = useRef<number>(0);
-  const selectionCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const lastSelectionRef = useRef<string>("");
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const touchStartPositionRef = useRef<{ x: number; y: number } | null>(null);
-  const isScrollingRef = useRef<boolean>(false);
+
+  // Use custom hooks for cleaner state management
+  const textSelection = useTextSelection(isMobile);
+  const textHighlight = useTextHighlight();
 
   // Create a list operation manager instance for this editor
   const listOperationManagerRef = useRef<ListOperationManager>(
@@ -171,23 +76,6 @@ function PureEditor({
   const wasRecentlyTyping = () => {
     return Date.now() - lastTypingTimeRef.current < 1000; // 1 second threshold
   };
-
-  const [selectionMenu, setSelectionMenu] = useState<{
-    selectedText: string;
-    position: { x: number; y: number };
-    selectionRange: { from: number; to: number };
-    inputActive: boolean;
-  } | null>(null);
-  const [streamingPosition, setStreamingPosition] = useState<number | null>(
-    null,
-  );
-  const [originalSelection, setOriginalSelection] = useState<{
-    from: number;
-    to: number;
-    text: string;
-  } | null>(null);
-  const [lastCompletionLength, setLastCompletionLength] = useState<number>(0);
-  const [isSelectionActive, setIsSelectionActive] = useState(false);
 
   const { completion, complete, isLoading, error } = useCompletion({
     api: "/api/adjustment",
@@ -205,16 +93,17 @@ function PureEditor({
       // Finalize the completion by saving it and triggering a save
       if (
         editorRef.current &&
-        streamingPositionRef.current !== null &&
+        textHighlight.streamingPositionRef.current !== null &&
         cleaned
       ) {
         const { state } = editorRef.current;
         const endPos =
-          streamingPositionRef.current + lastCompletionLengthRef.current;
+          textHighlight.streamingPositionRef.current +
+          textHighlight.lastCompletionLengthRef.current;
 
         // Replace with final cleaned text and trigger save
         const transaction = state.tr.replaceWith(
-          streamingPositionRef.current,
+          textHighlight.streamingPositionRef.current,
           endPos,
           state.schema.text(cleaned),
         );
@@ -224,20 +113,15 @@ function PureEditor({
         editorRef.current.dispatch(transaction);
 
         // Reset streaming state after successful dispatch
-        streamingPositionRef.current = null;
-        lastCompletionLengthRef.current = 0;
-        originalSelectionRef.current = null;
-        setStreamingPosition(null);
-        setOriginalSelection(null);
-        setLastCompletionLength(0);
+        textHighlight.resetStreamingState();
       }
 
       // Close the selection menu after adjustment is complete
-      setSelectionMenu(null);
+      textSelection.closeSelectionMenu();
     },
     onError: (error) => {
       console.error("❌ Completion error:", error);
-      setSelectionMenu(null);
+      textSelection.closeSelectionMenu();
     },
   });
 
@@ -288,14 +172,14 @@ function PureEditor({
     if (
       isLoading &&
       editorRef.current &&
-      originalSelection &&
-      streamingPosition === null
+      textHighlight.originalSelection &&
+      textHighlight.streamingPosition === null
     ) {
       clearTextHighlight(editorRef.current);
 
       // Keep the original text but apply pulse animation via decoration
       const { state } = editorRef.current;
-      const { from, to, text } = originalSelection;
+      const { from, to, text } = textHighlight.originalSelection;
 
       // Apply pulse decoration to the original text
       const pulseDecoration = DecorationSet.create(state.doc, [
@@ -315,17 +199,22 @@ function PureEditor({
       editorRef.current.dispatch(transaction);
 
       // Set the streaming position to the start of the selection
-      setStreamingPosition(from);
-      streamingPositionRef.current = from;
+      textHighlight.setStreamingPosition(from);
+      textHighlight.streamingPositionRef.current = from;
 
       // Set the initial completion length to the original text length
-      setLastCompletionLength(to - from);
-      lastCompletionLengthRef.current = to - from;
+      textHighlight.setLastCompletionLength(to - from);
+      textHighlight.lastCompletionLengthRef.current = to - from;
 
       // Also store in ref
-      originalSelectionRef.current = originalSelection;
+      textHighlight.originalSelectionRef.current =
+        textHighlight.originalSelection;
     }
-  }, [isLoading, originalSelection, streamingPosition]);
+  }, [
+    isLoading,
+    textHighlight.originalSelection,
+    textHighlight.streamingPosition,
+  ]);
 
   // Stream new text into the cleared position
   React.useEffect(() => {
@@ -335,7 +224,7 @@ function PureEditor({
       cleanedCompletion &&
       cleanedCompletion.trim() &&
       editorRef.current &&
-      streamingPosition !== null &&
+      textHighlight.streamingPosition !== null &&
       isLoading
     ) {
       const { state } = editorRef.current;
@@ -344,10 +233,11 @@ function PureEditor({
       clearTextHighlight(editorRef.current);
 
       // Replace the original text or previous completion with new text
-      const endPos = streamingPosition + lastCompletionLength;
+      const endPos =
+        textHighlight.streamingPosition + textHighlight.lastCompletionLength;
 
       const transaction = state.tr.replaceWith(
-        streamingPosition,
+        textHighlight.streamingPosition,
         endPos,
         state.schema.text(cleanedCompletion.trim()),
       );
@@ -356,15 +246,16 @@ function PureEditor({
       editorRef.current.dispatch(transaction);
 
       // Update the last completion length for next iteration (both state and ref)
-      setLastCompletionLength(cleanedCompletion.trim().length);
-      lastCompletionLengthRef.current = cleanedCompletion.trim().length;
+      textHighlight.setLastCompletionLength(cleanedCompletion.trim().length);
+      textHighlight.lastCompletionLengthRef.current =
+        cleanedCompletion.trim().length;
     }
-  }, [cleanedCompletion, isLoading, streamingPosition]);
+  }, [cleanedCompletion, isLoading, textHighlight.streamingPosition]);
 
   // Handle input state changes for highlighting
   const handleInputStateChange = (inputActive: boolean) => {
-    if (selectionMenu && editorRef.current) {
-      const { from, to } = selectionMenu.selectionRange;
+    if (textSelection.selectionMenu && editorRef.current) {
+      const { from, to } = textSelection.selectionMenu.selectionRange;
 
       if (inputActive) {
         // Apply highlight when input becomes active
@@ -375,8 +266,8 @@ function PureEditor({
       }
 
       // Update the selection menu state
-      setSelectionMenu({
-        ...selectionMenu,
+      textSelection.setSelectionMenu({
+        ...textSelection.selectionMenu,
         inputActive,
       });
     }
@@ -386,9 +277,17 @@ function PureEditor({
   const handleCloseSelectionMenu = () => {
     if (editorRef.current) {
       clearTextHighlight(editorRef.current);
+
+      // Also clear the ProseMirror selection to ensure no text remains selected
+      const { state } = editorRef.current;
+      const transaction = state.tr.setSelection(
+        Selection.near(state.doc.resolve(state.selection.from)),
+      );
+      transaction.setMeta("no-save", true);
+      transaction.setMeta("no-debounce", true);
+      editorRef.current.dispatch(transaction);
     }
-    setIsSelectionActive(false);
-    setSelectionMenu(null);
+    textSelection.closeSelectionMenu();
   };
 
   // Helper function to show selection menu for both desktop and mobile
@@ -403,102 +302,26 @@ function PureEditor({
       );
 
       if (selectedText.trim().length > 0) {
-        setIsSelectionActive(true);
-
-        const coords = view.coordsAtPos(selection.from);
-        const endCoords = view.coordsAtPos(selection.to);
-
-        // For mobile, add extra spacing to avoid overlap with selection handles
-        const mobileOffset = isMobile ? 30 : 10;
-        const selectionCenterX = (coords.left + endCoords.right) / 2;
-        const selectionBottom = Math.max(coords.bottom, endCoords.bottom);
-
-        setSelectionMenu({
-          selectedText: selectedText.trim(),
-          position: {
-            x: selectionCenterX,
-            y: selectionBottom + mobileOffset,
-          },
-          selectionRange: {
-            from: selection.from,
-            to: selection.to,
-          },
-          inputActive: false,
-        });
+        textSelection.showSelectionMenu(view);
 
         // Apply subtle highlighting to show the selected text
         applyTextHighlight(view, selection.from, selection.to, false);
       }
     } else {
-      setIsSelectionActive(false);
-      setSelectionMenu(null);
+      textSelection.closeSelectionMenu();
     }
-  };
-
-  // Mobile-specific function to continuously check for text selection
-  const startSelectionMonitoring = (view: EditorView) => {
-    if (!isMobile) return;
-
-    // Clear any existing monitoring
-    if (selectionCheckIntervalRef.current) {
-      clearInterval(selectionCheckIntervalRef.current);
-    }
-
-    // Check for text selection every 100ms while touch is active
-    selectionCheckIntervalRef.current = setInterval(() => {
-      const selection = view.state.selection;
-      if (!selection.empty) {
-        const selectedText = view.state.doc.textBetween(
-          selection.from,
-          selection.to,
-          " ",
-        );
-
-        const trimmedText = selectedText.trim();
-
-        // Only show menu if we have meaningful text selection and it's different from last check
-        if (
-          trimmedText.length > 0 &&
-          trimmedText !== lastSelectionRef.current
-        ) {
-          lastSelectionRef.current = trimmedText;
-
-          // Clear the interval once we detect selection
-          if (selectionCheckIntervalRef.current) {
-            clearInterval(selectionCheckIntervalRef.current);
-            selectionCheckIntervalRef.current = null;
-          }
-
-          // Small delay to ensure selection is stable
-          setTimeout(() => {
-            showSelectionMenu(view);
-          }, 100);
-        }
-      }
-    }, 100);
-
-    // Clear monitoring after 3 seconds if no selection is made
-    setTimeout(() => {
-      if (selectionCheckIntervalRef.current) {
-        clearInterval(selectionCheckIntervalRef.current);
-        selectionCheckIntervalRef.current = null;
-      }
-    }, 3000);
-  };
-
-  const stopSelectionMonitoring = () => {
-    if (selectionCheckIntervalRef.current) {
-      clearInterval(selectionCheckIntervalRef.current);
-      selectionCheckIntervalRef.current = null;
-    }
-    lastSelectionRef.current = "";
   };
 
   // Function to update selection menu position after scroll
   const updateSelectionMenuPosition = () => {
-    if (!selectionMenu || !editorRef.current || !containerRef.current) return;
+    if (
+      !textSelection.selectionMenu ||
+      !editorRef.current ||
+      !containerRef.current
+    )
+      return;
 
-    const { from, to } = selectionMenu.selectionRange;
+    const { from, to } = textSelection.selectionMenu.selectionRange;
     const view = editorRef.current;
 
     try {
@@ -512,8 +335,8 @@ function PureEditor({
       const selectionBottom = Math.max(coords.bottom, endCoords.bottom);
 
       // Update the menu with new position coordinates
-      setSelectionMenu({
-        ...selectionMenu,
+      textSelection.setSelectionMenu({
+        ...textSelection.selectionMenu,
         position: {
           x: selectionCenterX,
           y: selectionBottom + mobileOffset,
@@ -521,7 +344,7 @@ function PureEditor({
       });
 
       // Reapply text highlighting immediately to ensure it stays visible during scroll
-      if (selectionMenu.inputActive) {
+      if (textSelection.selectionMenu.inputActive) {
         applyTextHighlight(view, from, to, true);
       } else {
         applyTextHighlight(view, from, to, false);
@@ -570,17 +393,43 @@ function PureEditor({
             return false;
           },
 
+          // Handle mouse down to clear existing selections when clicking elsewhere
+          mousedown: (view, event) => {
+            if (isMobile) return false;
+
+            // If we have an active selection menu and click elsewhere, close it
+            if (textSelection.selectionMenu) {
+              const target = event.target as HTMLElement;
+              const editorContent =
+                containerRef.current?.querySelector(".ProseMirror");
+
+              // Check if click is on the editor content
+              if (editorContent && editorContent.contains(target)) {
+                // Clear the selection menu and highlights immediately
+                handleCloseSelectionMenu();
+
+                // Force clear highlights to ensure they don't persist
+                setTimeout(() => {
+                  if (editorRef.current) {
+                    clearTextHighlight(editorRef.current);
+                  }
+                }, 10);
+              }
+            }
+            return false;
+          },
+
           // Handle touch events for mobile - start monitoring on touch start
           touchstart: (view, event) => {
             if (!isMobile) return false;
 
             // Record initial touch position for scroll detection
             const touch = event.touches[0];
-            touchStartPositionRef.current = {
+            textSelection.touchStartPositionRef.current = {
               x: touch.clientX,
               y: touch.clientY,
             };
-            isScrollingRef.current = false;
+            textSelection.isScrollingRef.current = false;
 
             // Only clear selection menu if touch is directly on the editor content
             // Don't clear if user is scrolling or touching outside the editor
@@ -593,14 +442,14 @@ function PureEditor({
               // Don't immediately clear - wait to see if it's a scroll gesture
 
               // Clear any pending timeouts and monitoring
-              if (touchTimeoutRef.current) {
-                clearTimeout(touchTimeoutRef.current);
-                touchTimeoutRef.current = null;
+              if (textSelection.touchTimeoutRef.current) {
+                clearTimeout(textSelection.touchTimeoutRef.current);
+                textSelection.touchTimeoutRef.current = null;
               }
-              stopSelectionMonitoring();
+              textSelection.stopSelectionMonitoring();
 
               // Start monitoring for text selection
-              startSelectionMonitoring(view);
+              textSelection.startSelectionMonitoring(view);
             }
             // If touch is outside editor content (like scrollbars), don't interfere
 
@@ -609,19 +458,20 @@ function PureEditor({
 
           // Handle touch move to detect scrolling
           touchmove: (view, event) => {
-            if (!isMobile || !touchStartPositionRef.current) return false;
+            if (!isMobile || !textSelection.touchStartPositionRef.current)
+              return false;
 
             const touch = event.touches[0];
             const deltaX = Math.abs(
-              touch.clientX - touchStartPositionRef.current.x,
+              touch.clientX - textSelection.touchStartPositionRef.current.x,
             );
             const deltaY = Math.abs(
-              touch.clientY - touchStartPositionRef.current.y,
+              touch.clientY - textSelection.touchStartPositionRef.current.y,
             );
 
             // If significant movement, consider it scrolling
             if (deltaX > 10 || deltaY > 10) {
-              isScrollingRef.current = true;
+              textSelection.isScrollingRef.current = true;
             }
 
             return false;
@@ -633,17 +483,17 @@ function PureEditor({
 
             // Record touch time
             const currentTime = Date.now();
-            lastTouchTimeRef.current = currentTime;
+            textSelection.lastTouchTimeRef.current = currentTime;
 
             // Clear any existing timeout
-            if (touchTimeoutRef.current) {
-              clearTimeout(touchTimeoutRef.current);
+            if (textSelection.touchTimeoutRef.current) {
+              clearTimeout(textSelection.touchTimeoutRef.current);
             }
 
             // If this was a scroll gesture, don't close the selection menu
-            if (isScrollingRef.current) {
-              isScrollingRef.current = false;
-              touchStartPositionRef.current = null;
+            if (textSelection.isScrollingRef.current) {
+              textSelection.isScrollingRef.current = false;
+              textSelection.touchStartPositionRef.current = null;
               return false;
             }
 
@@ -655,24 +505,42 @@ function PureEditor({
             if (
               editorContent &&
               editorContent.contains(target) &&
-              selectionMenu
+              textSelection.selectionMenu
             ) {
-              // This was a tap on editor content, close the existing menu
+              // This was a tap on editor content, close the existing menu and clear highlights
               handleCloseSelectionMenu();
+
+              // Clear any ProseMirror text selection as well and force clear highlights
+              setTimeout(() => {
+                if (editorRef.current) {
+                  const { state } = editorRef.current;
+
+                  // Force clear any highlights first
+                  clearTextHighlight(editorRef.current);
+
+                  // Then clear the selection
+                  const transaction = state.tr.setSelection(
+                    Selection.near(state.doc.resolve(state.selection.from)),
+                  );
+                  transaction.setMeta("no-save", true);
+                  transaction.setMeta("no-debounce", true);
+                  editorRef.current.dispatch(transaction);
+                }
+              }, 50);
             }
 
             // Check for selection after touch ends with multiple timeouts for reliability
             const checkSelectionAtIntervals = () => {
               // First check after 200ms
               setTimeout(() => {
-                if (lastTouchTimeRef.current === currentTime) {
+                if (textSelection.lastTouchTimeRef.current === currentTime) {
                   showSelectionMenu(view);
                 }
               }, 200);
 
               // Second check after 500ms for slower devices
               setTimeout(() => {
-                if (lastTouchTimeRef.current === currentTime) {
+                if (textSelection.lastTouchTimeRef.current === currentTime) {
                   const selection = view.state.selection;
                   if (!selection.empty) {
                     showSelectionMenu(view);
@@ -682,13 +550,13 @@ function PureEditor({
 
               // Final check after 800ms
               setTimeout(() => {
-                if (lastTouchTimeRef.current === currentTime) {
+                if (textSelection.lastTouchTimeRef.current === currentTime) {
                   const selection = view.state.selection;
                   if (!selection.empty) {
                     showSelectionMenu(view);
                   }
                   // Stop monitoring after final check
-                  stopSelectionMonitoring();
+                  textSelection.stopSelectionMonitoring();
                 }
               }, 800);
             };
@@ -696,8 +564,8 @@ function PureEditor({
             checkSelectionAtIntervals();
 
             // Reset touch tracking
-            touchStartPositionRef.current = null;
-            isScrollingRef.current = false;
+            textSelection.touchStartPositionRef.current = null;
+            textSelection.isScrollingRef.current = false;
 
             return false;
           },
@@ -749,10 +617,17 @@ function PureEditor({
 
             // Hide context menu on most keyboard interactions
             if (
-              selectionMenu &&
+              textSelection.selectionMenu &&
               !["Shift", "Control", "Meta", "Alt"].includes(event.key)
             ) {
               handleCloseSelectionMenu();
+
+              // Force clear highlights on any keyboard interaction that closes the menu
+              setTimeout(() => {
+                if (editorRef.current) {
+                  clearTextHighlight(editorRef.current);
+                }
+              }, 10);
             }
 
             // Show context menu on Ctrl+Shift+A (or Cmd+Shift+A on Mac) - desktop only
@@ -772,7 +647,7 @@ function PureEditor({
 
           // Handle scroll events to update menu position
           scroll: (view, event) => {
-            if (!selectionMenu) return false;
+            if (!textSelection.selectionMenu) return false;
 
             // Clear any existing scroll timeout
             if (scrollTimeoutRef.current) {
@@ -792,13 +667,10 @@ function PureEditor({
 
     return () => {
       // Clean up touch timeout and selection monitoring
-      if (touchTimeoutRef.current) {
-        clearTimeout(touchTimeoutRef.current);
-      }
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
-      stopSelectionMonitoring();
+      textSelection.cleanup();
 
       // Clean up list operation manager
       listOperationManagerRef.current.cleanup();
@@ -938,10 +810,10 @@ function PureEditor({
     }
 
     // Store the original selection before it gets lost when we click the button
-    if (selectionMenu) {
-      setOriginalSelection({
-        from: selectionMenu.selectionRange.from,
-        to: selectionMenu.selectionRange.to,
+    if (textSelection.selectionMenu) {
+      textHighlight.setOriginalSelection({
+        from: textSelection.selectionMenu.selectionRange.from,
+        to: textSelection.selectionMenu.selectionRange.to,
         text: selectedText,
       });
     }
@@ -966,8 +838,8 @@ Please respond with only the adjusted text, no explanations or formatting.`;
     } catch (error) {
       console.error("💥 Failed to request adjustment:", error);
       // Close menu on error
-      setSelectionMenu(null);
-      setOriginalSelection(null);
+      textSelection.closeSelectionMenu();
+      textHighlight.setOriginalSelection(null);
     }
   };
 
@@ -1018,9 +890,9 @@ Please respond with only the adjusted text, no explanations or formatting.`;
             const selectionCenterX = (coords.left + endCoords.right) / 2;
             const selectionBottom = Math.max(coords.bottom, endCoords.bottom);
 
-            setIsSelectionActive(true);
+            textSelection.setIsSelectionActive(true);
 
-            setSelectionMenu({
+            textSelection.setSelectionMenu({
               selectedText: selectedText,
               position: {
                 x: selectionCenterX,
@@ -1053,7 +925,7 @@ Please respond with only the adjusted text, no explanations or formatting.`;
 
   // Add scroll listener to handle menu position updates when scrolling
   useEffect(() => {
-    if (!selectionMenu) return;
+    if (!textSelection.selectionMenu) return;
 
     const handleGlobalScroll = () => {
       // Clear any existing scroll timeout
@@ -1078,11 +950,11 @@ Please respond with only the adjusted text, no explanations or formatting.`;
         clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [selectionMenu]);
+  }, [textSelection.selectionMenu]);
 
   // Add resize listener to handle orientation changes and viewport changes
   useEffect(() => {
-    if (!selectionMenu) return;
+    if (!textSelection.selectionMenu) return;
 
     const handleResize = () => {
       // Update menu position after resize/orientation change
@@ -1098,24 +970,26 @@ Please respond with only the adjusted text, no explanations or formatting.`;
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("orientationchange", handleResize);
     };
-  }, [selectionMenu]);
+  }, [textSelection.selectionMenu]);
 
   return (
     <div className="relative">
       {/* Debug indicator for mobile selection (only show on mobile) */}
-      {isMobile && isSelectionActive && !selectionMenu && (
-        <div className="fixed top-4 right-4 z-50 rounded-lg bg-green-500 px-3 py-2 text-sm text-white shadow-lg">
-          Text Selected - Menu Loading...
-        </div>
-      )}
+      {isMobile &&
+        textSelection.isSelectionActive &&
+        !textSelection.selectionMenu && (
+          <div className="fixed top-4 right-4 z-50 rounded-lg bg-green-500 px-3 py-2 text-sm text-white shadow-lg">
+            Text Selected - Menu Loading...
+          </div>
+        )}
 
       <div className="relative mx-auto" ref={containerRef} id={id} />
-      {selectionMenu && !isLoading && (
+      {textSelection.selectionMenu && !isLoading && (
         <>
           <SelectionContextMenu
-            selectedText={selectionMenu.selectedText}
-            position={selectionMenu.position}
-            selectionRange={selectionMenu.selectionRange}
+            selectedText={textSelection.selectionMenu.selectedText}
+            position={textSelection.selectionMenu.position}
+            selectionRange={textSelection.selectionMenu.selectionRange}
             onRequestAdjustment={handleRequestAdjustment}
             onClose={handleCloseContextMenu}
             onInputStateChange={handleInputStateChange}
@@ -1125,17 +999,17 @@ Please respond with only the adjusted text, no explanations or formatting.`;
       )}
 
       {/* Real-time streaming text overlay */}
-      {isLoading && selectionMenu && (
+      {isLoading && textSelection.selectionMenu && (
         <div
           className={`absolute z-50 rounded-lg border border-blue-200 bg-white shadow-xl transition-all duration-200 ${
             isMobile ? "max-w-80" : "max-w-md"
           }`}
           style={{
             left: Math.min(
-              selectionMenu.position.x,
+              textSelection.selectionMenu.position.x,
               isMobile ? window.innerWidth - 320 : window.innerWidth - 384,
             ),
-            top: selectionMenu.position.y + (isMobile ? 50 : 40),
+            top: textSelection.selectionMenu.position.y + (isMobile ? 50 : 40),
           }}
         >
           <div

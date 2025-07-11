@@ -3,7 +3,7 @@
 import { exampleSetup } from "prosemirror-example-setup";
 import { inputRules } from "prosemirror-inputrules";
 import { Plugin, PluginKey } from "prosemirror-state";
-import { EditorState } from "prosemirror-state";
+import { EditorState, Selection, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 import React, { memo, useEffect, useRef, useState } from "react";
 
@@ -15,6 +15,7 @@ import {
   headingRule,
   listKeymapPlugin,
   hasListOperationsPending,
+  ListOperationManager,
 } from "@/lib/editor/config";
 import {
   buildContentFromDocument,
@@ -157,6 +158,17 @@ function PureEditor({
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartPositionRef = useRef<{ x: number; y: number } | null>(null);
   const isScrollingRef = useRef<boolean>(false);
+  
+  // Create a list operation manager instance for this editor
+  const listOperationManagerRef = useRef<ListOperationManager>(new ListOperationManager());
+
+  // Track recent typing activity to prevent content updates during active editing
+  const lastTypingTimeRef = useRef<number>(0);
+
+  // Helper function to check if user was recently typing
+  const wasRecentlyTyping = () => {
+    return Date.now() - lastTypingTimeRef.current < 1000; // 1 second threshold
+  };
 
   const [selectionMenu, setSelectionMenu] = useState<{
     selectedText: string;
@@ -525,7 +537,7 @@ function PureEditor({
         doc: buildDocumentFromContent(content),
         plugins: [
           headingKeymapPlugin(), // Add keyboard shortcuts FIRST for higher priority
-          listKeymapPlugin(), // Handle Tab/Shift+Tab for list indentation
+          listKeymapPlugin(listOperationManagerRef.current), // Handle Tab/Shift+Tab for list indentation
           ...exampleSetup({ schema: documentSchema, menuBar: false }),
           inputRules({
             rules: [
@@ -710,6 +722,12 @@ function PureEditor({
           },
 
           keydown: (view, event) => {
+            // Track typing activity for content update prevention
+            // Only track actual typing keys, not modifier or navigation keys
+            if (!["Shift", "Control", "Meta", "Alt", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown", "Tab", "Escape"].includes(event.key)) {
+              lastTypingTimeRef.current = Date.now();
+            }
+
             // Hide context menu on most keyboard interactions
             if (
               selectionMenu &&
@@ -763,6 +781,9 @@ function PureEditor({
       }
       stopSelectionMonitoring();
 
+      // Clean up list operation manager
+      listOperationManagerRef.current.cleanup();
+
       if (editorRef.current) {
         editorRef.current.destroy();
         editorRef.current = null;
@@ -776,7 +797,17 @@ function PureEditor({
     if (editorRef.current) {
       editorRef.current.setProps({
         dispatchTransaction: (transaction) => {
-          handleTransaction({ transaction, editorRef, saveContent });
+          // Track typing activity when document changes occur from user input
+          if (transaction.docChanged && !transaction.getMeta("no-save") && !transaction.getMeta("ai-completion")) {
+            lastTypingTimeRef.current = Date.now();
+          }
+          
+          handleTransaction({ 
+            transaction, 
+            editorRef, 
+            saveContent, 
+            listOperationManager: listOperationManagerRef.current 
+          });
         },
       });
     }
@@ -802,20 +833,53 @@ function PureEditor({
         return;
       }
 
-      // Don't update editor content if there was a recent list operation
-      // This prevents saved content from overriding user's Tab operations
-      if (hasListOperationsPending()) {
+      // Don't update editor content if there was a recent list operation or recent typing
+      // This prevents saved content from overriding user's active editing
+      if (hasListOperationsPending(listOperationManagerRef.current) || wasRecentlyTyping()) {
         return;
       }
 
       if (currentContent !== content) {
         const newDocument = buildDocumentFromContent(content);
 
+        // Store the current selection before replacing content
+        const currentSelection = editorRef.current.state.selection;
+        
         const transaction = editorRef.current.state.tr.replaceWith(
           0,
           editorRef.current.state.doc.content.size,
           newDocument.content,
         );
+
+        // Attempt to restore selection position if possible
+        try {
+          // Only restore if the new document is large enough to contain the selection
+          const newDocSize = newDocument.content.size;
+          const fromPos = Math.min(currentSelection.from, newDocSize);
+          const toPos = Math.min(currentSelection.to, newDocSize);
+          
+          if (fromPos >= 0 && toPos >= 0 && fromPos <= newDocSize && toPos <= newDocSize) {
+            // Create a new selection at the same positions
+            if (fromPos === toPos) {
+              // Cursor selection
+              const newSelection = Selection.near(newDocument.resolve(fromPos));
+              transaction.setSelection(newSelection);
+            } else {
+              // Range selection
+              try {
+                const newSelection = TextSelection.create(newDocument, fromPos, toPos);
+                transaction.setSelection(newSelection);
+              } catch {
+                // Fall back to cursor at start position
+                const newSelection = Selection.near(newDocument.resolve(fromPos));
+                transaction.setSelection(newSelection);
+              }
+            }
+          }
+        } catch (error) {
+          // If selection restoration fails, let ProseMirror handle it automatically
+          console.debug("Selection restoration failed:", error);
+        }
 
         transaction.setMeta("no-save", true);
         editorRef.current.dispatch(transaction);

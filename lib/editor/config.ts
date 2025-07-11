@@ -156,7 +156,7 @@ export function headingKeymapPlugin() {
 }
 
 // Plugin to handle Tab and Shift+Tab for list indentation
-export function listKeymapPlugin() {
+export function listKeymapPlugin(listOperationManager: ListOperationManager) {
   return new Plugin({
     props: {
       handleKeyDown(view, event) {
@@ -179,7 +179,7 @@ export function listKeymapPlugin() {
             event.preventDefault(); // Prevent default tab behavior
 
             // Record the time of this list operation
-            lastListOperationTime = Date.now();
+            listOperationManager.recordListOperation();
 
             if (event.shiftKey) {
               // Shift+Tab: Decrease indentation (lift list item)
@@ -210,26 +210,55 @@ export function listKeymapPlugin() {
   });
 }
 
-// Debounced save for list operations
-let listOperationSaveTimeout: NodeJS.Timeout | null = null;
-let lastListOperationTime: number = 0;
+// Class to manage list operation state per editor instance
+export class ListOperationManager {
+  private saveTimeout: NodeJS.Timeout | null = null;
+  private lastOperationTime: number = 0;
+
+  recordListOperation() {
+    this.lastOperationTime = Date.now();
+  }
+
+  hasOperationsPending(): boolean {
+    return (
+      this.saveTimeout !== null ||
+      Date.now() - this.lastOperationTime < 1000
+    );
+  }
+
+  scheduleSave(callback: () => void, delay: number = 500) {
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    this.saveTimeout = setTimeout(() => {
+      callback();
+      this.saveTimeout = null;
+    }, delay);
+  }
+
+  cleanup() {
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+      this.saveTimeout = null;
+    }
+  }
+}
 
 // Function to check if list operations are pending
-export function hasListOperationsPending(): boolean {
-  return (
-    listOperationSaveTimeout !== null ||
-    Date.now() - lastListOperationTime < 1000
-  );
+export function hasListOperationsPending(listOperationManager: ListOperationManager): boolean {
+  return listOperationManager.hasOperationsPending();
 }
 
 export const handleTransaction = ({
   transaction,
   editorRef,
   saveContent,
+  listOperationManager,
 }: {
   transaction: Transaction;
   editorRef: MutableRefObject<EditorView | null>;
   saveContent: (updatedContent: string, debounce: boolean) => void;
+  listOperationManager: ListOperationManager;
 }) => {
   if (!editorRef || !editorRef.current) return;
 
@@ -250,18 +279,14 @@ export const handleTransaction = ({
       saveContent(updatedContent, false);
     } else if (isListOperation) {
       // For list operations, don't save immediately - wait for a pause
-      if (listOperationSaveTimeout) {
-        clearTimeout(listOperationSaveTimeout);
-      }
-      listOperationSaveTimeout = setTimeout(() => {
+      listOperationManager.scheduleSave(() => {
         if (editorRef.current) {
           const finalContent = buildContentFromDocument(
             editorRef.current.state.doc,
           );
           saveContent(finalContent, false);
         }
-        listOperationSaveTimeout = null;
-      }, 500); // Wait 500ms after last list operation
+      }, 500);
     } else {
       // For user edits, use debouncing but with shorter delay
       saveContent(updatedContent, true);
@@ -274,17 +299,13 @@ export const handleTransaction = ({
     transaction.getMeta("list-operation") &&
     transaction.getMeta("no-save")
   ) {
-    if (listOperationSaveTimeout) {
-      clearTimeout(listOperationSaveTimeout);
-    }
-    listOperationSaveTimeout = setTimeout(() => {
+    listOperationManager.scheduleSave(() => {
       if (editorRef.current) {
         const finalContent = buildContentFromDocument(
           editorRef.current.state.doc,
         );
         saveContent(finalContent, false);
       }
-      listOperationSaveTimeout = null;
-    }, 500); // Wait 500ms after last list operation before saving
+    }, 500);
   }
 };

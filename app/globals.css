@@ -348,6 +348,38 @@
   position: relative;
 }
 
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  .ProseMirror {
+    /* Better touch targets for mobile */
+    line-height: 1.6;
+    /* Improve selection handles visibility */
+    -webkit-user-select: text;
+    user-select: text;
+    /* Prevent zooming while maintaining text selection */
+    touch-action: pan-x pan-y;
+    /* Better tap highlighting */
+    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.2);
+    /* Ensure selection works properly */
+    -webkit-text-size-adjust: none;
+  }
+
+  /* Make selection more visible on mobile */
+  .ProseMirror::selection {
+    background-color: rgba(59, 130, 246, 0.5);
+  }
+
+  .ProseMirror *::selection {
+    background-color: rgba(59, 130, 246, 0.5);
+  }
+
+  /* Improve selection handle visibility */
+  .ProseMirror-selectednode {
+    outline: 3px solid rgba(59, 130, 246, 0.6);
+    outline-offset: 1px;
+  }
+}
+
 .ProseMirror::selection {
   background-color: rgba(59, 130, 246, 0.3);
 }
@@ -375,4 +407,16 @@
 /* Improve selection visibility */
 .ProseMirror-focused .ProseMirror-selectednode {
   outline: 2px solid rgba(59, 130, 246, 0.8);
+}
+
+/* Mobile-friendly context menu styles */
+@media (max-width: 768px) {
+  .selection-context-menu {
+    /* Ensure menu is easily tappable on mobile */
+    min-height: 44px;
+    /* Add more visual emphasis on mobile */
+    box-shadow:
+      0 10px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
 }

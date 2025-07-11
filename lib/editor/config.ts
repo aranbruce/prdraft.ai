@@ -1,7 +1,11 @@
 import { textblockTypeInputRule, InputRule } from "prosemirror-inputrules";
 import { Schema } from "prosemirror-model";
 import { schema } from "prosemirror-schema-basic";
-import { addListNodes } from "prosemirror-schema-list";
+import {
+  addListNodes,
+  sinkListItem,
+  liftListItem,
+} from "prosemirror-schema-list";
 import { Transaction } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { MutableRefObject } from "react";
@@ -151,14 +155,110 @@ export function headingKeymapPlugin() {
   });
 }
 
+// Plugin to handle Tab and Shift+Tab for list indentation
+export function listKeymapPlugin(listOperationManager: ListOperationManager) {
+  return new Plugin({
+    props: {
+      handleKeyDown(view, event) {
+        if (event.key === "Tab") {
+          const { state, dispatch } = view;
+          const { selection } = state;
+          const { $from } = selection;
+
+          // Check if we're inside a list item
+          let inListItem = false;
+          for (let i = 1; i <= $from.depth; i++) {
+            if ($from.node(i).type === documentSchema.nodes.list_item) {
+              inListItem = true;
+              break;
+            }
+          }
+
+          // Only handle Tab if we're in a list item
+          if (inListItem) {
+            event.preventDefault(); // Prevent default tab behavior
+
+            // Record the time of this list operation
+            listOperationManager.recordListOperation();
+
+            if (event.shiftKey) {
+              // Shift+Tab: Decrease indentation (lift list item)
+              const command = liftListItem(documentSchema.nodes.list_item);
+              const result = command(state, (tr) => {
+                // Mark this transaction as a list operation to delay saving
+                tr.setMeta("list-operation", true);
+                tr.setMeta("no-save", true); // Prevent immediate save
+                dispatch(tr);
+              });
+              return result;
+            } else {
+              // Tab: Increase indentation (sink list item)
+              const command = sinkListItem(documentSchema.nodes.list_item);
+              const result = command(state, (tr) => {
+                // Mark this transaction as a list operation to delay saving
+                tr.setMeta("list-operation", true);
+                tr.setMeta("no-save", true); // Prevent immediate save
+                dispatch(tr);
+              });
+              return result;
+            }
+          }
+        }
+        return false;
+      },
+    },
+  });
+}
+
+// Class to manage list operation state per editor instance
+export class ListOperationManager {
+  private saveTimeout: NodeJS.Timeout | null = null;
+  private lastOperationTime: number = 0;
+
+  recordListOperation() {
+    this.lastOperationTime = Date.now();
+  }
+
+  hasOperationsPending(): boolean {
+    return (
+      this.saveTimeout !== null ||
+      Date.now() - this.lastOperationTime < 1000
+    );
+  }
+
+  scheduleSave(callback: () => void, delay: number = 500) {
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    this.saveTimeout = setTimeout(() => {
+      callback();
+      this.saveTimeout = null;
+    }, delay);
+  }
+
+  cleanup() {
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+      this.saveTimeout = null;
+    }
+  }
+}
+
+// Function to check if list operations are pending
+export function hasListOperationsPending(listOperationManager: ListOperationManager): boolean {
+  return listOperationManager.hasOperationsPending();
+}
+
 export const handleTransaction = ({
   transaction,
   editorRef,
   saveContent,
+  listOperationManager,
 }: {
   transaction: Transaction;
   editorRef: MutableRefObject<EditorView | null>;
   saveContent: (updatedContent: string, debounce: boolean) => void;
+  listOperationManager: ListOperationManager;
 }) => {
   if (!editorRef || !editorRef.current) return;
 
@@ -168,10 +268,44 @@ export const handleTransaction = ({
   if (transaction.docChanged && !transaction.getMeta("no-save")) {
     const updatedContent = buildContentFromDocument(newState.doc);
 
-    if (transaction.getMeta("no-debounce")) {
+    // Check if this is an AI completion
+    const isAICompletion = transaction.getMeta("ai-completion");
+
+    // Check if this is a list operation
+    const isListOperation = transaction.getMeta("list-operation");
+
+    // Always save AI completions immediately without debounce
+    if (isAICompletion || transaction.getMeta("no-debounce")) {
       saveContent(updatedContent, false);
+    } else if (isListOperation) {
+      // For list operations, don't save immediately - wait for a pause
+      listOperationManager.scheduleSave(() => {
+        if (editorRef.current) {
+          const finalContent = buildContentFromDocument(
+            editorRef.current.state.doc,
+          );
+          saveContent(finalContent, false);
+        }
+      }, 500);
     } else {
+      // For user edits, use debouncing but with shorter delay
       saveContent(updatedContent, true);
     }
+  }
+
+  // Handle delayed save for list operations marked with no-save
+  if (
+    transaction.docChanged &&
+    transaction.getMeta("list-operation") &&
+    transaction.getMeta("no-save")
+  ) {
+    listOperationManager.scheduleSave(() => {
+      if (editorRef.current) {
+        const finalContent = buildContentFromDocument(
+          editorRef.current.state.doc,
+        );
+        saveContent(finalContent, false);
+      }
+    }, 500);
   }
 };

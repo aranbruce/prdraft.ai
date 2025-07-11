@@ -901,6 +901,24 @@ export const PaletteIcon = ({ size = 16 }: { size?: number }) => {
   );
 };
 
+export const SearchIcon = ({ size = 16 }: { size?: number }) => {
+  return (
+    <svg
+      height={size}
+      strokeLinejoin="round"
+      viewBox="0 0 16 16"
+      width={size}
+      style={{ color: "currentcolor" }}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    >
+      <circle cx="7" cy="7" r="6" />
+      <path d="m15 15-4.35-4.35" />
+    </svg>
+  );
+};
+
 export const CloseIcon = ({ size = 16 }: { size?: number }) => {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none">

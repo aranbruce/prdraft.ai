@@ -50,46 +50,59 @@ export const PreviewMessage = ({
             </div>
           )}
 
-          {message.toolInvocations && message.toolInvocations.length > 0 && (
+          {message.parts && message.parts.length > 0 && (
             <div className="flex flex-col gap-4">
-              {message.toolInvocations.map((toolInvocation) => {
-                const { toolName, toolCallId, state, args } = toolInvocation;
+              {message.parts.map((part, index) => {
+                if (part.type === "tool-invocation") {
+                  const { toolInvocation } = part;
+                  const { toolName, toolCallId, state, args } = toolInvocation;
 
-                if (state === "result") {
-                  const { result } = toolInvocation;
+                  if (state === "result") {
+                    const { result } = toolInvocation;
 
-                  return (
-                    <div key={toolCallId}>
-                      {toolName === "createDocument" ? (
-                        <DocumentToolResult
-                          type="create"
-                          result={result}
-                          block={block}
-                          setBlock={setBlock}
-                        />
-                      ) : toolName === "updateDocument" ? (
-                        <DocumentToolResult
-                          type="update"
-                          result={result}
-                          block={block}
-                          setBlock={setBlock}
-                        />
-                      ) : (
-                        <pre>{JSON.stringify(result, null, 2)}</pre>
-                      )}
-                    </div>
-                  );
-                } else {
-                  return (
-                    <div key={toolCallId} className={cx({})}>
-                      {toolName === "createDocument" ? (
-                        <DocumentToolCall type="create" args={args} />
-                      ) : toolName === "updateDocument" ? (
-                        <DocumentToolCall type="update" args={args} />
-                      ) : null}
-                    </div>
-                  );
+                    return (
+                      <div key={`${toolCallId}-${index}`}>
+                        {toolName === "createDocument" ? (
+                          <DocumentToolResult
+                            type="create"
+                            result={result}
+                            block={block}
+                            setBlock={setBlock}
+                          />
+                        ) : toolName === "updateDocument" ? (
+                          <DocumentToolResult
+                            type="update"
+                            result={result}
+                            block={block}
+                            setBlock={setBlock}
+                          />
+                        ) : toolName === "getDocument" ? (
+                          <DocumentToolResult
+                            type="view"
+                            result={result}
+                            block={block}
+                            setBlock={setBlock}
+                          />
+                        ) : (
+                          <pre>{JSON.stringify(result, null, 2)}</pre>
+                        )}
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div key={`${toolCallId}-${index}`} className={cx({})}>
+                        {toolName === "createDocument" ? (
+                          <DocumentToolCall type="create" args={args} />
+                        ) : toolName === "updateDocument" ? (
+                          <DocumentToolCall type="update" args={args} />
+                        ) : toolName === "getDocument" ? (
+                          <DocumentToolCall type="view" args={args} />
+                        ) : null}
+                      </div>
+                    );
+                  }
                 }
+                return null;
               })}
             </div>
           )}

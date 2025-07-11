@@ -26,9 +26,13 @@ import { generateTitleFromUserMessage } from "../../actions";
 
 export const maxDuration = 60;
 
-type AllowedTools = "createDocument" | "updateDocument";
+type AllowedTools = "createDocument" | "updateDocument" | "getDocument";
 
-const blocksTools: AllowedTools[] = ["createDocument", "updateDocument"];
+const blocksTools: AllowedTools[] = [
+  "createDocument",
+  "updateDocument",
+  "getDocument",
+];
 
 const allTools: AllowedTools[] = [...blocksTools];
 
@@ -38,11 +42,13 @@ export async function POST(request: Request) {
     messages,
     modelId,
     templateId,
+    currentDocumentId,
   }: {
     id: string;
     messages: Array<Message>;
     modelId: string;
     templateId: string;
+    currentDocumentId?: string | null;
   } = await request.json();
 
   const session = await auth();
@@ -106,10 +112,29 @@ export async function POST(request: Request) {
       })
     : null;
 
+  // Fetch current document context if available
+  let currentDocumentContext = "";
+  if (currentDocumentId && session?.user?.id) {
+    try {
+      const currentDocument = await getDocumentById({ id: currentDocumentId });
+      if (currentDocument && currentDocument.userId === session.user.id) {
+        currentDocumentContext = `
+
+CURRENT DOCUMENT CONTEXT:
+You are currently working with a document titled "${currentDocument.title}" (ID: ${currentDocument.id}).
+When users reference "the document", "this document", "my document", or similar terms, they are referring to this document.
+You can use the getDocument tool to retrieve the full content of this document when needed for context.
+Current document preview: ${currentDocument.content?.substring(0, 500)}${(currentDocument.content?.length || 0) > 500 ? "..." : ""}`;
+      }
+    } catch (error) {
+      console.error("Error fetching current document context:", error);
+    }
+  }
+
   const result = streamText({
     model: customModel(model.apiIdentifier),
     system: `${systemPrompt} ${fetchedCompanyInfo?.content ? `. Make sure to utilize the following information about the company the user works for in your responses: ${fetchedCompanyInfo.content}` : ""}
-    ${fetchedTemplatePrompt?.content ? `Use the following template for the product requirements document (PRD): ${fetchedTemplatePrompt.content}` : templatePrompt}
+    ${fetchedTemplatePrompt?.content ? `Use the following template for the product requirements document (PRD): ${fetchedTemplatePrompt.content}` : templatePrompt}${currentDocumentContext}
     `,
     messages: coreMessages,
     maxSteps: 5,
@@ -257,6 +282,43 @@ export async function POST(request: Request) {
             title: document.title,
             content: "The document has been updated successfully.",
           };
+        },
+      },
+      getDocument: {
+        description:
+          "Retrieve the current content of a document by its ID. Use this to get context about documents the user is discussing.",
+        parameters: z.object({
+          id: z.string().describe("The ID of the document to retrieve"),
+        }),
+        execute: async ({ id }) => {
+          try {
+            const document = await getDocumentById({ id });
+
+            if (!document) {
+              return {
+                error: "Document not found",
+              };
+            }
+
+            // Check if the user has access to this document
+            if (session?.user?.id && document.userId !== session.user.id) {
+              return {
+                error: "Unauthorized access to document",
+              };
+            }
+
+            return {
+              id: document.id,
+              title: document.title,
+              content: document.content || "",
+              createdAt: document.createdAt,
+            };
+          } catch (error) {
+            console.error("Error fetching document:", error);
+            return {
+              error: "Failed to retrieve document",
+            };
+          }
         },
       },
     },

@@ -26,29 +26,39 @@ interface DocumentToolResultProps {
 export function DocumentToolResult({
   type,
   result,
+  block,
   setBlock,
 }: DocumentToolResultProps) {
   return (
     <div
       className="bg-card border-secondary flex w-fit cursor-pointer flex-row items-start gap-3 rounded-xl border px-3 py-2"
       onClick={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
+        // Calculate positioning for side-by-side layout
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const blockWidth = Math.min(500, viewportWidth * 0.4); // 40% of screen width, max 500px
+        const blockHeight = viewportHeight - 100; // Full height minus some padding
+
+        // Position block on the right side
+        const left = viewportWidth - blockWidth - 20; // 20px margin from right edge
+        const top = 50; // Top padding
 
         const boundingBox = {
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
+          top,
+          left,
+          width: blockWidth,
+          height: blockHeight,
         };
 
-        setBlock({
+        setBlock((current) => ({
+          ...current,
           documentId: result?.id || "",
-          content: "",
+          content: result?.content || "",
           title: result?.title || "Untitled Document",
           isVisible: true,
-          status: "idle",
+          status: "idle" as const,
           boundingBox,
-        });
+        }));
       }}
     >
       <div className="text-muted-foreground mt-1">

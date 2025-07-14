@@ -33,7 +33,81 @@ export const fetcher = async (url: string) => {
     throw error;
   }
 
-  return res.json();
+  const result = await res.json();
+
+  // Handle new API response format with { data, success } structure
+  if (
+    result &&
+    typeof result === "object" &&
+    "success" in result &&
+    "data" in result
+  ) {
+    if (!result.success) {
+      const error = new Error(
+        result.error || "API request failed",
+      ) as ApplicationError;
+      error.status = res.status;
+      throw error;
+    }
+    return result.data;
+  }
+
+  // Fallback for old API responses that return data directly
+  return result;
+};
+
+export const fetchWithErrorHandlers = async (
+  url: string,
+  options?: RequestInit,
+) => {
+  try {
+    const res = await fetch(url, options);
+
+    if (!res.ok) {
+      const error = new Error(
+        "An error occurred while fetching the data.",
+      ) as ApplicationError;
+
+      try {
+        const errorData = await res.json();
+        error.info = errorData;
+        error.message = errorData.message || errorData.error || error.message;
+      } catch {
+        // If we can't parse the error response, use the status text
+        error.message = res.statusText || error.message;
+      }
+
+      error.status = res.status;
+      throw error;
+    }
+
+    const result = await res.json();
+
+    // Handle new API response format with { data, success } structure
+    if (
+      result &&
+      typeof result === "object" &&
+      "success" in result &&
+      "data" in result
+    ) {
+      if (!result.success) {
+        const error = new Error(
+          result.error || "API request failed",
+        ) as ApplicationError;
+        error.status = res.status;
+        throw error;
+      }
+      return result.data;
+    }
+
+    // Fallback for old API responses that return data directly
+    return result;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("An unexpected error occurred");
+  }
 };
 
 export function getLocalStorage(key: string) {

@@ -2,10 +2,9 @@
 
 import { genSaltSync, hashSync } from "bcrypt-ts";
 import { and, asc, desc, eq, gt } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 
 import { generateUUID } from "@/lib/utils";
+import { db } from "./schema";
 
 import {
   chat,
@@ -21,45 +20,22 @@ import {
   vote,
 } from "./schema";
 
-// Optionally, if not using email/pass login, you can
-// use the Drizzle adapter for Auth.js / NextAuth
-// https://authjs.dev/reference/adapter/drizzle
-let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
-let db = drizzle(client);
-
 export async function getUser(email: string): Promise<Array<User>> {
-  try {
-    return await db.select().from(user).where(eq(user.email, email));
-  } catch (error) {
-    console.error("Failed to get user from database");
-    throw error;
-  }
+  return await db.select().from(user).where(eq(user.email, email));
 }
 
 export async function createUser(email: string, password: string) {
   let salt = genSaltSync(10);
   let hash = hashSync(password, salt);
-
-  try {
-    return await db.insert(user).values({ email, password: hash });
-  } catch (error) {
-    console.error("Failed to create user in database");
-    throw error;
-  }
+  return await db.insert(user).values({ email, password: hash });
 }
 
 export async function getTemplatesByUserId({ userId }: { userId: string }) {
-  console.log("Getting templates for userId:", userId);
-  try {
-    const templates = await db
-      .select()
-      .from(template)
-      .where(eq(template.userId, userId));
-    return templates as Array<Template>;
-  } catch (error) {
-    console.error("Failed to get templates by userId from database");
-    throw error;
-  }
+  const templates = await db
+    .select()
+    .from(template)
+    .where(eq(template.userId, userId));
+  return templates as Array<Template>;
 }
 
 export async function saveTemplate({
@@ -71,19 +47,14 @@ export async function saveTemplate({
   userId: string;
   title: string;
 }) {
-  try {
-    return await db.insert(template).values({
-      id: generateUUID(),
-      content,
-      userId,
-      title,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-  } catch (error) {
-    console.error("Failed to save template in database");
-    throw error;
-  }
+  return await db.insert(template).values({
+    id: generateUUID(),
+    content,
+    userId,
+    title,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 }
 
 export async function updateTemplate({
@@ -365,6 +336,42 @@ export async function getDocumentById({ id }: { id: string }) {
     return selectedDocument;
   } catch (error) {
     console.error("Failed to get document by id from database");
+    throw error;
+  }
+}
+
+export async function getDocumentsByIdForUser({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}) {
+  const documents = await db
+    .select()
+    .from(document)
+    .where(and(eq(document.id, id), eq(document.userId, userId)))
+    .orderBy(asc(document.createdAt));
+  return documents;
+}
+
+export async function getDocumentByIdForUser({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}) {
+  try {
+    const [selectedDocument] = await db
+      .select()
+      .from(document)
+      .where(and(eq(document.id, id), eq(document.userId, userId)))
+      .orderBy(desc(document.createdAt))
+      .limit(1);
+    return selectedDocument;
+  } catch (error) {
+    console.error("Failed to get document by id for user from database");
     throw error;
   }
 }

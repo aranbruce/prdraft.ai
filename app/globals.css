@@ -211,7 +211,7 @@
   outline: none;
 
   p {
-    @apply text-base font-normal;
+    @apply mb-2 text-base font-normal;
   }
 
   * {

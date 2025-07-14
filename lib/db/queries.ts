@@ -394,3 +394,44 @@ export async function deleteDocumentsByIdAfterTimestamp({
     throw error;
   }
 }
+
+export async function getUserPreferredTemplate(userId: string) {
+  try {
+    const users = await db
+      .select({ preferredTemplateId: user.preferredTemplateId })
+      .from(user)
+      .where(eq(user.id, userId));
+
+    return users.length > 0 ? users[0].preferredTemplateId : null;
+  } catch (error) {
+    console.error("Failed to get user preferred template:", error);
+    throw error;
+  }
+}
+
+export async function setUserPreferredTemplate(
+  userId: string,
+  templateId: string,
+) {
+  try {
+    // First, verify that the template exists and belongs to the user
+    const userTemplate = await db
+      .select({ id: template.id })
+      .from(template)
+      .where(and(eq(template.id, templateId), eq(template.userId, userId)))
+      .limit(1);
+
+    if (userTemplate.length === 0) {
+      throw new Error("Template not found or access denied");
+    }
+
+    // If validation passes, update the user's preferred template
+    return await db
+      .update(user)
+      .set({ preferredTemplateId: templateId })
+      .where(eq(user.id, userId));
+  } catch (error) {
+    console.error("Failed to set user preferred template:", error);
+    throw error;
+  }
+}

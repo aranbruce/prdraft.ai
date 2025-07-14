@@ -16,8 +16,6 @@ import { MoreVertical, Trash2 } from "lucide-react";
 import React from "react";
 import { ProseMirrorPreview } from "./prosemirror-preview";
 
-import Template from "./template-manager";
-
 export interface Template {
   id: string;
   title: string | null;

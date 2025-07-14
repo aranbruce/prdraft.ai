@@ -30,6 +30,7 @@ export const user = pgTable("User", {
   password: varchar("password", { length: 64 }),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  preferredTemplateId: uuid("preferredTemplateId"),
 });
 
 export type User = InferSelectModel<typeof user>;

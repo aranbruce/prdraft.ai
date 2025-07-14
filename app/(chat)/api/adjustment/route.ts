@@ -3,13 +3,7 @@ import { streamText } from "ai";
 import { customModel } from "@/ai";
 import { models } from "@/ai/models";
 import { auth } from "@/app/(auth)/auth";
-import {
-  getChatById,
-  getDocumentById,
-  saveDocument,
-  saveMessages,
-} from "@/lib/db/queries";
-import { generateUUID } from "@/lib/utils";
+import { getChatById, getDocumentById } from "@/lib/db/queries";
 
 export const maxDuration = 60;
 

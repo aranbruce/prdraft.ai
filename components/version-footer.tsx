@@ -36,7 +36,7 @@ export const VersionFooter = ({
 
   return (
     <motion.div
-      className="absolute bottom-0 z-50 flex w-full flex-col justify-between gap-4 border-t border-border bg-background px-4 pb-6 pt-4 lg:flex-row"
+      className="border-border bg-background absolute bottom-0 z-50 flex w-full flex-col justify-between gap-4 border-t px-4 pt-4 pb-6 lg:flex-row"
       initial={{ y: isMobile ? 200 : 77 }}
       animate={{ y: 0 }}
       exit={{ y: isMobile ? 200 : 77 }}
@@ -44,7 +44,7 @@ export const VersionFooter = ({
     >
       <div>
         <div>You are viewing a previous version</div>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           Restore this version to make edits
         </div>
       </div>
@@ -55,9 +55,9 @@ export const VersionFooter = ({
           onClick={async () => {
             setIsMutating(true);
 
-            mutate(
+            const response = await fetch(
               `/api/document?id=${block.documentId}`,
-              await fetch(`/api/document?id=${block.documentId}`, {
+              {
                 method: "PATCH",
                 body: JSON.stringify({
                   timestamp: getDocumentTimestampByIndex(
@@ -65,25 +65,15 @@ export const VersionFooter = ({
                     currentVersionIndex,
                   ),
                 }),
-              }),
-              {
-                optimisticData: documents
-                  ? [
-                      ...documents.filter((document) =>
-                        isAfter(
-                          new Date(document.createdAt),
-                          new Date(
-                            getDocumentTimestampByIndex(
-                              documents,
-                              currentVersionIndex,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ]
-                  : [],
               },
             );
+
+            if (response.ok) {
+              // Revalidate the data after successful deletion
+              mutate(`/api/document?id=${block.documentId}`);
+            }
+
+            setIsMutating(false);
           }}
         >
           <div>Restore this version</div>

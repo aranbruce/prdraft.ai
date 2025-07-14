@@ -48,7 +48,6 @@ export function Block({
   chatId,
   input,
   setInput,
-  handleSubmit,
   isLoading,
   stop,
   attachments,
@@ -77,12 +76,6 @@ export function Block({
     message: Message | CreateMessage,
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
-  handleSubmit: (
-    event?: {
-      preventDefault?: () => void;
-    },
-    chatRequestOptions?: ChatRequestOptions,
-  ) => void;
   modelId: string;
 }) {
   const [messagesContainerRef, messagesEndRef] =
@@ -142,13 +135,23 @@ export function Block({
           }
 
           if (currentDocument.content !== updatedContent) {
-            await fetch(`/api/document?id=${block.documentId}`, {
-              method: "POST",
-              body: JSON.stringify({
-                title: block.title,
-                content: updatedContent,
-              }),
-            });
+            const response = await fetch(
+              `/api/document?id=${block.documentId}`,
+              {
+                method: "POST",
+                body: JSON.stringify({
+                  title: block.title,
+                  content: updatedContent,
+                }),
+              },
+            );
+
+            if (!response.ok) {
+              // Handle error case
+              console.error("Failed to save document");
+              setIsContentDirty(false);
+              return currentDocuments;
+            }
 
             setIsContentDirty(false);
 
@@ -311,13 +314,14 @@ export function Block({
                 chatId={chatId}
                 input={input}
                 setInput={setInput}
-                handleSubmit={handleSubmit}
+                sendMessage={(message: any, options?: any) =>
+                  append(message, options)
+                }
                 isLoading={isLoading}
                 stop={stop}
                 attachments={attachments}
                 setAttachments={setAttachments}
                 messages={messages}
-                append={append}
                 className="bg-background dark:bg-muted"
                 setMessages={setMessages}
               />

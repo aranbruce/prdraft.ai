@@ -1,6 +1,6 @@
 "use client";
 
-import { Attachment, ChatRequestOptions, CreateMessage, Message } from "ai";
+import { Attachment, Message } from "ai";
 import cx from "classnames";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
@@ -12,6 +12,7 @@ import React, {
   useEffect,
   useRef,
   useState,
+  memo,
 } from "react";
 import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
@@ -31,7 +32,6 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 
 import { Template } from "./template-card";
-import { template } from "@/lib/db/schema";
 
 const suggestedActions = [
   {
@@ -48,7 +48,7 @@ const suggestedActions = [
   },
 ];
 
-export function MultimodalInput({
+function PureMultimodalInput({
   chatId,
   input,
   setInput,
@@ -58,8 +58,7 @@ export function MultimodalInput({
   setAttachments,
   messages,
   setMessages,
-  append,
-  handleSubmit,
+  sendMessage,
   className,
 }: {
   chatId: string;
@@ -71,16 +70,7 @@ export function MultimodalInput({
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   messages: Array<Message>;
   setMessages: Dispatch<SetStateAction<Array<Message>>>;
-  append: (
-    message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions,
-  ) => Promise<string | null | undefined>;
-  handleSubmit: (
-    event?: {
-      preventDefault?: () => void;
-    },
-    chatRequestOptions?: ChatRequestOptions,
-  ) => void;
+  sendMessage: (message: Message, options?: any) => void;
   className?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -93,12 +83,12 @@ export function MultimodalInput({
     }
   }, [input]);
 
-  const adjustHeight = () => {
+  const adjustHeight = useCallback(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
     }
-  };
+  }, []);
 
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
     "input",
@@ -121,17 +111,22 @@ export function MultimodalInput({
     setLocalStorageInput(input);
   }, [input, setLocalStorageInput]);
 
-  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(event.target.value);
-    adjustHeight();
-  };
+  const handleInput = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setInput(event.target.value);
+      adjustHeight();
+    },
+    [setInput, adjustHeight],
+  );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<
-    Array<{ name: string; contentType: string }>
+    Array<{ name: string; contentType: string; id: string }>
   >([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
+
+  const currentTemplate = templates.find((t) => t.id === selectedTemplateId);
 
   // Fetch templates for the user
   useEffect(() => {
@@ -150,6 +145,17 @@ export function MultimodalInput({
   }, []);
 
   const submitForm = useCallback(() => {
+    // Enhanced validation
+    if (!input.trim() && attachments.length === 0) {
+      toast.error("Please enter a message or attach a file");
+      return;
+    }
+
+    if (uploadQueue.length > 0) {
+      toast.error("Please wait for file uploads to complete");
+      return;
+    }
+
     if (session && status === "authenticated") {
       window.history.replaceState({}, "", `/chat/${chatId}`);
     }
@@ -159,32 +165,53 @@ export function MultimodalInput({
       return;
     }
 
-    handleSubmit(undefined, {
-      experimental_attachments: attachments,
-      body: {
-        templateId: selectedTemplateId || undefined,
-      },
-    });
+    try {
+      const message: Message = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: input,
+        createdAt: new Date(),
+        experimental_attachments:
+          attachments.length > 0 ? attachments : undefined,
+      };
 
-    setAttachments([]);
-    setLocalStorageInput("");
+      const options = {
+        experimental_attachments: attachments,
+        body: {
+          templateId: currentTemplate?.id,
+        },
+      };
 
-    if (width && width > 768) {
-      textareaRef.current?.focus();
+      sendMessage(message, options);
+
+      setAttachments([]);
+      setLocalStorageInput("");
+      setInput(""); // Clear the parent input state
+
+      if (width && width > 768) {
+        textareaRef.current?.focus();
+      }
+    } catch (error) {
+      console.error("Error submitting message:", error);
+      toast.error("Failed to send message. Please try again.");
     }
   }, [
+    input,
+    attachments,
+    uploadQueue.length,
     session,
     status,
+    chatId,
     messages.length,
-    handleSubmit,
-    attachments,
+    sendMessage,
+    currentTemplate?.id,
     setAttachments,
     setLocalStorageInput,
+    setInput,
     width,
-    chatId,
   ]);
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = useCallback(async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -198,49 +225,103 @@ export function MultimodalInput({
         const data = await response.json();
         // Fallback to file.name if originalFileName is missing (for PDFs or any file)
         const { url, pathname, contentType, originalFileName } = data;
+
+        if (!url || !pathname) {
+          throw new Error("Invalid response from upload service");
+        }
+
         return {
           url,
           name: originalFileName || file.name,
-          contentType: contentType,
+          contentType: contentType || "application/octet-stream",
           pathname: pathname,
         };
       } else if (response.status === 401) {
         toast.error("You must be logged in to upload files.");
       } else {
-        const { error } = await response.json();
-        toast.error(error);
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Upload failed" }));
+        toast.error(
+          errorData.error || `Upload failed with status ${response.status}`,
+        );
       }
     } catch (error) {
-      toast.error("Failed to upload file, please try again!");
+      if (error instanceof Error) {
+        console.error(`Failed to upload ${file.name}:`, error.message);
+        toast.error(`Failed to upload ${file.name}: ${error.message}`);
+      } else {
+        console.error("Unexpected error during file upload:", error);
+        toast.error("Failed to upload file, please try again!");
+      }
     }
-  };
+  }, []);
 
   const handleFileChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files || []);
 
+      if (files.length === 0) return;
+
+      // Validate file sizes (10MB limit)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      const oversizedFiles = files.filter((file) => file.size > maxSize);
+
+      if (oversizedFiles.length > 0) {
+        toast.error(
+          `Files too large: ${oversizedFiles.map((f) => f.name).join(", ")}. Maximum size is 10MB.`,
+        );
+        return;
+      }
+
       setUploadQueue(
-        files.map((file) => ({ name: file.name, contentType: file.type })),
+        files.map((file) => ({
+          name: file.name,
+          contentType: file.type,
+          id: `${Date.now()}-${Math.random()}`,
+        })),
       );
 
       try {
-        const uploadPromises = files.map((file) => uploadFile(file));
+        const uploadPromises = files.map(async (file) => {
+          try {
+            return await uploadFile(file);
+          } catch (error) {
+            console.error(`Failed to upload ${file.name}:`, error);
+            return null;
+          }
+        });
+
         const uploadedAttachments = await Promise.all(uploadPromises);
         const successfullyUploadedAttachments = uploadedAttachments.filter(
-          (attachment) => attachment !== undefined,
+          (attachment): attachment is NonNullable<typeof attachment> =>
+            attachment !== undefined && attachment !== null,
         );
 
-        setAttachments((currentAttachments) => [
-          ...currentAttachments,
-          ...successfullyUploadedAttachments,
-        ]);
+        if (successfullyUploadedAttachments.length > 0) {
+          setAttachments((currentAttachments) => [
+            ...currentAttachments,
+            ...successfullyUploadedAttachments,
+          ]);
+        }
+
+        if (successfullyUploadedAttachments.length < files.length) {
+          const failedCount =
+            files.length - successfullyUploadedAttachments.length;
+          toast.error(`${failedCount} file(s) failed to upload`);
+        }
       } catch (error) {
         console.error("Error uploading files!", error);
+        toast.error("An unexpected error occurred during file upload");
       } finally {
         setUploadQueue([]);
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       }
     },
-    [setAttachments],
+    [uploadFile, setAttachments],
   );
 
   return (
@@ -252,6 +333,7 @@ export function MultimodalInput({
         multiple
         onChange={handleFileChange}
         tabIndex={-1}
+        accept="image/*,application/pdf,.txt,.md,.json,.csv,.doc,.docx"
       />
 
       {(attachments.length > 0 || uploadQueue.length > 0) && (
@@ -295,13 +377,21 @@ export function MultimodalInput({
             rows={2}
             autoFocus
             onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
+              if (
+                event.key === "Enter" &&
+                !event.shiftKey &&
+                !event.nativeEvent.isComposing
+              ) {
                 event.preventDefault();
 
                 if (isLoading) {
                   toast.error(
                     "Please wait for the model to finish its response!",
                   );
+                } else if (!input.trim() && attachments.length === 0) {
+                  toast.error("Please enter a message or attach a file");
+                } else if (uploadQueue.length > 0) {
+                  toast.error("Please wait for file uploads to complete");
                 } else {
                   submitForm();
                 }
@@ -318,6 +408,8 @@ export function MultimodalInput({
                 }}
                 variant="ghost"
                 disabled={isLoading}
+                aria-label="Attach files"
+                title="Attach files (Max 10MB each)"
               >
                 <PaperclipIcon size={14} />
               </Button>
@@ -327,7 +419,11 @@ export function MultimodalInput({
               >
                 <SelectTrigger className="hover:bg-secondary focus-visible:bg-secondary h-9 w-auto cursor-pointer gap-2 rounded-lg border-0 bg-transparent pr-2 pl-3 text-sm font-medium focus:ring-0 focus:ring-offset-0 focus:outline-0 focus-visible:ring-2 focus-visible:ring-offset-1">
                   <SelectValue
-                    placeholder={templates[0]?.title || "Select a template"}
+                    placeholder={
+                      currentTemplate?.title ||
+                      templates[0]?.title ||
+                      "Select a template"
+                    }
                   />
                 </SelectTrigger>
                 <SelectContent>
@@ -348,6 +444,8 @@ export function MultimodalInput({
                   stop();
                   setMessages((messages) => sanitizeUIMessages(messages));
                 }}
+                aria-label="Stop generation"
+                title="Stop message generation"
               >
                 <StopIcon size={14} />
               </Button>
@@ -358,7 +456,17 @@ export function MultimodalInput({
                   event.preventDefault();
                   submitForm();
                 }}
-                disabled={input.length === 0 || uploadQueue.length > 0}
+                disabled={
+                  (!input.trim() && attachments.length === 0) ||
+                  uploadQueue.length > 0
+                }
+                title={
+                  !input.trim() && attachments.length === 0
+                    ? "Enter a message or attach a file to send"
+                    : uploadQueue.length > 0
+                      ? "Wait for uploads to complete"
+                      : "Send message"
+                }
               >
                 <ArrowUpIcon size={14} />
               </Button>
@@ -387,10 +495,14 @@ export function MultimodalInput({
                       window.history.replaceState({}, "", `/chat/${chatId}`);
                     }
 
-                    append({
+                    const message: Message = {
+                      id: crypto.randomUUID(),
                       role: "user",
                       content: suggestedAction.action,
-                    });
+                      createdAt: new Date(),
+                    };
+
+                    sendMessage(message);
                   }}
                   className="h-auto w-fit flex-1 items-start justify-start gap-1 rounded-full border px-2.5 py-1 text-left text-xs sm:flex-col"
                 >
@@ -403,3 +515,14 @@ export function MultimodalInput({
     </div>
   );
 }
+
+export const MultimodalInput = memo(
+  PureMultimodalInput,
+  (prevProps, nextProps) => {
+    if (prevProps.input !== nextProps.input) return false;
+    if (prevProps.isLoading !== nextProps.isLoading) return false;
+    if (prevProps.attachments.length !== nextProps.attachments.length)
+      return false;
+    return true;
+  },
+);

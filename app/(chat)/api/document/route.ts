@@ -1,98 +1,65 @@
-import { auth } from "@/app/(auth)/auth";
+import { NextRequest } from "next/server";
 import {
   deleteDocumentsByIdAfterTimestamp,
-  getDocumentsById,
+  getDocumentsByIdForUser,
+  getDocumentByIdForUser,
   saveDocument,
 } from "@/lib/db/queries";
+import { withAuth, getSearchParam, validateRequired, ApiError } from "@/lib/api-utils";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
+export async function GET(request: NextRequest) {
+  return withAuth(async (userId, req) => {
+    const id = getSearchParam(req, "id");
+    
+    const documents = await getDocumentsByIdForUser({ id, userId });
+    
+    // Handle empty results
+    if (!documents || documents.length === 0) {
+      throw new ApiError("No documents found", 404);
+    }
 
-  if (!id) {
-    return new Response("Missing id", { status: 400 });
-  }
-
-  const session = await auth();
-
-  if (!session || !session.user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  const documents = await getDocumentsById({ id });
-
-  const [document] = documents;
-
-  if (!document) {
-    return new Response("Not Found", { status: 404 });
-  }
-
-  if (document.userId !== session.user.id) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  return Response.json(documents, { status: 200 });
+    return documents;
+  }, request);
 }
 
-export async function POST(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
+export async function POST(request: NextRequest) {
+  return withAuth(async (userId, req) => {
+    const id = getSearchParam(req, "id");
+    const body = await req.json();
+    
+    validateRequired(body, ["content", "title"]);
+    const { content, title } = body;
 
-  if (!id) {
-    return new Response("Missing id", { status: 400 });
-  }
-
-  const session = await auth();
-
-  if (!session) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  const { content, title }: { content: string; title: string } =
-    await request.json();
-
-  if (session.user && session.user.id) {
     const document = await saveDocument({
       id,
       content,
       title,
-      userId: session.user.id,
+      userId,
     });
 
-    return Response.json(document, { status: 200 });
-  } else {
-    return new Response("Unauthorized", { status: 401 });
-  }
+    return document;
+  }, request);
 }
 
-export async function PATCH(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
+export async function PATCH(request: NextRequest) {
+  return withAuth(async (userId, req) => {
+    const id = getSearchParam(req, "id");
+    const body = await req.json();
+    
+    validateRequired(body, ["timestamp"]);
+    const { timestamp } = body;
 
-  const { timestamp }: { timestamp: string } = await request.json();
+    // Check ownership before deletion
+    const document = await getDocumentByIdForUser({ id, userId });
+    if (!document) {
+      throw new ApiError("Document not found or unauthorized", 404);
+    }
 
-  if (!id) {
-    return new Response("Missing id", { status: 400 });
-  }
+    await deleteDocumentsByIdAfterTimestamp({
+      id,
+      timestamp: new Date(timestamp),
+    });
 
-  const session = await auth();
-
-  if (!session || !session.user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  const documents = await getDocumentsById({ id });
-
-  const [document] = documents;
-
-  if (document.userId !== session.user.id) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  await deleteDocumentsByIdAfterTimestamp({
-    id,
-    timestamp: new Date(timestamp),
-  });
-
-  return new Response("Deleted", { status: 200 });
+    return { message: "Documents deleted successfully" };
+  }, request);
 }

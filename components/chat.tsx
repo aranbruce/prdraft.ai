@@ -3,36 +3,42 @@
 import { Attachment, Message } from "ai";
 import { useChat } from "@ai-sdk/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { useWindowSize } from "usehooks-ts";
+import { useSearchParams } from "next/navigation";
 
 import { ChatHeader } from "@/components/chat-header";
 import { PreviewMessage, ThinkingMessage } from "@/components/message";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
 import { Vote } from "@/lib/db/schema";
-import { fetcher } from "@/lib/utils";
+import { fetcher, generateUUID } from "@/lib/utils";
+import { toast } from "sonner";
 
 import { Block, UIBlock } from "./block";
-import { BlockStreamHandler } from "./block-stream-handler";
+import { useBlockStream } from "./use-block-stream";
 import { MultimodalInput } from "./multimodal-input";
 
 export function Chat({
   id,
   initialMessages,
   selectedModelId,
+  isReadonly = false,
 }: {
   id: string;
   initialMessages: Array<Message>;
   selectedModelId: string;
+  isReadonly?: boolean;
 }) {
   const { mutate } = useSWRConfig();
+  const searchParams = useSearchParams();
 
   const { width: windowWidth = 1920, height: windowHeight = 1080 } =
     useWindowSize();
 
+  // Block system for content creation and editing
   const [block, setBlock] = useState<UIBlock>({
-    documentId: "init",
+    documentId: "",
     content: "",
     title: "",
     status: "idle",
@@ -40,53 +46,108 @@ export function Chat({
     boundingBox: {
       top: windowHeight / 4,
       left: windowWidth / 4,
-      width: 250,
-      height: 50,
+      width: 800,
+      height: 600,
     },
   });
+
+  const [input, setInput] = useState<string>("");
+  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   const {
     messages,
     setMessages,
-    handleSubmit,
-    input,
-    setInput,
     append,
     status,
     stop,
     data: streamingData,
   } = useChat({
+    id,
+    initialMessages,
+    generateId: generateUUID,
     body: {
       id,
       modelId: selectedModelId,
-      // Include current document context if available
-      currentDocumentId: block.documentId !== "init" ? block.documentId : null,
     },
-    initialMessages,
     onFinish: () => {
       mutate("/api/history");
     },
+    onError: (error) => {
+      console.error("Chat error:", error);
+      toast.error(
+        error.message ||
+          "An error occurred while processing your message. Please try again.",
+      );
+    },
   });
 
+  // Create sendMessage function similar to reference
+  const sendMessage = useCallback(
+    async (message: any, options?: any) => {
+      return append(message, options);
+    },
+    [append],
+  );
+
+  // Handle URL query parameter for initial message
+  const query = searchParams.get("query");
+  const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
+
+  // Handle query parameter from URL
+  useEffect(() => {
+    if (query && !hasAppendedQuery) {
+      sendMessage({
+        role: "user",
+        content: query,
+      });
+      setHasAppendedQuery(true);
+      window.history.replaceState({}, "", `/chat/${id}`);
+    }
+  }, [query, sendMessage, hasAppendedQuery, id]);
+
   const { data: votes } = useSWR<Array<Vote>>(
-    `/api/vote?chatId=${id}`,
+    messages.length >= 2 ? `/api/vote?chatId=${id}` : null,
     fetcher,
   );
 
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
 
-  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+  // Update block position when window resizes  
+  useEffect(() => {
+    if (block.isVisible) {
+      const blockWidth = Math.min(500, windowWidth * 0.4);
+      const blockHeight = windowHeight - 100;
+      const left = windowWidth - blockWidth - 20;
+      const top = 50;
+
+      setBlock((current) => ({
+        ...current,
+        boundingBox: {
+          ...current.boundingBox,
+          left,
+          top,
+          width: blockWidth,
+          height: blockHeight,
+        },
+      }));
+    }
+  }, [windowWidth, windowHeight, block.isVisible]);
 
   return (
     <>
-      <div className="absolute inset-0 flex flex-col justify-center overflow-hidden">
+      <div 
+        className="bg-background flex h-dvh min-w-0 flex-col transition-all duration-300 ease-in-out"
+        style={{
+          marginRight: block.isVisible ? `${block.boundingBox.width + 40}px` : '0px'
+        }}
+      >
         <ChatHeader selectedModelId={selectedModelId} />
 
         {messages.length > 0 && (
           <div
             ref={messagesContainerRef}
-            className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll px-2"
+            className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto px-4"
           >
             {messages.map((message, index) => (
               <PreviewMessage
@@ -113,8 +174,8 @@ export function Chat({
           </div>
         )}
 
-        <div className="m-auto w-full px-4 md:max-w-3xl">
-          {messages.length === 0 && (
+        {messages.length === 0 && (
+          <div className="flex flex-1 flex-col items-center justify-center">
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -123,30 +184,49 @@ export function Chat({
             >
               How can I help you with your next PRD?
             </motion.h1>
-          )}
-          <motion.form
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            onSubmit={handleSubmit}
-            className="bg-background mx-auto flex w-full gap-2 pb-2 md:pb-4"
-          >
+
+            {!isReadonly && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-background mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6"
+              >
+                <MultimodalInput
+                  chatId={id}
+                  input={input}
+                  setInput={setInput}
+                  isLoading={status === "streaming" || status === "submitted"}
+                  stop={stop}
+                  attachments={attachments}
+                  setAttachments={setAttachments}
+                  messages={messages}
+                  setMessages={setMessages}
+                  sendMessage={sendMessage}
+                  className="bg-muted"
+                />
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {messages.length > 0 && !isReadonly && (
+          <div className="bg-background mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6">
             <MultimodalInput
               chatId={id}
               input={input}
               setInput={setInput}
-              handleSubmit={handleSubmit}
               isLoading={status === "streaming" || status === "submitted"}
               stop={stop}
               attachments={attachments}
               setAttachments={setAttachments}
               messages={messages}
               setMessages={setMessages}
+              sendMessage={sendMessage}
               className="bg-muted"
-              append={append}
             />
-          </motion.form>
-        </div>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
@@ -155,7 +235,6 @@ export function Chat({
             chatId={id}
             input={input}
             setInput={setInput}
-            handleSubmit={handleSubmit}
             isLoading={status === "streaming" || status === "submitted"}
             stop={stop}
             attachments={attachments}
@@ -171,7 +250,10 @@ export function Chat({
         )}
       </AnimatePresence>
 
-      <BlockStreamHandler streamingData={streamingData} setBlock={setBlock} />
+      {useBlockStream({
+        streamingData,
+        setBlock,
+      })}
     </>
   );
 }

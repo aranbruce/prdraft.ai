@@ -13,10 +13,10 @@ export async function GET(req: NextRequest) {
     }
 
     const preferredTemplateId = await getUserPreferredTemplate(session.user.id);
-    
+
     // Only return the template ID if it's valid (not exposing internal structure)
-    return NextResponse.json({ 
-      preferredTemplateId: preferredTemplateId || null 
+    return NextResponse.json({
+      preferredTemplateId: preferredTemplateId || null,
     });
   } catch (error) {
     console.error("Error fetching preferred template:", error);
@@ -35,8 +35,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate request body size to prevent DoS
-    const contentLength = req.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > 1024) { // 1KB limit
+    const contentLength = req.headers.get("content-length");
+    if (contentLength && parseInt(contentLength) > 1024) {
+      // 1KB limit
       return NextResponse.json(
         { error: "Request body too large" },
         { status: 413 },
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate input type
-    if (typeof templateId !== 'string') {
+    if (typeof templateId !== "string") {
       return NextResponse.json(
         { error: "Template ID must be a string" },
         { status: 400 },
@@ -63,7 +64,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(templateId)) {
       return NextResponse.json(
         { error: "Invalid template ID format" },
@@ -75,15 +77,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error setting preferred template:", error);
-    
+
     // Handle specific ownership validation errors
-    if (error instanceof Error && error.message === "Template not found or access denied") {
+    if (
+      error instanceof Error &&
+      error.message === "Template not found or access denied"
+    ) {
       return NextResponse.json(
         { error: "Template not found or access denied" },
         { status: 403 },
       );
     }
-    
+
     return NextResponse.json(
       { error: "Failed to set preferred template" },
       { status: 500 },

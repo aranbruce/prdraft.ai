@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+
 import { auth } from "@/app/(auth)/auth";
 import {
   getDocumentById,
@@ -18,9 +19,12 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    
+
     if (!id) {
-      return Response.json({ error: "Document ID is required" }, { status: 400 });
+      return Response.json(
+        { error: "Document ID is required" },
+        { status: 400 },
+      );
     }
 
     const session = await auth();
@@ -28,7 +32,10 @@ export async function GET(request: NextRequest) {
 
     // First try to get regular document if user is logged in
     if (session?.user?.id) {
-      const documents = await getDocumentsByIdForUser({ id, userId: session.user.id });
+      const documents = await getDocumentsByIdForUser({
+        id,
+        userId: session.user.id,
+      });
       if (documents && documents.length > 0) {
         // Return array format expected by the frontend
         return Response.json(documents);
@@ -47,7 +54,7 @@ export async function GET(request: NextRequest) {
     console.error("API Error:", error);
     return Response.json(
       { error: "Internal server error", success: false },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -57,15 +64,21 @@ export async function POST(request: NextRequest) {
     const session = await auth();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    
+
     if (!id) {
-      return Response.json({ error: "Document ID is required" }, { status: 400 });
+      return Response.json(
+        { error: "Document ID is required" },
+        { status: 400 },
+      );
     }
 
     const body = await request.json();
-    
+
     if (!body.content || !body.title) {
-      return Response.json({ error: "Content and title are required" }, { status: 400 });
+      return Response.json(
+        { error: "Content and title are required" },
+        { status: 400 },
+      );
     }
 
     const { content, title } = body;
@@ -94,7 +107,7 @@ export async function POST(request: NextRequest) {
     console.error("API Error:", error);
     return Response.json(
       { error: "Internal server error", success: false },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -102,20 +115,23 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    
+
     if (!id) {
-      return Response.json({ error: "Document ID is required" }, { status: 400 });
+      return Response.json(
+        { error: "Document ID is required" },
+        { status: 400 },
+      );
     }
 
     const body = await request.json();
-    
+
     if (!body.timestamp) {
       return Response.json({ error: "Timestamp is required" }, { status: 400 });
     }
@@ -123,9 +139,15 @@ export async function PATCH(request: NextRequest) {
     const { timestamp } = body;
 
     // Check ownership before deletion
-    const document = await getDocumentByIdForUser({ id, userId: session.user.id });
+    const document = await getDocumentByIdForUser({
+      id,
+      userId: session.user.id,
+    });
     if (!document) {
-      return Response.json({ error: "Document not found or unauthorized" }, { status: 404 });
+      return Response.json(
+        { error: "Document not found or unauthorized" },
+        { status: 404 },
+      );
     }
 
     await deleteDocumentsByIdAfterTimestamp({
@@ -133,15 +155,15 @@ export async function PATCH(request: NextRequest) {
       timestamp: new Date(timestamp),
     });
 
-    return Response.json({ 
-      message: "Documents deleted successfully", 
-      success: true 
+    return Response.json({
+      message: "Documents deleted successfully",
+      success: true,
     });
   } catch (error) {
     console.error("API Error:", error);
     return Response.json(
       { error: "Internal server error", success: false },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

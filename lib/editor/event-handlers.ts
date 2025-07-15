@@ -1,5 +1,6 @@
-import { EditorView } from "prosemirror-view";
 import { Selection } from "prosemirror-state";
+import { EditorView } from "prosemirror-view";
+
 import { clearTextHighlight } from "./text-highlight";
 
 interface EventHandlerDeps {

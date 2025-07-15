@@ -17,19 +17,20 @@ import {
   useWindowSize,
 } from "usehooks-ts";
 
+import { Editor } from "@/components/editor";
 import { Document, Vote } from "@/lib/db/schema";
 import { fetcher } from "@/lib/utils";
 
 import { DiffView } from "./diffview";
 import { DocumentSkeleton } from "./document-skeleton";
-import { Editor } from "@/components/editor";
 import { CopyIcon, CrossIcon, DeltaIcon, RedoIcon, UndoIcon } from "./icons";
 import { PreviewMessage } from "./message";
 import { MultimodalInput } from "./multimodal-input";
-import { useScrollToBottom } from "./use-scroll-to-bottom";
-import { VersionFooter } from "./version-footer";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { useScrollToBottom } from "./use-scroll-to-bottom";
+import { VersionFooter } from "./version-footer";
+
 export interface UIBlock {
   title: string;
   documentId: string;

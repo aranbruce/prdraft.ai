@@ -30,7 +30,7 @@ export function SidebarUserNav({ user }: { user: User }) {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="h-10 data-[state=open]:bg-sidebar data-[state=open]:text-sidebar-accent-foreground">
+            <SidebarMenuButton className="data-[state=open]:bg-sidebar data-[state=open]:text-sidebar-accent-foreground h-10">
               <Image
                 src={user.image ?? `https://avatar.vercel.sh/${user.email}`}
                 alt={user.email ?? "User Avatar"}

@@ -34,7 +34,7 @@ export default function Page() {
       setIsSuccessful(true);
       router.refresh();
     }
-  }, [state.status, router]);
+  }, [state.status, router, setIsSuccessful]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get("email") as string);
@@ -46,12 +46,12 @@ export default function Page() {
   };
 
   return (
-    <div className="flex h-dvh w-screen flex-col items-center justify-center bg-background pt-12 md:items-center md:pt-0">
+    <div className="bg-background flex h-dvh w-screen flex-col items-center justify-center pt-12 md:items-center md:pt-0">
       <div className="flex w-full max-w-md flex-col gap-4 px-4 sm:px-16">
         <div className="flex flex-col items-stretch justify-center gap-4 text-center">
           <div className="flex flex-col items-stretch justify-center gap-2 text-center">
-            <h3 className="text-xl font-semibold text-primary">Log In</h3>
-            <p className="text-sm text-secondary-foreground">
+            <h3 className="text-primary text-xl font-semibold">Log In</h3>
+            <p className="text-secondary-foreground text-sm">
               Use your email and password to log in
             </p>
           </div>
@@ -71,15 +71,15 @@ export default function Page() {
             </Button>
           </div>
         </div>
-        <p className="text-center text-sm text-secondary-foreground">Or</p>
+        <p className="text-secondary-foreground text-center text-sm">Or</p>
 
         <AuthForm action={handleSubmit} defaultEmail={email}>
           <SubmitButton isSuccessful={isSuccessful}>Login</SubmitButton>
-          <p className="mt-4 text-center text-sm text-secondary-foreground">
+          <p className="text-secondary-foreground mt-4 text-center text-sm">
             {"Don't have an account? "}
             <Link
               href="/sign-up"
-              className="font-semibold text-primary hover:text-primary/80"
+              className="text-primary hover:text-primary/80 font-semibold"
             >
               Sign up
             </Link>

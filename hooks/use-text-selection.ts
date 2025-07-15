@@ -1,5 +1,6 @@
-import { useRef, useState, useCallback } from "react";
 import { EditorView } from "prosemirror-view";
+import { useRef, useState, useCallback } from "react";
+
 import { applyTextHighlight } from "@/lib/editor/text-highlight";
 
 export const useTextSelection = (isMobile: boolean) => {

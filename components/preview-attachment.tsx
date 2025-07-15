@@ -1,5 +1,6 @@
-import React, { useState } from "react";
 import { Attachment } from "ai";
+import Image from "next/image";
+import React, { useState } from "react";
 
 import { CloseIcon, LoaderIcon } from "./icons";
 
@@ -45,14 +46,14 @@ export const PreviewAttachment = ({
       );
     }
     if (contentType.startsWith("image")) {
-      // NOTE: it is recommended to use next/image for images
-      // eslint-disable-next-line @next/next/no-img-element
       return (
-        <img
+        <Image
           key={url}
           src={url}
           alt={name ?? "An image attachment"}
           className="size-full cursor-pointer rounded-md object-cover"
+          width={400}
+          height={300}
           onClick={handlePreviewClick}
         />
       );
@@ -123,10 +124,12 @@ export const PreviewAttachment = ({
               <CloseIcon size={16} />
             </button>
             {contentType?.startsWith("image") ? (
-              <img
+              <Image
                 src={url}
                 alt={name ?? "Preview"}
                 className="max-h-[80vh] max-w-[80vw] object-contain"
+                width={800}
+                height={600}
               />
             ) : contentType === "application/pdf" ? (
               <embed

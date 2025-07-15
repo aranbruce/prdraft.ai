@@ -4,8 +4,8 @@ import { genSaltSync, hashSync } from "bcrypt-ts";
 import { and, asc, desc, eq, gt, inArray, lt } from "drizzle-orm";
 
 import { generateUUID } from "@/lib/utils";
-import { db } from "./schema";
 
+import { db } from "./schema";
 import {
   chat,
   companyInfo,

@@ -97,5 +97,4 @@ export const DiffView = ({ oldContent, newContent }: DiffEditorProps) => {
   }, [oldContent, newContent]);
 
   return <div className="diff-editor mx-auto max-w-2xl!" ref={editorRef} />;
-
 };

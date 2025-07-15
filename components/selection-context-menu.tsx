@@ -1,9 +1,10 @@
 "use client";
 
+import { MessageSquareText } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageSquareText } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SelectionContextMenuProps {

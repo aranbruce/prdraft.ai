@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { SubmitButton } from "@/components/submit-button";
 import { MarkDownEditor } from "@/components/markdown-editor";
+import { SubmitButton } from "@/components/submit-button";
 
 export default function CompanyForm({
   saveCompanyInfo,

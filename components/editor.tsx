@@ -1,11 +1,16 @@
 "use client";
 
+import { useCompletion } from "@ai-sdk/react";
 import { exampleSetup } from "prosemirror-example-setup";
 import { inputRules } from "prosemirror-inputrules";
 import { EditorState, Selection, TextSelection } from "prosemirror-state";
 import { EditorView, Decoration, DecorationSet } from "prosemirror-view";
 import React, { memo, useEffect, useRef } from "react";
 
+import { SelectionContextMenu } from "@/components/selection-context-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useTextHighlight } from "@/hooks/use-text-highlight";
+import { useTextSelection } from "@/hooks/use-text-selection";
 import {
   documentSchema,
   handleTransaction,
@@ -25,11 +30,6 @@ import {
   clearTextHighlight,
   textHighlightPluginKey,
 } from "@/lib/editor/text-highlight";
-import { SelectionContextMenu } from "@/components/selection-context-menu";
-import { useCompletion } from "@ai-sdk/react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useTextSelection } from "@/hooks/use-text-selection";
-import { useTextHighlight } from "@/hooks/use-text-highlight";
 
 // Constants for loading UI
 const LOADING_UI_TEXT = "AI Adjusting Text";
@@ -214,6 +214,7 @@ function PureEditor({
     isLoading,
     textHighlight.originalSelection,
     textHighlight.streamingPosition,
+    textHighlight,
   ]);
 
   // Stream new text into the cleared position
@@ -250,7 +251,12 @@ function PureEditor({
       textHighlight.lastCompletionLengthRef.current =
         cleanedCompletion.trim().length;
     }
-  }, [cleanedCompletion, isLoading, textHighlight.streamingPosition]);
+  }, [
+    cleanedCompletion,
+    isLoading,
+    textHighlight.streamingPosition,
+    textHighlight,
+  ]);
 
   // Handle input state changes for highlighting
   const handleInputStateChange = (inputActive: boolean) => {
@@ -273,11 +279,9 @@ function PureEditor({
     }
   };
 
-  // Handle closing the selection menu
-  const handleCloseSelectionMenu = () => {
+  const handleCloseSelectionMenu = React.useCallback(() => {
     if (editorRef.current) {
       clearTextHighlight(editorRef.current);
-
       // Also clear the ProseMirror selection to ensure no text remains selected
       const { state } = editorRef.current;
       const transaction = state.tr.setSelection(
@@ -288,32 +292,31 @@ function PureEditor({
       editorRef.current.dispatch(transaction);
     }
     textSelection.closeSelectionMenu();
-  };
+  }, [editorRef, textSelection]);
 
-  // Helper function to show selection menu for both desktop and mobile
-  const showSelectionMenu = (view: EditorView) => {
-    const selection = view.state.selection;
-
-    if (!selection.empty) {
-      const selectedText = view.state.doc.textBetween(
-        selection.from,
-        selection.to,
-        " ",
-      );
-
-      if (selectedText.trim().length > 0) {
-        textSelection.showSelectionMenu(view);
-
-        // Apply subtle highlighting to show the selected text
-        applyTextHighlight(view, selection.from, selection.to, false);
+  const showSelectionMenu = React.useCallback(
+    (view: EditorView) => {
+      const selection = view.state.selection;
+      if (!selection.empty) {
+        const selectedText = view.state.doc.textBetween(
+          selection.from,
+          selection.to,
+          " ",
+        );
+        if (selectedText.trim().length > 0) {
+          textSelection.showSelectionMenu(view);
+          // Apply subtle highlighting to show the selected text
+          applyTextHighlight(view, selection.from, selection.to, false);
+        }
+      } else {
+        textSelection.closeSelectionMenu();
       }
-    } else {
-      textSelection.closeSelectionMenu();
-    }
-  };
+    },
+    [textSelection],
+  );
 
   // Function to update selection menu position after scroll
-  const updateSelectionMenuPosition = () => {
+  const updateSelectionMenuPosition = React.useCallback(() => {
     if (
       !textSelection.selectionMenu ||
       !editorRef.current ||
@@ -354,7 +357,7 @@ function PureEditor({
       console.debug("Failed to update selection menu position:", error);
       handleCloseSelectionMenu();
     }
-  };
+  }, [isMobile, textSelection, handleCloseSelectionMenu]);
 
   useEffect(() => {
     if (containerRef.current && !editorRef.current) {
@@ -673,7 +676,8 @@ function PureEditor({
       textSelection.cleanup();
 
       // Clean up list operation manager
-      listOperationManagerRef.current.cleanup();
+      const listManager = listOperationManagerRef.current;
+      if (listManager) listManager.cleanup();
 
       if (editorRef.current) {
         editorRef.current.destroy();
@@ -921,7 +925,7 @@ Please respond with only the adjusted text, no explanations or formatting.`;
         handleGlobalSelectionChange,
       );
     };
-  }, [isMobile]);
+  }, [isMobile, textSelection]);
 
   // Add scroll listener to handle menu position updates when scrolling
   useEffect(() => {
@@ -950,7 +954,7 @@ Please respond with only the adjusted text, no explanations or formatting.`;
         clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [textSelection.selectionMenu]);
+  }, [textSelection.selectionMenu, updateSelectionMenuPosition]);
 
   // Add resize listener to handle orientation changes and viewport changes
   useEffect(() => {
@@ -970,7 +974,7 @@ Please respond with only the adjusted text, no explanations or formatting.`;
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("orientationchange", handleResize);
     };
-  }, [textSelection.selectionMenu]);
+  }, [textSelection.selectionMenu, updateSelectionMenuPosition]);
 
   return (
     <div className="relative">

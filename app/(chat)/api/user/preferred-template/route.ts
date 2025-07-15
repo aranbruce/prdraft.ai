@@ -1,9 +1,10 @@
+import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/app/(auth)/auth";
 import {
   getUserPreferredTemplate,
   setUserPreferredTemplate,
 } from "@/lib/db/queries";
-import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {

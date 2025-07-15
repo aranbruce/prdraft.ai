@@ -6,7 +6,6 @@ import { FlatCompat } from "@eslint/eslintrc";
 import js from "@eslint/js";
 import _import from "eslint-plugin-import";
 import prettier from "eslint-plugin-prettier";
-import tailwindcss from "eslint-plugin-tailwindcss";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,13 +31,11 @@ const eslintConfig = [
       "plugin:import/recommended",
       "plugin:import/typescript",
       "prettier",
-      "plugin:tailwindcss/recommended",
     ),
   ),
   {
     plugins: {
       import: fixupPluginRules(_import),
-      tailwindcss: fixupPluginRules(tailwindcss),
       prettier,
     },
 
@@ -51,9 +48,6 @@ const eslintConfig = [
     },
 
     rules: {
-      "tailwindcss/no-custom-classname": "off",
-      "tailwindcss/classnames-order": "off",
-
       "import/order": [
         "error",
         {

@@ -9,7 +9,10 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      // For non-logged-in users, return null as they don't have preferences
+      return NextResponse.json({
+        preferredTemplateId: null,
+      });
     }
 
     const preferredTemplateId = await getUserPreferredTemplate(session.user.id);
@@ -31,7 +34,8 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      // For non-logged-in users, silently ignore the preference save
+      return NextResponse.json({ success: true });
     }
 
     // Validate request body size to prevent DoS

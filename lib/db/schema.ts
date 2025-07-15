@@ -7,7 +7,6 @@ import {
   uuid,
   text,
   primaryKey,
-  foreignKey,
   boolean,
   integer,
 } from "drizzle-orm/pg-core";
@@ -15,7 +14,6 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import type { AdapterAccountType } from "next-auth/adapters";
-import { title } from "process";
 
 const connectionString = process.env.POSTGRES_URL!;
 const pool = postgres(connectionString, { max: 1 });
@@ -187,3 +185,13 @@ export const document = pgTable(
 );
 
 export type Document = InferSelectModel<typeof document>;
+
+export const temporaryDocument = pgTable("TemporaryDocument", {
+  id: uuid("id").primaryKey().notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  title: text("title").notNull(),
+  content: text("content"),
+  expiresAt: timestamp("expiresAt").notNull(), // Auto-delete after a day
+});
+
+export type TemporaryDocument = InferSelectModel<typeof temporaryDocument>;

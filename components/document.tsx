@@ -32,7 +32,7 @@ export function DocumentToolResult({
   return (
     <div
       className="bg-card border-secondary flex w-fit cursor-pointer flex-row items-start gap-3 rounded-xl border px-3 py-2"
-      onClick={(event) => {
+      onClick={async () => {
         // Calculate positioning for side-by-side layout
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
@@ -50,11 +50,40 @@ export function DocumentToolResult({
           height: blockHeight,
         };
 
+        // Fetch the actual document content
+        let actualContent = result?.content || "";
+        let actualTitle = result?.title || "Untitled Document";
+
+        // If this is a document creation result, we need to fetch the actual content
+        if (
+          result?.id &&
+          (type === "create" ||
+            actualContent ===
+              "A document was created and is now visible to the user.")
+        ) {
+          try {
+            // Fetch document content using the unified document API
+            const response = await fetch(`/api/document?id=${result.id}`);
+
+            if (response.ok) {
+              const documents = await response.json();
+              if (Array.isArray(documents) && documents.length > 0) {
+                const document = documents[0];
+                actualContent = document.content;
+                actualTitle = document.title;
+              }
+            }
+          } catch (error) {
+            console.error("Failed to fetch document content:", error);
+            // Fall back to the original content if fetching fails
+          }
+        }
+
         setBlock((current) => ({
           ...current,
           documentId: result?.id || "",
-          content: result?.content || "",
-          title: result?.title || "Untitled Document",
+          content: actualContent,
+          title: actualTitle,
           isVisible: true,
           status: "idle" as const,
           boundingBox,

@@ -1,27 +1,27 @@
-import { NextRequest } from "next/server";
 import { cleanupExpiredTemporaryDocuments } from "@/lib/db/queries";
 
 export async function GET() {
   try {
-    console.log("Running scheduled cleanup of expired temporary documents...");
-    
+    console.log("Running midnight cleanup of expired temporary documents...");
+
     const result = await cleanupExpiredTemporaryDocuments();
-    
+
     return Response.json({
       success: true,
-      message: "Scheduled cleanup completed successfully",
+      message:
+        "Midnight cleanup completed successfully - removed expired temporary documents",
       timestamp: new Date().toISOString(),
       result,
     });
   } catch (error) {
-    console.error("Scheduled cleanup error:", error);
+    console.error("Midnight cleanup error:", error);
     return Response.json(
-      { 
+      {
         success: false,
-        error: "Scheduled cleanup failed", 
+        error: "Midnight cleanup failed",
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

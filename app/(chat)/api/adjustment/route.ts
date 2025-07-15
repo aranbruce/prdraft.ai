@@ -3,13 +3,7 @@ import { streamText } from "ai";
 import { customModel } from "@/ai";
 import { models } from "@/ai/models";
 import { auth } from "@/app/(auth)/auth";
-import {
-  getChatById,
-  getDocumentById,
-  saveDocument,
-  saveMessages,
-} from "@/lib/db/queries";
-import { generateUUID } from "@/lib/utils";
+import { getChatById, getDocumentById, getTemporaryDocumentById } from "@/lib/db/queries";
 
 export const maxDuration = 60;
 
@@ -32,21 +26,36 @@ export async function POST(request: Request) {
     }
 
     const session = await auth();
-    if (!session?.user?.id) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-
+    
     const model = models.find((m) => m.id === modelId);
     if (!model) {
       return new Response("Model not found", { status: 404 });
     }
 
-    const chat = await getChatById({ id: chatId });
-    if (!chat) {
-      return new Response("Chat not found", { status: 404 });
+    // For authenticated users, verify chat ownership
+    if (session?.user?.id) {
+      const chat = await getChatById({ id: chatId });
+      if (!chat) {
+        return new Response("Chat not found", { status: 404 });
+      }
     }
 
-    const document = await getDocumentById({ id: documentId });
+    // Try to get document (regular or temporary)
+    let document = null;
+    
+    // First try regular document if user is logged in
+    if (session?.user?.id) {
+      document = await getDocumentById({ id: documentId });
+    }
+    
+    // If not found, try temporary document (for guest users)
+    if (!document) {
+      const tempDocs = await getTemporaryDocumentById(documentId);
+      if (tempDocs && tempDocs.length > 0) {
+        document = tempDocs[0];
+      }
+    }
+
     if (!document) {
       return new Response("Document not found", { status: 404 });
     }

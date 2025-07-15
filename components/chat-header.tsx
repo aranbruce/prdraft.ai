@@ -19,7 +19,7 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
   const { width: windowWidth } = useWindowSize();
 
   return (
-    <header className="relative top-0 flex items-center justify-between gap-2 bg-background p-2 md:bg-transparent">
+    <header className="bg-background relative top-0 flex items-center justify-between gap-2 p-2 md:bg-transparent">
       {(!open || windowWidth < 768) && (
         <div className="flex h-9 flex-row items-center gap-2">
           <Link href="/">
@@ -29,7 +29,7 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
         </div>
       )}
       {!session?.data?.user && (
-        <div className="flex w-full justify-end">
+        <div className="flex w-full items-center justify-end">
           <div className="grid grid-cols-2 gap-2">
             <Button asChild size="sm">
               <Link href="/login">Login</Link>

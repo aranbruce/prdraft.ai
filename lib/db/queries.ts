@@ -1,7 +1,7 @@
 "server-only";
 
 import { genSaltSync, hashSync } from "bcrypt-ts";
-import { and, asc, desc, eq, gt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, lt } from "drizzle-orm";
 
 import { generateUUID } from "@/lib/utils";
 import { db } from "./schema";
@@ -14,6 +14,8 @@ import {
   message,
   template,
   type Template,
+  temporaryDocument,
+  type TemporaryDocument,
   user,
   type User,
   Vote,
@@ -392,5 +394,135 @@ export async function deleteDocumentsByIdAfterTimestamp({
       "Failed to delete documents by id after timestamp from database",
     );
     throw error;
+  }
+}
+
+export async function getUserPreferredTemplate(userId: string) {
+  try {
+    const users = await db
+      .select({ preferredTemplateId: user.preferredTemplateId })
+      .from(user)
+      .where(eq(user.id, userId));
+
+    return users.length > 0 ? users[0].preferredTemplateId : null;
+  } catch (error) {
+    console.error("Failed to get user preferred template:", error);
+    throw error;
+  }
+}
+
+export async function setUserPreferredTemplate(
+  userId: string,
+  templateId: string,
+) {
+  try {
+    // First, verify that the template exists and belongs to the user
+    const userTemplate = await db
+      .select({ id: template.id })
+      .from(template)
+      .where(and(eq(template.id, templateId), eq(template.userId, userId)))
+      .limit(1);
+
+    if (userTemplate.length === 0) {
+      throw new Error("Template not found or access denied");
+    }
+
+    // If validation passes, update the user's preferred template
+    return await db
+      .update(user)
+      .set({ preferredTemplateId: templateId })
+      .where(eq(user.id, userId));
+  } catch (error) {
+    console.error("Failed to set user preferred template:", error);
+    throw error;
+  }
+}
+
+// Temporary document functions for guest users
+export async function saveTemporaryDocument({
+  id,
+  content,
+  title,
+}: {
+  id: string;
+  content: string;
+  title: string;
+}) {
+  try {
+    // Passive cleanup: remove expired documents before saving new ones
+    await cleanupExpiredTemporaryDocuments();
+
+    // Set expiration to 24 hours from now
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    // Check if document already exists
+    const existingDocs = await db
+      .select()
+      .from(temporaryDocument)
+      .where(eq(temporaryDocument.id, id))
+      .limit(1);
+
+    if (existingDocs.length > 0) {
+      // Update existing document
+      return await db
+        .update(temporaryDocument)
+        .set({
+          content,
+          title,
+          expiresAt, // Reset expiration time
+        })
+        .where(eq(temporaryDocument.id, id));
+    } else {
+      // Insert new document
+      return await db.insert(temporaryDocument).values({
+        id,
+        content,
+        title,
+        expiresAt,
+        createdAt: new Date(),
+      });
+    }
+  } catch (error) {
+    console.error("Failed to save temporary document:", error);
+    throw error;
+  }
+}
+
+export async function getTemporaryDocumentById(id: string) {
+  try {
+    // Passive cleanup: remove expired documents before fetching
+    await cleanupExpiredTemporaryDocuments();
+
+    const docs = await db
+      .select()
+      .from(temporaryDocument)
+      .where(
+        and(
+          eq(temporaryDocument.id, id),
+          gt(temporaryDocument.expiresAt, new Date()), // Only return non-expired documents
+        ),
+      )
+      .orderBy(desc(temporaryDocument.createdAt));
+
+    return docs;
+  } catch (error) {
+    console.error("Failed to get temporary document:", error);
+    throw error;
+  }
+}
+
+export async function cleanupExpiredTemporaryDocuments() {
+  try {
+    const now = new Date();
+    const result = await db
+      .delete(temporaryDocument)
+      .where(lt(temporaryDocument.expiresAt, now));
+
+    return result;
+  } catch (error) {
+    console.error("Failed to cleanup expired temporary documents:", error);
+    // Don't throw the error to avoid breaking the main operation
+    return null;
   }
 }

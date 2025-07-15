@@ -11,9 +11,11 @@ import {
   getCompanyInfoByUserId,
   getDocumentById,
   getTemplatesByUserId,
+  getTemporaryDocumentById,
   saveChat,
   saveDocument,
   saveMessages,
+  saveTemporaryDocument,
   updateChat,
 } from "@/lib/db/queries";
 import {
@@ -97,7 +99,7 @@ export async function POST(request: Request) {
   // Select the template that matches templateId, or fallback to the first
   let fetchedTemplatePrompt = null;
   if (fetchedTemplates && fetchedTemplates.length > 0) {
-    if (templateId) {
+    if (templateId && templateId.trim()) {
       fetchedTemplatePrompt =
         fetchedTemplates.find((t) => t.id === templateId) ||
         fetchedTemplates[0];
@@ -114,10 +116,28 @@ export async function POST(request: Request) {
 
   // Fetch current document context if available
   let currentDocumentContext = "";
-  if (currentDocumentId && session?.user?.id) {
+  if (currentDocumentId) {
     try {
-      const currentDocument = await getDocumentById({ id: currentDocumentId });
-      if (currentDocument && currentDocument.userId === session.user.id) {
+      let currentDocument = null;
+
+      // First try to get regular document if user is logged in
+      if (session?.user?.id) {
+        currentDocument = await getDocumentById({ id: currentDocumentId });
+        // Check ownership for regular documents
+        if (currentDocument && currentDocument.userId !== session.user.id) {
+          currentDocument = null;
+        }
+      }
+
+      // If not found, try temporary document
+      if (!currentDocument) {
+        const tempDocs = await getTemporaryDocumentById(currentDocumentId);
+        if (tempDocs && tempDocs.length > 0) {
+          currentDocument = tempDocs[0];
+        }
+      }
+
+      if (currentDocument) {
         currentDocumentContext = `
           CURRENT DOCUMENT CONTEXT:
           You are currently working with a document titled "${currentDocument.title}" (ID: ${currentDocument.id}).
@@ -166,7 +186,7 @@ export async function POST(request: Request) {
           const { fullStream } = streamText({
             model: customModel(model.apiIdentifier),
             system: `Write a product requirement document (PRD) for the given topic. Markdown is supported. Use headings wherever appropriate. Follow the following structure of a PRD:
-              ${JSON.stringify(fetchedTemplatePrompt?.content) || templatePrompt}
+              ${fetchedTemplatePrompt?.content || templatePrompt}
               `,
             prompt: title,
           });
@@ -194,6 +214,13 @@ export async function POST(request: Request) {
               content: draftText,
               userId: session.user.id,
             });
+          } else {
+            // Save as temporary document for guest users
+            await saveTemporaryDocument({
+              id,
+              title,
+              content: draftText,
+            });
           }
 
           return {
@@ -213,7 +240,22 @@ export async function POST(request: Request) {
             .describe("The description of changes that need to be made"),
         }),
         execute: async ({ id, description }) => {
-          const document = await getDocumentById({ id });
+          let document = null;
+          let isTemporary = false;
+
+          // First try to get regular document if user is logged in
+          if (session?.user?.id) {
+            document = await getDocumentById({ id });
+          }
+
+          // If not found and user is not logged in, try temporary document
+          if (!document) {
+            const tempDocs = await getTemporaryDocumentById(id);
+            if (tempDocs && tempDocs.length > 0) {
+              document = tempDocs[0];
+              isTemporary = true;
+            }
+          }
 
           if (!document) {
             return {
@@ -267,12 +309,19 @@ export async function POST(request: Request) {
 
           streamingData.append({ type: "finish", content: "" });
 
-          if (session?.user?.id) {
+          if (session?.user?.id && !isTemporary) {
             await saveDocument({
               id,
               title: document.title,
               content: draftText,
               userId: session.user.id,
+            });
+          } else if (isTemporary) {
+            // Update temporary document
+            await saveTemporaryDocument({
+              id,
+              title: document.title,
+              content: draftText,
             });
           }
 
@@ -291,7 +340,20 @@ export async function POST(request: Request) {
         }),
         execute: async ({ id }) => {
           try {
-            const document = await getDocumentById({ id });
+            let document = null;
+
+            // First try to get regular document if user is logged in
+            if (session?.user?.id) {
+              document = await getDocumentById({ id });
+            }
+
+            // If not found and user is not logged in, try temporary document
+            if (!document) {
+              const tempDocs = await getTemporaryDocumentById(id);
+              if (tempDocs && tempDocs.length > 0) {
+                document = tempDocs[0];
+              }
+            }
 
             if (!document) {
               return {
@@ -300,7 +362,8 @@ export async function POST(request: Request) {
             }
 
             // Check if the user has access to this document
-            if (session?.user?.id && document.userId !== session.user.id) {
+            // For regular documents, check userId; temporary documents are accessible to everyone
+            if (session?.user?.id && 'userId' in document && document.userId !== session.user.id) {
               return {
                 error: "Unauthorized access to document",
               };

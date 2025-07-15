@@ -128,21 +128,85 @@ function PureMultimodalInput({
 
   const currentTemplate = templates.find((t) => t.id === selectedTemplateId);
 
-  // Fetch templates for the user
+  // Fetch templates and preferred template for the user
   useEffect(() => {
-    async function fetchTemplates() {
-      const res = await fetch("/api/templates");
-      if (res.ok) {
-        const data = await res.json();
-        const templatesArray = (data || []) as Template[];
-        setTemplates(templatesArray);
-        if (templatesArray.length > 0) {
-          setSelectedTemplateId(templatesArray[0].id);
+    async function fetchTemplatesAndPreferred() {
+      try {
+        // Only fetch templates if user is logged in
+        if (!session || status !== "authenticated") {
+          setTemplates([]);
+          setSelectedTemplateId("");
+          return;
         }
+
+        // First fetch templates
+        const templatesRes = await fetch("/api/templates");
+        if (!templatesRes.ok) return;
+
+        const data = await templatesRes.json();
+        const templatesArray = (data || []) as Template[];
+
+        if (templatesArray.length === 0) {
+          setTemplates([]);
+          return;
+        }
+
+        let selectedId = templatesArray[0].id; // Default fallback
+
+        // Then try to fetch user's preferred template
+        try {
+          const preferredRes = await fetch("/api/user/preferred-template");
+          if (preferredRes.ok) {
+            const preferredData = await preferredRes.json();
+            const preferredTemplateId = preferredData.preferredTemplateId;
+
+            // Use preferred template if it exists and is valid
+            if (
+              preferredTemplateId &&
+              templatesArray.some((t) => t.id === preferredTemplateId)
+            ) {
+              selectedId = preferredTemplateId;
+            }
+          }
+        } catch (preferredError) {
+          // Silently fail and use fallback
+          console.warn("Failed to fetch preferred template:", preferredError);
+        }
+
+        // Set both templates and selected ID simultaneously to prevent flash
+        setTemplates(templatesArray);
+        setSelectedTemplateId(selectedId);
+      } catch (error) {
+        console.error("Error fetching templates:", error);
       }
     }
-    fetchTemplates();
-  }, []);
+
+    fetchTemplatesAndPreferred();
+  }, [session, status]);
+
+  // Save preferred template when selection changes
+  const handleTemplateChange = useCallback(
+    async (templateId: string) => {
+      // Only save preference if user is logged in
+      if (!session || status !== "authenticated") {
+        return;
+      }
+
+      setSelectedTemplateId(templateId);
+
+      // Save as preferred template
+      try {
+        await fetch("/api/user/preferred-template", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ templateId }),
+        });
+      } catch (error) {
+        console.error("Failed to save preferred template:", error);
+      }
+    },
+    [session, status],
+  );
 
   const submitForm = useCallback(() => {
     // Enhanced validation
@@ -175,10 +239,16 @@ function PureMultimodalInput({
           attachments.length > 0 ? attachments : undefined,
       };
 
+      // For authenticated users, send the selected template
+      const templateIdToSend =
+        session && status === "authenticated" && selectedTemplateId
+          ? selectedTemplateId
+          : undefined;
+
       const options = {
         experimental_attachments: attachments,
         body: {
-          templateId: currentTemplate?.id,
+          templateId: templateIdToSend,
         },
       };
 
@@ -413,28 +483,32 @@ function PureMultimodalInput({
               >
                 <PaperclipIcon size={14} />
               </Button>
-              <Select
-                value={selectedTemplateId}
-                onValueChange={setSelectedTemplateId}
-              >
-                <SelectTrigger className="hover:bg-secondary focus-visible:bg-secondary h-9 w-auto cursor-pointer gap-2 rounded-lg border-0 bg-transparent pr-2 pl-3 text-sm font-medium focus:ring-0 focus:ring-offset-0 focus:outline-0 focus-visible:ring-2 focus-visible:ring-offset-1">
-                  <SelectValue
-                    placeholder={
-                      currentTemplate?.title ||
-                      templates[0]?.title ||
-                      "Select a template"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {templates.length > 0 &&
-                    templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.title}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+              {/* Only show template dropdown for logged-in users */}
+              {session &&
+                status === "authenticated" &&
+                templates.length > 0 && (
+                  <Select
+                    value={selectedTemplateId}
+                    onValueChange={handleTemplateChange}
+                  >
+                    <SelectTrigger className="hover:bg-secondary focus-visible:bg-secondary h-9 w-auto cursor-pointer gap-2 rounded-lg border-0 bg-transparent pr-2 pl-3 text-sm font-medium focus:ring-0 focus:ring-offset-0 focus:outline-0 focus-visible:ring-2 focus-visible:ring-offset-1">
+                      <SelectValue
+                        placeholder={
+                          currentTemplate?.title ||
+                          templates[0]?.title ||
+                          "Select a template"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
             </div>
             {isLoading ? (
               <Button
@@ -502,7 +576,21 @@ function PureMultimodalInput({
                       createdAt: new Date(),
                     };
 
-                    sendMessage(message);
+                    // Use the same template logic as submitForm
+                    const templateIdToSend =
+                      session &&
+                      status === "authenticated" &&
+                      selectedTemplateId
+                        ? selectedTemplateId
+                        : undefined;
+
+                    const options = {
+                      body: {
+                        templateId: templateIdToSend,
+                      },
+                    };
+
+                    sendMessage(message, options);
                   }}
                   className="h-auto w-fit flex-1 items-start justify-start gap-1 rounded-full border px-2.5 py-1 text-left text-xs sm:flex-col"
                 >

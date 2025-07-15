@@ -3,8 +3,9 @@
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import React, { useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
+
 import { buildDocumentFromContent } from "@/lib/editor/functions";
+import { cn } from "@/lib/utils";
 
 type ProseMirrorPreviewProps = {
   content: string;
@@ -56,7 +57,7 @@ export function ProseMirrorPreview({
       );
       editorRef.current.dispatch(transaction);
     }
-  }, [content]);
+  }, [className, content]);
 
   return (
     <span

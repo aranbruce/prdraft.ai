@@ -137,7 +137,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="flex w-full flex-row items-center justify-center gap-2 text-sm text-secondary-foreground">
+          <div className="text-secondary-foreground flex w-full flex-row items-center justify-center gap-2 text-sm">
             <div>Login to save and revisit previous chats!</div>
           </div>
         </SidebarGroupContent>
@@ -148,7 +148,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   if (isLoading) {
     return (
       <SidebarGroup>
-        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+        <div className="text-sidebar-foreground/50 px-2 py-1 text-xs">
           Today
         </div>
         <SidebarGroupContent>
@@ -159,7 +159,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                 className="flex h-8 items-center gap-2 rounded-md px-2"
               >
                 <div
-                  className="h-4 max-w-(--skeleton-width) flex-1 rounded-md bg-sidebar-accent-foreground/10"
+                  className="bg-sidebar-accent-foreground/10 h-4 max-w-(--skeleton-width) flex-1 rounded-md"
                   style={
                     { "--skeleton-width": `${item}%` } as React.CSSProperties
                   }
@@ -176,7 +176,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="flex w-full flex-row items-center justify-center gap-2 text-sm text-secondary-foreground">
+          <div className="text-secondary-foreground flex w-full flex-row items-center justify-center gap-2 text-sm">
             <div>
               Your conversations will appear here once you start chatting!
             </div>
@@ -197,7 +197,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
               ([key, chats]) =>
                 chats.length > 0 && (
                   <div key={key} className="flex flex-col gap-0.5">
-                    <div className="mt-6 px-2 py-1 text-xs text-sidebar-foreground/50">
+                    <div className="text-sidebar-foreground/50 mt-6 px-2 py-1 text-xs">
                       {key
                         .replace(/([a-z])([A-Z])/g, "$1 $2")
                         .charAt(0)

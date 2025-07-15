@@ -6,10 +6,9 @@ import {
   sinkListItem,
   liftListItem,
 } from "prosemirror-schema-list";
-import { Transaction } from "prosemirror-state";
+import { Transaction, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { MutableRefObject } from "react";
-import { Plugin } from "prosemirror-state";
 
 import { buildContentFromDocument } from "./functions";
 

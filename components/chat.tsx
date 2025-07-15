@@ -1,23 +1,23 @@
 "use client";
 
-import { Attachment, Message } from "ai";
 import { useChat } from "@ai-sdk/react";
+import { Attachment, Message } from "ai";
 import { AnimatePresence, motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 import useSWR, { useSWRConfig } from "swr";
 import { useWindowSize } from "usehooks-ts";
-import { useSearchParams } from "next/navigation";
 
 import { ChatHeader } from "@/components/chat-header";
 import { PreviewMessage, ThinkingMessage } from "@/components/message";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
 import { Vote } from "@/lib/db/schema";
 import { fetcher, generateUUID } from "@/lib/utils";
-import { toast } from "sonner";
 
 import { Block, UIBlock } from "./block";
-import { useBlockStream } from "./use-block-stream";
 import { MultimodalInput } from "./multimodal-input";
+import { useBlockStream } from "./use-block-stream";
 
 export function Chat({
   id,
@@ -113,7 +113,7 @@ export function Chat({
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
 
-  // Update block position when window resizes  
+  // Update block position when window resizes
   useEffect(() => {
     if (block.isVisible) {
       const blockWidth = Math.min(500, windowWidth * 0.4);
@@ -136,10 +136,12 @@ export function Chat({
 
   return (
     <>
-      <div 
+      <div
         className="bg-background flex h-dvh min-w-0 flex-col transition-all duration-300 ease-in-out"
         style={{
-          marginRight: block.isVisible ? `${block.boundingBox.width + 40}px` : '0px'
+          marginRight: block.isVisible
+            ? `${block.boundingBox.width + 40}px`
+            : "0px",
         }}
       >
         <ChatHeader selectedModelId={selectedModelId} />

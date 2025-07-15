@@ -1,3 +1,7 @@
+import { MoreVertical, Trash2 } from "lucide-react";
+import React from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,
@@ -5,15 +9,13 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Trash2 } from "lucide-react";
-import React from "react";
+
 import { ProseMirrorPreview } from "./prosemirror-preview";
 
 export interface Template {

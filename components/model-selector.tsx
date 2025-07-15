@@ -35,7 +35,7 @@ export function ModelSelector({
       <DropdownMenuTrigger
         asChild
         className={cn(
-          "w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
+          "data-[state=open]:bg-accent data-[state=open]:text-accent-foreground w-fit",
           className,
         )}
       >
@@ -62,12 +62,12 @@ export function ModelSelector({
             <div className="flex flex-col items-start gap-1">
               {model.label}
               {model.description && (
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   {model.description}
                 </div>
               )}
             </div>
-            <div className="text-primary opacity-0 group-data-[active=true]/item:opacity-100 dark:text-primary-foreground">
+            <div className="text-primary dark:text-primary-foreground opacity-0 group-data-[active=true]/item:opacity-100">
               <CheckCircleFillIcon />
             </div>
           </DropdownMenuItem>

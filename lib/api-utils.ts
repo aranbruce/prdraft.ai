@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+
 import { auth } from "@/app/(auth)/auth";
 
 export interface ApiResponse<T = any> {
@@ -23,39 +24,39 @@ export async function withAuth<T>(
 ): Promise<Response> {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return Response.json(
         { error: "Unauthorized", success: false },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const result = await handler(session.user.id, request);
     // Handle cases where result might be null/undefined
-    return Response.json({ 
-      data: result ?? null, 
-      success: true 
+    return Response.json({
+      data: result ?? null,
+      success: true,
     });
   } catch (error) {
     console.error("API Error:", error);
-    
+
     if (error instanceof ApiError) {
       return Response.json(
         { error: error.message, success: false },
-        { status: error.status }
+        { status: error.status },
       );
     }
-    
+
     return Response.json(
       { error: "Internal server error", success: false },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export function validateRequired(obj: any, fields: string[]): void {
-  const missing = fields.filter(field => !obj[field]);
+  const missing = fields.filter((field) => !obj[field]);
   if (missing.length > 0) {
     throw new ApiError(`Missing required fields: ${missing.join(", ")}`, 400);
   }

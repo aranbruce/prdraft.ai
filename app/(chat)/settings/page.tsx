@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
 import { ChatHeader } from "@/components/chat-header";
 import CompanyForm from "@/components/company-form";
-import { getCompanyInfoByUserId, saveCompanyInfo } from "@/lib/db/queries";
 import TemplateManager from "@/components/template-manager";
+import { getCompanyInfoByUserId, saveCompanyInfo } from "@/lib/db/queries";
 
 export default async function Page(props: { params: Promise<any> }) {
   const session = await auth();

@@ -17,7 +17,6 @@ import React, {
 import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 
-import { sanitizeUIMessages } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -25,13 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { sanitizeUIMessages } from "@/lib/utils";
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
+import { Template } from "./template-card";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-
-import { Template } from "./template-card";
 
 const suggestedActions = [
   {
@@ -77,18 +76,18 @@ function PureMultimodalInput({
   const { width } = useWindowSize();
   const { data: session, status } = useSession();
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      adjustHeight();
-    }
-  }, [input]);
-
   const adjustHeight = useCallback(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
     }
   }, []);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      adjustHeight();
+    }
+  }, [input, adjustHeight]);
 
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
     "input",
@@ -274,11 +273,11 @@ function PureMultimodalInput({
     chatId,
     messages.length,
     sendMessage,
-    currentTemplate?.id,
     setAttachments,
     setLocalStorageInput,
     setInput,
     width,
+    selectedTemplateId,
   ]);
 
   const uploadFile = useCallback(async (file: File) => {

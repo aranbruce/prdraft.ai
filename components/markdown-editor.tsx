@@ -1,10 +1,9 @@
 "use client";
-import clsx from "clsx";
+import { clsx } from "clsx";
 import { exampleSetup } from "prosemirror-example-setup";
 import { inputRules } from "prosemirror-inputrules";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-
 import React, { useEffect, useRef, useCallback } from "react";
 
 import {

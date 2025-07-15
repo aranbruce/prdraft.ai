@@ -1,23 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { PlusCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useState, useEffect, useCallback } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
-
+import { MarkDownEditor } from "@/components/markdown-editor";
+import { TemplateCard, Template } from "@/components/template-card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,8 +16,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { TemplateCard, Template } from "@/components/template-card";
-import { MarkDownEditor } from "@/components/markdown-editor";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function TemplateManager() {
   const { data: session } = useSession();
@@ -131,13 +130,7 @@ export default function TemplateManager() {
     }
     setIsDialogOpen(false);
     setEditingTemplate(null);
-  }, [
-    formName,
-    formContent,
-    editingTemplate,
-    session?.user?.id,
-    fetchTemplates,
-  ]);
+  }, [formName, formContent, editingTemplate, fetchTemplates]);
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6">
@@ -160,7 +153,7 @@ export default function TemplateManager() {
         <Card className="bg-muted min-w-0 text-center">
           <CardContent className="p-6">
             <p className="text-muted-foreground">
-              No templates yet. Click "Add template" to get started.
+              No templates yet. Click &quot;Add template&quot; to get started.
             </p>
           </CardContent>
         </Card>
@@ -234,7 +227,7 @@ export default function TemplateManager() {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
-              template "{templateToDelete?.title}".
+              template &quot;{templateToDelete?.title}&quot;.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

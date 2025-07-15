@@ -363,7 +363,11 @@ export async function POST(request: Request) {
 
             // Check if the user has access to this document
             // For regular documents, check userId; temporary documents are accessible to everyone
-            if (session?.user?.id && 'userId' in document && document.userId !== session.user.id) {
+            if (
+              session?.user?.id &&
+              "userId" in document &&
+              document.userId !== session.user.id
+            ) {
               return {
                 error: "Unauthorized access to document",
               };

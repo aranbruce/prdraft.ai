@@ -3,7 +3,11 @@ import { streamText } from "ai";
 import { customModel } from "@/ai";
 import { models } from "@/ai/models";
 import { auth } from "@/app/(auth)/auth";
-import { getChatById, getDocumentById, getTemporaryDocumentById } from "@/lib/db/queries";
+import {
+  getChatById,
+  getDocumentById,
+  getTemporaryDocumentById,
+} from "@/lib/db/queries";
 
 export const maxDuration = 60;
 
@@ -26,7 +30,7 @@ export async function POST(request: Request) {
     }
 
     const session = await auth();
-    
+
     const model = models.find((m) => m.id === modelId);
     if (!model) {
       return new Response("Model not found", { status: 404 });
@@ -42,12 +46,12 @@ export async function POST(request: Request) {
 
     // Try to get document (regular or temporary)
     let document = null;
-    
+
     // First try regular document if user is logged in
     if (session?.user?.id) {
       document = await getDocumentById({ id: documentId });
     }
-    
+
     // If not found, try temporary document (for guest users)
     if (!document) {
       const tempDocs = await getTemporaryDocumentById(documentId);

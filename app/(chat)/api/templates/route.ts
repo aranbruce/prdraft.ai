@@ -1,6 +1,7 @@
+import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/app/(auth)/auth";
 import { getTemplatesByUserId, saveTemplate } from "@/lib/db/queries";
-import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
